@@ -430,7 +430,7 @@ class ConsistentProduct(object):
             template=config.PRODUCT_TEMPLATE,
         ).path(datetime)
     
-    def get():
+    def get(self):
         """ 
         Return h5 dataset opened in read mode.
 
