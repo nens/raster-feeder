@@ -2,7 +2,7 @@ Changelog of openradar
 ===================================================
 
 
-0.1 (unreleased)
+0.1 (2013-01-09)
 ----------------
 
 - Initial project structure created with nensskel 1.30.dev0.
