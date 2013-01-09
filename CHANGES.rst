@@ -2,7 +2,7 @@ Changelog of openradar
 ===================================================
 
 
-0.1.4 (unreleased)
+0.1.4 (2013-01-09)
 ------------------
 
 - Fix bug that tried to make d product at 9
