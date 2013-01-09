@@ -78,7 +78,9 @@ def create_geotiff(dt_aggregate, code='5min'):
         template='{code}_{timestamp}.h5'
     )
 
-    rasterlayerkwargs = utils.rain_kwargs(name='jet', max_rain=2)
+    rasterlayerkwargs = utils.rain_kwargs(
+        name='jet', max_rain=2, threshold=0.008,
+    )
 
     aggregatepath = pathhelper.path(dt_aggregate)
 
