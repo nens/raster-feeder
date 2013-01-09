@@ -5,7 +5,7 @@ Changelog of openradar
 0.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Add master script.
 
 
 0.1 (2013-01-09)
