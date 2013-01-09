@@ -6,3 +6,5 @@ Changelog of openradar
 ----------------
 
 - Initial project structure created with nensskel 1.30.dev0.
+
+- Add code from nens/radar project.
