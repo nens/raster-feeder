@@ -2,7 +2,7 @@ Changelog of openradar
 ===================================================
 
 
-0.1.3 (unreleased)
+0.1.3 (2013-01-09)
 ------------------
 
 - Fix bug in get method of ConsistentProduct.
