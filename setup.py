@@ -9,6 +9,13 @@ long_description = '\n\n'.join([
     ])
 
 install_requires = [
+    'openradar',
+    'h5py',
+    'matplotlib',
+    'numpy',
+    'PIL',
+    'rpy2',
+    'scipy',
     'setuptools',
     ],
 
