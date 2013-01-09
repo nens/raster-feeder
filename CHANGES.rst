@@ -2,7 +2,7 @@ Changelog of openradar
 ===================================================
 
 
-0.1.2 (unreleased)
+0.1.2 (2013-01-09)
 ------------------
 
 - Set threshold for rain to 0.008 (that is 0.1 / 12)
