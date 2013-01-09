@@ -5,7 +5,7 @@ Changelog of openradar
 0.1.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix bug that tried to make d product at 9
 
 
 0.1.3 (2013-01-09)

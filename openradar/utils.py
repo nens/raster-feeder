@@ -266,8 +266,7 @@ def timeframes(date, product):
             result.append('f')
         if date.minute == 0:
             result.append('h')
-            if ((date.hour == 8 and product != 'n') or
-                (date.hour == 9 and product == 'n')):
+            if date.hour == 8:
                 result.append('d')
     return result
 
