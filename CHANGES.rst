@@ -2,7 +2,7 @@ Changelog of openradar
 ===================================================
 
 
-0.1.6 (unreleased)
+0.1.6 (2013-01-10)
 ------------------
 
 - Re-enable multiprocessing.
