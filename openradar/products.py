@@ -310,6 +310,65 @@ class CalibratedProduct(object):
         interpolator.get_correction_factor()
 
 
+class ConsistentProduct(object):
+    """ Conisitified products are usually created by the consisitier. """
+
+    def __init__(self, datetime, prodcode, timeframe):
+        self.datetime = datetime
+        self.date = datetime  # Backwards compatible
+        self.prodcode = prodcode
+        self.product = prodcode  # Backwards compatible
+        self.timeframe = timeframe
+        self.path = utils.PathHelper(
+            basedir=config.CONSISTENT_DIR,
+            code=config.PRODUCT_CODE[self.timeframe][self.prodcode],
+            template=config.PRODUCT_TEMPLATE,
+        ).path(datetime)
+    
+    def get(self):
+        """ 
+        Return h5 dataset opened in read mode.
+
+        Crashes when the file does not exist. This should be catched by caller.
+        """
+        return h5py.File(self.path, 'r')
+
+    @classmethod
+    def create(cls, product, factor, consistent_with):
+        """
+        Return ConsistentProduct.
+        
+        Creates a ConsistentProduct from product with data multiplied
+        by factor and adds consistent_with to the metadata.
+        """
+        # Create the consistent product object
+        consistent_product = cls(
+            datetime=product.date,
+            prodcode=product.product,
+            timeframe=product.timeframe,
+        )
+
+        # Create the h5 datafile for it
+        with product.get() as h5:
+            data = h5['precipitation']
+            mask = np.equal(data, config.NODATAVALUE)
+            data = dict(precipitation=np.ma.array(data, mask=mask) * factor)
+            meta = dict(h5.attrs)
+            meta.update(consistent_with=consistent_with)
+        utils.save_dataset(
+            data=data, 
+            meta=meta, 
+            path=consistent_product.path
+        )
+
+        # get() will now work, so return the object.
+        filepath = consistent_product.path
+        filename = os.path.basename(filepath)
+        logging.info('Created consistent product {}'.format(filename))
+        logging.debug('Created consistent product {}'.format(filepath))
+        return consistent_product
+i
+
 class Consistifier(object):
     '''
     The products that are updated afterwards with new gaugestations need to
@@ -379,7 +438,6 @@ class Consistifier(object):
     @classmethod
     def create_consistent_products(cls, product):
         """ Returns a list of consistent products that were created. """
-        # TODO Remove confusion between calibrated and consistent below
         consistified_products = []
         if cls._reliable(product):
             # Calculate sum of subproducts
@@ -414,63 +472,6 @@ class Consistifier(object):
         return consistified_products
         
 
-class ConsistentProduct(object):
-    """ Conisitified products are usually created by the consisitier. """
-
-    def __init__(self, datetime, prodcode, timeframe):
-        self.datetime = datetime
-        self.date = datetime  # Backwards compatible
-        self.prodcode = prodcode
-        self.product = prodcode  # Backwards compatible
-        self.timeframe = timeframe
-        self.path = utils.PathHelper(
-            basedir=config.CONSISTENT_DIR,
-            code=config.PRODUCT_CODE[self.timeframe][self.prodcode],
-            template=config.PRODUCT_TEMPLATE,
-        ).path(datetime)
-    
-    def get(self):
-        """ 
-        Return h5 dataset opened in read mode.
-
-        Crashes when the file does not exist. This should be catched by caller.
-        """
-        return h5py.File(self.path, 'r')
-
-    @classmethod
-    def create(cls, product, factor, consistent_with):
-        """
-        Return ConsistentProduct.
-        
-        Creates a ConsistentProduct from product with data multiplied
-        by factor and adds consistent_with to the metadata.
-        """
-        # Create the consistent product object
-        consistent_product = cls(
-            datetime=product.date,
-            prodcode=product.product,
-            timeframe=product.timeframe,
-        )
-
-        # Create the h5 datafile for it
-        with product.get() as h5:
-            data = h5['precipitation']
-            mask = np.equal(data, config.NODATAVALUE)
-            data = dict(precipitation=np.ma.array(data, mask=mask) * factor)
-            meta = dict(h5.attrs)
-            meta.update(consistent_with=consistent_with)
-        utils.save_dataset(
-            data=data, 
-            meta=meta, 
-            path=consistent_product.path
-        )
-
-        # get() will now work, so return the object.
-        filepath = consistent_product.path
-        filename = os.path.basename(filepath)
-        logging.info('Created consistent product {}'.format(filename))
-        logging.debug('Created consistent product {}'.format(filepath))
-        return consistent_product
 
 
 def publish(products):
