@@ -273,7 +273,7 @@ def timeframes(datetime):
 
 def consistent_product_expected(product, timeframe):
     return (timeframe == 'f' and (product == 'n' or product =='a')
-            or (timeframe == 'h' and product == 'n'))
+            or (timeframe == 'f' and product == 'n'))
 
 
 def get_groundfile_datetime(prodcode, date):
