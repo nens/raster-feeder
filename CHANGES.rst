@@ -2,7 +2,7 @@ Changelog of openradar
 ===================================================
 
 
-0.1.5 (unreleased)
+0.1.5 (2013-01-10)
 ------------------
 
 - Improved publishing routine. Will publish in order of importance.
