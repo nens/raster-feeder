@@ -5,7 +5,11 @@ Changelog of openradar
 0.1.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Improved publishing routine. Will publish in order of importance.
+
+- Created FtpPublisher that takes care of using folders on ftp.
+
+- Tweaks to log messages.
 
 
 0.1.4 (2013-01-09)

@@ -128,10 +128,9 @@ class ThreddsFile(object):
                 with h5py.File(path, 'r') as h5:
                     precipitation[..., i] = h5['precipitation'][...]
                 available.append(True)
-                logging.debug('Read {} for ThreddsFile'.format(path))
             except IOError:
-                logging.debug('{} not available.'.format(path))
                 available.append(False)
+        logging.debug('Thredds fill status:' + ''.join([str(int(a)) for a in available]))
         return precipitation, available, datetimes
 
     def update(self):
@@ -204,7 +203,10 @@ class ThreddsFile(object):
 
         utils.makedir(os.path.dirname(self.path))
         shutil.move(h5_temp_path, self.path)
-        logging.info('Updated ThreddsFile {}'.format(self.path))
+        logging.info(
+            'Updated ThreddsFile {}'.format(os.path.basename(self.path)),
+        )
+        logging.debug(self.path)
 
         """
         Updates threddsfile with available data.
@@ -261,7 +263,7 @@ class CalibratedProduct(object):
         except:
             logging.debug("Can't process data; there is none for: {}".format(
                 self.groundfile_datetime))
-            stations_count = 'None'
+            stations_count = 0
         interpolater = Interpolator(dataloader)
         try:
             mask = utils.get_countrymask()
@@ -285,7 +287,10 @@ class CalibratedProduct(object):
             self.metadata,
             self.calibratepath,
         )
-        logging.info('Created calibrated {}'.format(calibrate))
+        logging.info('Created CalibratedProduct {}'.format(
+            os.path.basename(self.calibratepath)
+        ))
+        logging.debug(self.calibratepath)
 
     def get(self):
         try:
@@ -367,7 +372,7 @@ class ConsistentProduct(object):
         logging.info('Created consistent product {}'.format(filename))
         logging.debug('Created consistent product {}'.format(filepath))
         return consistent_product
-i
+
 
 class Consistifier(object):
     '''
@@ -470,50 +475,94 @@ class Consistifier(object):
                 )
             consistified_products.extend(more_consistified_products)
         return consistified_products
-        
 
+
+class FtpPublisher(object):
+    
+    def __enter__(self):
+        """ 
+        Make the connection to the FTP server.
+        
+        If necessary, create the directories.
+        """
+        self.ftp = ftplib.FTP(config.FTP_HOST, config.FTP_USER, config.FTP_PASSWORD)
+        # Create directories when necessary
+        ftp_paths = self.ftp.nlst()
+        for path in [path 
+                     for d in config.PRODUCT_CODE.values()
+                     for path in d.values()]:
+            if not path in ftp_paths:
+                self.ftp.mkd(path)
+        
+        return self
+    
+    def __exit__(self, exception_type, error, traceback):
+        """ Close ftp connection. """
+        self.ftp.quit()
+
+    def publish(self, product):
+        """ Publish the product in the correct folder. """
+        ftp_file = os.path.join(
+            config.PRODUCT_CODE[product.timeframe][product.prodcode],
+            os.path.basename(product.path),
+        )
+        with open(product.path, 'rb') as product_file:
+            response = self.ftp.storbinary(
+                'STOR {}'.format(ftp_file),
+                product_file,
+            )
+
+        logging.debug('ftp response: {}'.format(response))
+        logging.debug(ftp_file)
+        logging.info(
+            'Stored FTP file {}'.format(os.path.basename(ftp_file)),
+        )
 
 
 def publish(products):
     """
-    Each product is published via the ThreddsFile and the ftpserver.
+    Each product is published to a number of locations.
+
+    The difference between products and publications is that for some
+    calibrated products, there also exists a consistent product. In that
+    case, only the consistent product should be published.
     """
-    # Prepare dirs
+    # Get rid of the calibrated products that have a consistent equivalent
+    publications = []
+    for product in products:
+        consistent_expected = utils.consistent_product_expected(
+            product=product.product, timeframe=product.timeframe,
+        )
+        if consistent_expected and isinstance(product, CalibratedProduct):
+            continue
+        publications.append(product)
+
+    logging.debug('{} publications out of {} products'.format(
+        len(publications), len(products),
+    ))
+    logging.info('Start publishing {} publications.'.format(len(publications)))
+
+    # Publish to target dirs as configured in config:
+    logging.debug('Preparing {} dirs.'.format(len(config.COPY_TARGET_DIRS)))
     for target_dir in config.COPY_TARGET_DIRS:
         utils.makedir(target_dir)
-
-    # Login to ftp
-    if hasattr(config, 'FTP_HOST'):
-        ftp = ftplib.FTP(config.FTP_HOST, config.FTP_USER, config.FTP_PASSWORD)
-    else:
-        ftp = utils.FakeFtp()
-        logging.warning('FTP not configured.')
-    
-    for product in products:
-        # Skip calibrated products if consistent products are expected.
-        if isinstance(product, CalibratedProduct):
-            if utils.consistent_product_expected(product=product.product,
-                                                 timeframe=product.timeframe):
-                continue
-
-        # Update thredds
-        ThreddsFile.get(product=product).update()
-        
-        # Store to ftp
-        with open(product.path, 'rb') as product_file:
-            response = ftp.storbinary(
-                'STOR {}'.format(os.path.basename(product.path)),
-                product_file
-            )
-        logging.debug('ftp response: {}'.format(response))
-
-        # Copy to copy dirs
-        logging.debug('Copying product to {} dirs.'.format(
-            len(config.COPY_TARGET_DIRS),
-        ))
+    for product in publications:
         for target_dir in config.COPY_TARGET_DIRS:
             shutil.copy(product.path, target_dir)
-    
-    ftp.quit()
+    logging.info('Local target dir copying complete.')
         
-
+    # Publish to FTP configured in config:
+    if hasattr(config, 'FTP_HOST') and config.FTP_HOST != '':
+        with FtpPublisher() as ftp_publisher:
+            for product in publications:
+                ftp_publisher.publish(product)
+        logging.info('FTP publishing complete.')
+    else:
+        logging.warning('FTP not configured, FTP publishing not possible.')
+    
+    # Update thredds
+    for product in publications:
+        ThreddsFile.get(product=product).update()
+    logging.info('Thredds publishing complete.')
+   
+    logging.info('Done publishing products.')

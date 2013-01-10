@@ -258,15 +258,15 @@ def closest_time(timeframe='f', dt_close=None):
     return closesttime
 
 
-def timeframes(date, product):
-    """ Return a list of timeframe codes corresponding to a date."""
+def timeframes(datetime):
+    """ Return a list of timeframe codes corresponding to a datetime."""
     result = []
-    if date.second == 0 and date.microsecond == 0:
-        if date.minute == (date.minute // 5) * 5:
+    if datetime.second == 0 and datetime.microsecond == 0:
+        if datetime.minute == (datetime.minute // 5) * 5:
             result.append('f')
-        if date.minute == 0:
+        if datetime.minute == 0:
             result.append('h')
-            if date.hour == 8:
+            if datetime.hour == 8:
                 result.append('d')
     return result
 
@@ -446,7 +446,9 @@ def save_dataset(data, meta, path):
     Accepts an array jampacked with data, a metadata file and a path
     to produce a fresh h5 file.
     '''
-    logging.debug('Saving hdf5 dataset: {}'.format(path))
+    logging.debug('Saving hdf5 dataset: {}'.format(os.path.basename(path)))
+    logging.debug(path)
+
     makedir(os.path.dirname(path))
     h5 = h5py.File(path, 'w')
 
@@ -561,14 +563,3 @@ def get_countrymask():
     mask = h5['mask'][...]
     h5.close()
     return mask
-
-
-class FakeFtp(object):
-    def __init__(self, *args, **kwargs):
-        pass
-
-    def storbinary(self, *args, **kwargs):
-        return 'Fake FTP in use!'
-
-    def quit(self):
-        pass

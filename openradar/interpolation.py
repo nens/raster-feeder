@@ -48,7 +48,7 @@ class DataLoader(object):
         try:
             self.raindata = self.read_csv(datafile.encode('utf-8'))
         except:
-            logging.warn('Groundstations have not delivered data')
+            logging.warn('Problem reading ground datafile!')
         self.stationsdata = self.read_csv(metafile.encode('utf-8'))
         td_aggregate = delta
         self.delta = delta
@@ -95,9 +95,9 @@ class DataLoader(object):
             if measurement != 'nothere':
                 self.rainstations.append(RainStation(line[idcol],
                     line[xcol], line[ycol], measurement, line[klassecol]))
-        logging.info('{} gauge stations are available'.format(
-                len(self.rainstations),
-            ))
+        logging.info('Amount of gauge stations available: {}'.format(
+            len(self.rainstations),
+        ))
 
     def processrain(self, station_id):
         '''
@@ -154,8 +154,7 @@ class Interpolator:
         z = numpy.ma.array(z, mask=mask)
         x,y = xy.T[0], xy.T[1]
         if len(x[~mask]) == 0:
-            logging.debug('All stations give back -999.0 measurements'
-                ' are now discarded')
+            logging.debug('All stations returned NODATA.')
         return x[~mask],y[~mask],z.data[~mask], klasse[~mask]
 
     def get_dummies(self):

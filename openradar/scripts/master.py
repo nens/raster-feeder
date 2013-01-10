@@ -23,13 +23,13 @@ import logging
 
 def master_single_product(prodcode, timeframe, datetime):
     """ Returns the created products. """
+    products_created = []
+    if timeframe not in utils.timeframes(datetime=datetime):
+        # Timframe not compatible with datetime
+        return products_created
     logging.info('Creating {prodcode}, {timeframe} for {datetime}'.format(
             prodcode=prodcode, timeframe=timeframe, datetime=datetime,
     ))
-    products_created = []
-    if timeframe not in utils.timeframes(date=datetime, product=prodcode):
-        logging.debug('Timeframe not compatible with datetime, skipping.')
-        return products_created
 
     # Calibrated products
     calibrated_product = products.CalibratedProduct(
