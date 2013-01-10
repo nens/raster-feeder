@@ -5,7 +5,11 @@ Changelog of openradar
 0.1.6 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Re-enable multiprocessing.
+
+- Fix n, h products not being published.
+
+- Do local copying to subfolders per product.
 
 
 0.1.5 (2013-01-10)
