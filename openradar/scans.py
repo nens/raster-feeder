@@ -919,7 +919,7 @@ class Aggregate(object):
         """
         Return h5_dataset by merging iterable of aggregate objects.
         """
-        if self.code == 'uur1':
+        if self.code == 'uur':
             # Make the iterables in parallel
             pool = multiprocessing.Pool()
             iterable = iter(pool.map(make_aggregate, aggregates))

@@ -545,10 +545,18 @@ def publish(products):
     # Publish to target dirs as configured in config:
     logging.debug('Preparing {} dirs.'.format(len(config.COPY_TARGET_DIRS)))
     for target_dir in config.COPY_TARGET_DIRS:
-        utils.makedir(target_dir)
+        for path in [path 
+                     for d in config.PRODUCT_CODE.values()
+                     for path in d.values()]:
+            utils.makedir(os.path.join(target_dir, path))
+    logging.debug('Copying publications.')
     for product in publications:
         for target_dir in config.COPY_TARGET_DIRS:
-            shutil.copy(product.path, target_dir)
+            target_subdir = os.path.join(
+                target_dir,
+                config.PRODUCT_CODE[product.timeframe][product.prodcode],
+            )
+            shutil.copy(product.path, target_subdir)
     logging.info('Local target dir copying complete.')
         
     # Publish to FTP configured in config:
