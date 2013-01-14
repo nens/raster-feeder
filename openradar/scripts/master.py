@@ -112,11 +112,18 @@ def master():
         for job in jobs:
             products_created.extend(master_single_product(**job))
         
-        # Publish to ftp and thredds
-        products.publish(products_created)
-
     except Exception as e:
+        logging.error('Exception during product creation.')
         logging.exception(e)
+
+    # Separate handling, to publish products created before eventual crash.
+    try:
+        # Publish products
+        products.publish(products_created)
+    except Exception as e:
+        logging.error('Exception during publication.')
+        logging.exception(e)
+
     logging.info('Master stop')
 
 
