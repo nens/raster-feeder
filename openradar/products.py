@@ -11,6 +11,7 @@ from osgeo import gdal
 
 import argparse
 import calendar
+import collections
 import datetime
 import ftplib
 import h5py
@@ -39,6 +40,7 @@ class ThreddsFile(object):
         h=dict(hour=0),
         d=dict(day=1),
     )
+
     def __init__(self, datetime, product, timeframe, consistent=False):
         """
         Raise ValueError if date does not match with product and timeframe
@@ -217,6 +219,31 @@ class ThreddsFile(object):
         - Append new data
         - If there are holes in the data
         """
+
+def publish_to_thredds(products):
+    """ Dispatches products in groups to respective threddsfiles.
+
+    Products are grouped such that all datetimes in the list result in
+    the same datetime if ThreddsFile.REPLACE_KWARGS are applied to it.
+    """
+    product_dict = collections.defaultdict(list)
+    ProductKey = collections.namedtuple('Product', 
+                                        ['prodcode', 'timeframe', 'datetime'])
+    # Group the products in a dict
+    for p in products:
+        key = ProductKey(
+            prodcode=p.prodcode,
+            timeframe=p.timeframe,
+            datetime=p.datetime.replace(
+                ThreddsFile.REPLACE_KWARGS[p.timeframe],
+            )
+        ),
+        product_dict[key] = p
+
+    # Get and use threddsfile per group.
+    for k, v in product_dict.iteritems():
+        thredds_file = ThreddsFile.get(product_dict[k][0])
+        thredds_file.update_group(product_dict[k])
 
 
 class CalibratedProduct(object):
