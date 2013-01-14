@@ -5,7 +5,7 @@ Changelog of openradar
 0.1.7 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Separate error handling for creation and publishing.
 
 
 0.1.6 (2013-01-10)
