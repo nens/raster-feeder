@@ -7,6 +7,8 @@ Changelog of openradar
 
 - Separate error handling for creation and publishing.
 
+- Update existing threddsfiles when publishing.
+
 
 0.1.6 (2013-01-10)
 ------------------
