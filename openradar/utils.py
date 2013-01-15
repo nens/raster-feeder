@@ -107,6 +107,14 @@ coordinate_transformer = CoordinateTransformer()
 
 
 # Dateranges and date helpers
+def datetime_range(start, stop, step):
+    """ Return generator of datetimes. """
+    datetime = start
+    while datetime <= stop:
+        yield datetime
+        datetime += step
+
+
 def timestamp2datetime(ts, fmt='%Y%m%d%H%M%S'):
     return datetime.datetime.strptime(ts, fmt)
 

@@ -23,6 +23,7 @@ import tempfile
 
 from radar import config
 
+from openradar import images
 from openradar import log
 from openradar import utils
 from openradar import scans
@@ -97,128 +98,112 @@ class ThreddsFile(object):
             consistent=isinstance(product, ConsistentProduct)
         )
 
-    def _sources(self):
-        """
-        Return a list of paths of products which should exist to create
-        this.  Later, if interfaces have improved, this could as well
-        become a list of product objects.
-        """
-
-        path_helper = utils.PathHelper(
-            basedir=self.SOURCE_DIR,
-            code=config.PRODUCT_CODE[self.timeframe][self.product],
-            template=config.PRODUCT_TEMPLATE,
-        )
-
+    def _datetimes(self):
+        """ Return generator of datetimes for this thredds file. """
         for i in range(self.steps):
-            source_datetime = self.datetime + i * self.timedelta
-            yield source_datetime, path_helper.path(source_datetime)
+            yield self.datetime + i * self.timedelta
 
-    def _data(self):
-        """ Return precipitation, available, timestamp. """
-        shape = scans.BASEGRID.get_shape() + (self.steps,)
-        precipitation = np.ma.array(
-            np.empty(shape), mask=True, dtype=np.float32,
-            fill_value=config.NODATAVALUE,
-        )
-        available = []
-        datetimes = []
-
-        for i, (datetime, path) in enumerate(self._sources()):
-            datetimes.append(datetime)
-            try:
-                with h5py.File(path, 'r') as h5:
-                    precipitation[..., i] = h5['precipitation'][...]
-                available.append(True)
-            except IOError:
-                available.append(False)
-        logging.debug('Thredds fill status:' + ''.join([str(int(a)) for a in available]))
-        return precipitation, available, datetimes
-
-    def update(self):
-        """ Create a temporary new h5 file and move it in place."""
-        precipitation, available, datetimes = self._data()
-
-        h5_temp_path = tempfile.mkstemp()[1]
-        with h5py.File(h5_temp_path) as h5:
-
-            # East
-            east = scans.BASEGRID.get_grid()[0][0]
-            dataset = h5.create_dataset(
-                'east', east.shape, east.dtype,
-                compression='gzip', shuffle=True,
-            )
-            dataset[...] = east
-            
-            # North
-            north = scans.BASEGRID.get_grid()[1][:, 0]
-            dataset = h5.create_dataset(
-                'north', north.shape, north.dtype,
-                compression='gzip', shuffle=True,
-            )
-            dataset[...] = north
-
-            # Time
-            reference_datetime = self.datetime.replace(
-                hour=0, minute=0, second=0, microsecond=0
-            )
-            dataset = h5.create_dataset(
-                'time', [len(datetimes)], np.uint32,
-                compression='gzip', shuffle=True,
-            )
-            dataset.attrs['standard_name'] = b'time'
-            dataset.attrs['long_name'] = b'time'
-            dataset.attrs['calendar'] = b'gregorian'
-            dataset.attrs['unit'] = reference_datetime.strftime(
-                'seconds since %Y-%m-%d'
-            )
-            dataset[...] = [round((d - reference_datetime).total_seconds())
-                            for d in datetimes]
-
-            # Precipitation
-            dataset = h5.create_dataset(
-                'precipitation', precipitation.shape, precipitation.dtype,
-                compression='gzip', shuffle=True,
-            )
-            dataset[...] = precipitation
-
-            # Availability
-            dataset = h5.create_dataset(
-                'available', [len(available)], np.uint8,
-                compression='gzip', shuffle=True,
-            )
-            dataset[...] = available
-            
-            # Dimensions
-            h5['precipitation'].dims.create_scale(h5['north'])
-            h5['precipitation'].dims.create_scale(h5['east'])
-            h5['precipitation'].dims.create_scale(h5['time'])
-            
-            h5['precipitation'].dims[0].attach_scale(h5['north'])
-            h5['precipitation'].dims[1].attach_scale(h5['east'])
-            h5['precipitation'].dims[2].attach_scale(h5['time'])
-
-            h5['available'].dims.create_scale(h5['time'])
-            h5['available'].dims[0].attach_scale(h5['time'])
-        
-
-
+    def create(self, mode='w'):
+        """ Return newly created threddsfile. """
         utils.makedir(os.path.dirname(self.path))
-        shutil.move(h5_temp_path, self.path)
+        h5 = h5py.File(self.path)
+
+        # East
+        east = scans.BASEGRID.get_grid()[0][0]
+        dataset = h5.create_dataset(
+            'east', east.shape, east.dtype,
+            compression='gzip', shuffle=True,
+        )
+        dataset[...] = east
+        
+        # North
+        north = scans.BASEGRID.get_grid()[1][:, 0]
+        dataset = h5.create_dataset(
+            'north', north.shape, north.dtype,
+            compression='gzip', shuffle=True,
+        )
+        dataset[...] = north
+
+        # Time
+        reference_datetime = self.datetime.replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        dataset = h5.create_dataset(
+            'time', [self.steps], np.uint32,
+            compression='gzip', shuffle=True,
+        )
+        dataset.attrs['standard_name'] = b'time'
+        dataset.attrs['long_name'] = b'time'
+        dataset.attrs['calendar'] = b'gregorian'
+        dataset.attrs['unit'] = reference_datetime.strftime(
+            'seconds since %Y-%m-%d'
+        )
+        dataset[...] = [round((d - reference_datetime).total_seconds())
+                        for d in self._datetimes()]
+
+        # Precipitation
+        dataset = h5.create_dataset(
+            'precipitation', scans.BASEGRID.get_shape() + (self.steps,),
+            np.float32, compression='gzip', shuffle=True,
+        )
+        dataset[:] = config.NODATAVALUE * np.ones(dataset.shape)
+
+        # Availability
+        dataset = h5.create_dataset(
+            'available', [self.steps], np.uint8,
+            compression='gzip', shuffle=True,
+        )
+        dataset[...] = 0
+        
+        # Dimensions
+        h5['precipitation'].dims.create_scale(h5['north'])
+        h5['precipitation'].dims.create_scale(h5['east'])
+        h5['precipitation'].dims.create_scale(h5['time'])
+        
+        h5['precipitation'].dims[0].attach_scale(h5['north'])
+        h5['precipitation'].dims[1].attach_scale(h5['east'])
+        h5['precipitation'].dims[2].attach_scale(h5['time'])
+
+        h5['available'].dims.create_scale(h5['time'])
+        h5['available'].dims[0].attach_scale(h5['time'])
+
+        logging.info(
+            'Created ThreddsFile {}'.format(os.path.basename(self.path)),
+        )
+        logging.debug(self.path)
+        return h5
+
+    def open(self, mode='r'):
+        """ Return existing threddsfile. """
+        return h5py.File(self.path, mode=mode)
+
+    def update_group(self, products):
+        """ Update from a group of products. """
+        if os.path.exists(self.path):
+            h5_thredds = self.open(mode='a')
+        else: 
+            h5_thredds = self.create()
+        precipitation = h5_thredds['precipitation']
+        available = h5_thredds['available']
+        reference_datetime = datetime.datetime.strptime(
+            h5_thredds['time'].attrs['unit'],
+            'seconds since %Y-%m-%d',
+        )
+        for product in products:
+            time_index = round((product.datetime -
+                                self.datetime).total_seconds() / 
+                               self.timedelta.total_seconds())
+            with product.get() as h5_product:
+                precipitation[..., time_index] = h5_product['precipitation'][...]
+                available[time_index] = 1
         logging.info(
             'Updated ThreddsFile {}'.format(os.path.basename(self.path)),
         )
         logging.debug(self.path)
+        logging.debug('Thredds fill status:' + ''.join([str(int(a)) for a in available]))
 
-        """
-        Updates threddsfile with available data.
-        - Always create a complete file, which then replaces the old one.
-        - datasets: preciptiation, available, timestamp.
-        -
+        h5_thredds.close()
 
-        - Append new data
-        - If there are holes in the data
-        """
 
 def publish_to_thredds(products):
     """ Dispatches products in groups to respective threddsfiles.
@@ -235,10 +220,10 @@ def publish_to_thredds(products):
             prodcode=p.prodcode,
             timeframe=p.timeframe,
             datetime=p.datetime.replace(
-                ThreddsFile.REPLACE_KWARGS[p.timeframe],
+                **ThreddsFile.REPLACE_KWARGS[p.timeframe]
             )
-        ),
-        product_dict[key] = p
+        )
+        product_dict[key].append(p)
 
     # Get and use threddsfile per group.
     for k, v in product_dict.iteritems():
@@ -273,7 +258,8 @@ class CalibratedProduct(object):
             template=config.PRODUCT_TEMPLATE,
         ).path(date)
         self.calibratepath = self.path  # Backwards compatible
-        self.date = date
+        self.datetime = date
+        self.date = date  # Backwards compatible
 
     def make(self):
         td_aggregate = config.TIMEFRAME_DELTA[self.timeframe]
@@ -569,7 +555,12 @@ def publish(products):
     ))
     logging.info('Start publishing {} publications.'.format(len(publications)))
 
-    # Publish to target dirs as configured in config:
+    # Publish to geotiff image for webviewer
+    for product in publications:
+        if product.timeframe == 'f' and product.prodcode == 'r':
+            images.create_geotiff(product.datetime)
+
+    # Publish to target dirs as configured in config
     logging.debug('Preparing {} dirs.'.format(len(config.COPY_TARGET_DIRS)))
     for target_dir in config.COPY_TARGET_DIRS:
         for path in [path 
@@ -596,8 +587,9 @@ def publish(products):
         logging.warning('FTP not configured, FTP publishing not possible.')
     
     # Update thredds
-    for product in publications:
-        ThreddsFile.get(product=product).update()
+    #for product in publications:
+        #ThreddsFile.get(product=product).update()
+    publish_to_thredds(products)
     logging.info('Thredds publishing complete.')
    
     logging.info('Done publishing products.')

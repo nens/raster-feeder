@@ -10,10 +10,8 @@ from __future__ import division
 from radar import config
 
 from openradar import log
-from openradar import scans
 from openradar import utils
 from openradar import files
-from openradar import images
 from openradar import products
 
 import argparse
@@ -39,10 +37,6 @@ def master_single_product(prodcode, timeframe, datetime):
     )
     calibrated_product.make()
     products_created.append(calibrated_product)
-
-    # Geotiff for web viewer
-    if timeframe == 'f' and prodcode == 'r':
-        images.create_geotiff(datetime)
 
     # Consistent products, if possible:
     consistent_products_created = []
