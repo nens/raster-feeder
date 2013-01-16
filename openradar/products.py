@@ -42,66 +42,67 @@ class ThreddsFile(object):
         d=dict(day=1),
     )
 
-    def __init__(self, datetime, product, timeframe, consistent=False):
-        """
-        Raise ValueError if date does not match with product and timeframe
-        """
-        # Some inits.
-        if consistent:
-            self.SOURCE_DIR = config.CONSISTENT_DIR
-        else:
-            self.SOURCE_DIR = config.CALIBRATE_DIR
+    def _datetime(self, datetime):
+        """ Return the timestamp of the threddsfile. """
+        if self.timeframe == 'f':
+            return datetime.replace(day=1, hour=0,
+                                    minute=0, second=0, microsecond=0)
+        if self.timeframe == 'h':
+            return datetime.replace(month=1, day=1, hour=0,
+                                    minute=0, second=0, microsecond=0)
+        if self.timeframe == 'd':
+            year = datetime.year // 20 * 20
+            return datetime.replace(year=year, month=1, day=1, hour=0,
+                                    minute=0, second=0, microsecond=0)
 
-        self.timeframe = timeframe
-        self.product = product
-        self.datetime = datetime
-        self.timedelta = config.TIMEFRAME_DELTA[self.timeframe]
+    def _timesteps(self):
+        """ Return the amount of timesteps in this ThreddsFile """
+        # Make a list of year, date tuples for use in monthrange.
+        years = dict(f=1, h=1, d=20)[self.timeframe]
+        months = dict(f=1, h=12, d=12)[self.timeframe]
+        yearmonths = []
+        for year in range(self.datetime.year,
+                       self.datetime.year + years):
+            for month in range(self.datetime.month,
+                           self.datetime.month + months):
+                yearmonths.append(dict(year=year, month=month))
+        
+        # Calculate total amount of days in the file:
+        days = 0
+        for yearmonth in yearmonths:
+            days += calendar.monthrange(**yearmonth)[1]
+
+        return days * dict(f=288, h=24, d=1)[self.timeframe]
+
+    def _index(self, product):
+        """ Return the index for the time dimension. """
+        return round((product.datetime -
+                        self.datetime).total_seconds() / 
+                       self.timedelta.total_seconds())
+
+    def _time(self):
+        """ Return the fill for the time dataset. """
+        step = round(self.timedelta.total_seconds())
+        end = round(self.timesteps * step)
+        return np.ogrid[0:step:end]
+
+    def __init__(self, products):
+        """
+        Initialize the ThreddsFile based on the given list of products.
+        """
+        # The first product is used to determine threddsfile properties.
+        self.products = products
+        self.timeframe = products[0].timeframe
+        self.datetime = self._datetime(products[0].datetime)
+        self.timedelta = config.TIMEFRAME_DELTA[products[0].timeframe]
+        self.timesteps = self._timesteps()
 
         self.path = utils.PathHelper(
             basedir=config.THREDDS_DIR,
-            code=config.PRODUCT_CODE[self.timeframe][self.product],
+            code=config.PRODUCT_CODE[self.timeframe][products[0].prodcode],
             template=config.PRODUCT_TEMPLATE,
-        ).path(datetime)
+        ).path(self.datetime)
 
-        self.steps = dict(
-            f=12,
-            h=24,
-            d=calendar.monthrange(
-                self.datetime.year, self.datetime.month,
-            )[0],
-        )[self.timeframe]
-
-        # Check if supplied date is valid at all.
-        if datetime.microsecond == 0 and datetime.second == 0:
-            if datetime.minute == (datetime.minute // 5) * 5:
-                if timeframe == 'f':
-                    return
-                if datetime.minute == 0:
-                    if timeframe == 'h':
-                        return
-                    if datetime.hour == 8:
-                        if timeframe == 'd':
-                            return
-
-        raise ValueError('Datetime incompatible with timeframe.')
-
-    @classmethod
-    def get(cls, product):
-        """
-        Return instance of threddsfile where this product belongs in.
-        """
-        replace_kwargs = cls.REPLACE_KWARGS[product.timeframe]
-        return cls(
-            datetime=product.date.replace(**replace_kwargs),
-            product=product.product,
-            timeframe=product.timeframe,
-            consistent=isinstance(product, ConsistentProduct)
-        )
-
-    def _datetimes(self):
-        """ Return generator of datetimes for this thredds file. """
-        for i in range(self.steps):
-            yield self.datetime + i * self.timedelta
 
     def create(self, mode='w'):
         """ Return newly created threddsfile. """
@@ -125,32 +126,28 @@ class ThreddsFile(object):
         dataset[...] = north
 
         # Time
-        reference_datetime = self.datetime.replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
-        dataset = h5.create_dataset(
-            'time', [self.steps], np.uint32,
+        time = h5.create_dataset(
+            'time', [self.timesteps], np.uint32,
             compression='gzip', shuffle=True,
         )
-        dataset.attrs['standard_name'] = b'time'
-        dataset.attrs['long_name'] = b'time'
-        dataset.attrs['calendar'] = b'gregorian'
-        dataset.attrs['unit'] = reference_datetime.strftime(
+        time.attrs['standard_name'] = b'time'
+        time.attrs['long_name'] = b'time'
+        time.attrs['calendar'] = b'gregorian'
+        time.attrs['unit'] = self.datetime.strftime(
             'seconds since %Y-%m-%d'
         )
-        dataset[...] = [round((d - reference_datetime).total_seconds())
-                        for d in self._datetimes()]
+        time[...] = self._time()
 
         # Precipitation
+        shape = scans.BASEGRID.get_shape() + tuple([self.timesteps])
         dataset = h5.create_dataset(
-            'precipitation', scans.BASEGRID.get_shape() + (self.steps,),
-            np.float32, compression='gzip', shuffle=True,
+            'precipitation', shape, np.float32, fillvalue=config.NODATAVALUE,
+            compression='gzip', shuffle=True, chunks=(20, 20, 24)
         )
-        dataset[:] = config.NODATAVALUE * np.ones(dataset.shape)
 
         # Availability
         dataset = h5.create_dataset(
-            'available', [self.steps], np.uint8,
+            'available', [self.timesteps], np.uint8, fillvalue=0,
             compression='gzip', shuffle=True,
         )
         dataset[...] = 0
@@ -177,36 +174,44 @@ class ThreddsFile(object):
         """ Return existing threddsfile. """
         return h5py.File(self.path, mode=mode)
 
-    def update_group(self, products):
-        """ Update from a group of products. """
+    def update(self):
+        """ Update from self.products. """
+        # Create or reuse existing thredds file
         if os.path.exists(self.path):
             h5_thredds = self.open(mode='a')
+            if ('time' in h5_thredds and
+                h5_thredds['time'].size != self.timesteps):
+
+                logging.debug('Old threddsfile encountered, recreating.')
+                h5_thredds.close()
+                h5_thredds = self.create()
         else: 
             h5_thredds = self.create()
-        precipitation = h5_thredds['precipitation']
+
+        # Update from products
+        target = h5_thredds['precipitation']
         available = h5_thredds['available']
-        reference_datetime = datetime.datetime.strptime(
-            h5_thredds['time'].attrs['unit'],
-            'seconds since %Y-%m-%d',
-        )
-        for product in products:
-            time_index = round((product.datetime -
-                                self.datetime).total_seconds() / 
-                               self.timedelta.total_seconds())
+        for product in self.products:
             with product.get() as h5_product:
-                precipitation[..., time_index] = h5_product['precipitation'][...]
-                available[time_index] = 1
+                index = self._index(product)
+                source = h5_product['precipitation']
+                target[..., index] = source[...]
+                available[index] = 1
+
+        # Roundup
         logging.info(
             'Updated ThreddsFile {}'.format(os.path.basename(self.path)),
         )
         logging.debug(self.path)
-        logging.debug('Thredds fill status:' + ''.join([str(int(a)) for a in available]))
+        logging.debug('ThreddsFile fill status: {} %'.format(
+            available[:].sum() / available.size))
 
         h5_thredds.close()
 
 
 def publish_to_thredds(products):
-    """ Dispatches products in groups to respective threddsfiles.
+    """ 
+    Dispatches products in groups to respective threddsfiles.
 
     Products are grouped such that all datetimes in the list result in
     the same datetime if ThreddsFile.REPLACE_KWARGS are applied to it.
@@ -227,8 +232,8 @@ def publish_to_thredds(products):
 
     # Get and use threddsfile per group.
     for k, v in product_dict.iteritems():
-        thredds_file = ThreddsFile.get(product_dict[k][0])
-        thredds_file.update_group(product_dict[k])
+        thredds_file = ThreddsFile(product_dict[k])
+        thredds_file.update()
 
 
 class CalibratedProduct(object):
