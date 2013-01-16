@@ -9,6 +9,8 @@ Changelog of openradar
 
 - Update existing threddsfiles when publishing.
 
+- Moving to much larger threddsfiles of around 10000 grids.
+
 
 0.1.6 (2013-01-10)
 ------------------
