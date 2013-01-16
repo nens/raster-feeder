@@ -266,6 +266,11 @@ class CalibratedProduct(object):
             self.calibrated,
             mask=np.equal(self.calibrated, config.NODATAVALUE),
         )
+
+        logging.debug('Setting negative values to 0. Min was: {}'.format(
+            calibrated_ma.min()))
+        calibrated_ma[np.ma.less(calibrated_ma, 0)] = 0
+
         calibrate = utils.save_dataset(
             dict(precipitation=calibrated_ma),
             self.metadata,

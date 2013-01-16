@@ -543,9 +543,9 @@ def save_dataset(data, meta, path):
     save_attrs(dataset, image_data)
     
     # Creating the pixel values
-    dataset[...] = np.round(np.uint16(data['precipitation'] * 100).filled(
-        calibration['calibration_out_of_image']
-    ))
+    dataset[...] = np.uint16(np.round(data['precipitation'] * 100)).filled(
+        calibration['calibration_out_of_image'],
+    )
     
     # Keep the old way for compatibility with various products
     for name, value in data.items():
