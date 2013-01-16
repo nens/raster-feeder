@@ -36,12 +36,6 @@ class ThreddsFile(object):
     """
     Contains a number of products in h5 format.
     """
-    REPLACE_KWARGS = dict(
-        f=dict(minute=0),
-        h=dict(hour=0),
-        d=dict(day=1),
-    )
-
     def _datetime(self, datetime):
         """ Return the timestamp of the threddsfile. """
         if self.timeframe == 'f':
@@ -86,22 +80,22 @@ class ThreddsFile(object):
         end = round(self.timesteps * step)
         return np.ogrid[0:step:end]
 
-    def __init__(self, products):
+    @classmethod
+    def get_for_product(cls, product):
         """
-        Initialize the ThreddsFile based on the given list of products.
+        Return ThreddsFile instance to which product belongs.
         """
-        # The first product is used to determine threddsfile properties.
-        self.products = products
-        self.timeframe = products[0].timeframe
-        self.datetime = self._datetime(products[0].datetime)
-        self.timedelta = config.TIMEFRAME_DELTA[products[0].timeframe]
-        self.timesteps = self._timesteps()
-
-        self.path = utils.PathHelper(
+        thredds_file = cls()
+        thredds_file.timeframe = product.timeframe
+        thredds_file.datetime = thredds_file._datetime(product.datetime)
+        thredds_file.timedelta = config.TIMEFRAME_DELTA[product.timeframe]
+        thredds_file.timesteps = thredds_file._timesteps()
+        thredds_file.path = utils.PathHelper(
             basedir=config.THREDDS_DIR,
-            code=config.PRODUCT_CODE[self.timeframe][products[0].prodcode],
+            code=config.PRODUCT_CODE[thredds_file.timeframe][product.prodcode],
             template=config.PRODUCT_TEMPLATE,
-        ).path(self.datetime)
+        ).path(thredds_file.datetime)
+        return thredds_file
 
 
     def create(self, mode='w'):
@@ -174,8 +168,8 @@ class ThreddsFile(object):
         """ Return existing threddsfile. """
         return h5py.File(self.path, mode=mode)
 
-    def update(self):
-        """ Update from self.products. """
+    def update(self, product):
+        """ Update from product """
         # Create or reuse existing thredds file
         if os.path.exists(self.path):
             h5_thredds = self.open(mode='a')
@@ -191,12 +185,11 @@ class ThreddsFile(object):
         # Update from products
         target = h5_thredds['precipitation']
         available = h5_thredds['available']
-        for product in self.products:
-            with product.get() as h5_product:
-                index = self._index(product)
-                source = h5_product['precipitation']
-                target[..., index] = source[...]
-                available[index] = 1
+        with product.get() as h5_product:
+            index = self._index(product)
+            source = h5_product['precipitation']
+            target[..., index] = source[...]
+            available[index] = 1
 
         # Roundup
         logging.info(
@@ -207,33 +200,6 @@ class ThreddsFile(object):
             available[:].sum() / available.size))
 
         h5_thredds.close()
-
-
-def publish_to_thredds(products):
-    """ 
-    Dispatches products in groups to respective threddsfiles.
-
-    Products are grouped such that all datetimes in the list result in
-    the same datetime if ThreddsFile.REPLACE_KWARGS are applied to it.
-    """
-    product_dict = collections.defaultdict(list)
-    ProductKey = collections.namedtuple('Product', 
-                                        ['prodcode', 'timeframe', 'datetime'])
-    # Group the products in a dict
-    for p in products:
-        key = ProductKey(
-            prodcode=p.prodcode,
-            timeframe=p.timeframe,
-            datetime=p.datetime.replace(
-                **ThreddsFile.REPLACE_KWARGS[p.timeframe]
-            )
-        )
-        product_dict[key].append(p)
-
-    # Get and use threddsfile per group.
-    for k, v in product_dict.iteritems():
-        thredds_file = ThreddsFile(product_dict[k])
-        thredds_file.update()
 
 
 class CalibratedProduct(object):
@@ -592,9 +558,8 @@ def publish(products):
         logging.warning('FTP not configured, FTP publishing not possible.')
     
     # Update thredds
-    #for product in publications:
-        #ThreddsFile.get(product=product).update()
-    publish_to_thredds(products)
+    for product in publications:
+        ThreddsFile.get_for_product(product=product).update(product)
     logging.info('Thredds publishing complete.')
    
     logging.info('Done publishing products.')
