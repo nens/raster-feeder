@@ -106,14 +106,3 @@ def create_geotiff(dt_aggregate, code='5min'):
                               **rasterlayerkwargs).save(tifpath_rd, rgba=True)
 
     logging.info('saved {}.'.format(tifpath_rd))
-    
-    # Warp to google.
-    utils.makedir(os.path.dirname(tifpath_google))
-    warpopts = '-t_srs EPSG:900913 -r bilinear -overwrite -co "COMPRESS=DEFLATE" -q'
-    command = 'gdalwarp {} {} {}'.format(
-        warpopts, tifpath_rd, tifpath_google,
-    )
-    subprocess.call(shlex.split(command))
-    
-    logging.debug('saved {}.'.format(tifpath_google))
-

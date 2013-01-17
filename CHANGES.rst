@@ -7,6 +7,8 @@ Changelog of openradar
 
 - Format logging and show ftp result summary in logfile.
 
+- No longer prepare google gtiff for web viewer.
+
 
 0.1.9 (2013-01-17)
 ------------------
