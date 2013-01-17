@@ -5,7 +5,7 @@ Changelog of openradar
 0.1.10 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Format logging and show ftp result summary in logfile.
 
 
 0.1.9 (2013-01-17)

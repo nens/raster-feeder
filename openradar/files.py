@@ -118,6 +118,7 @@ class FtpImporter(object):
         """
         ftp = self.connections[group]
         remote = ftp.nlst()
+        synced = []
         for name in remote:
             try:
                 scan_signature = scans.ScanSignature(scanname=name)
@@ -131,23 +132,27 @@ class FtpImporter(object):
             with open(os.path.join(config.SOURCE_DIR, name), 'wb') as scanfile:
                 ftp.retrbinary('RETR ' + name, scanfile.write)
             logging.debug('Fetched: {}'.format(name))
+            synced.append(name)
+        return synced
 
-    def do(self):
+    def fetch(self):
         """ Create connection if necessary and sync any files. """
         # Update what we already have.
         for path, dirs, names in os.walk(config.SOURCE_DIR):
             self.arrived.extend(names)
 
         # Walk ftp filelists and sync where necessary
+        synced = []
         for group in config.FTP_RADARS:
             try:
                 if not group in self.connections:
                     self._connect(group)
-                self._sync(group)
+                synced.extend(self._sync(group))
             except ImportError:
                 logging.debug('FTP connection problem for {}'.format(group))
                 if group in self.connections:
                     del self.connections[group]
+        return synced
 
     def close(self):
         """ Close open connections. """
@@ -176,12 +181,18 @@ def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
 
     # Add radars to expected files.
     for radar in config.ALL_RADARS:
-        set_expected.add(scans.ScanSignature(
+        scan_signature = scans.ScanSignature(
             scancode=radar, scandatetime=dt_radar,
-        ).get_scanname())
-    set_expected.add(scans.GroundData(
+        )
+        if not os.path.exists(scan_signature.get_scanpath()):
+            set_expected.add(scan_signature.get_scanname())
+
+    # Add ground to expected files
+    ground_data = scans.GroundData(
         datacode='5min', datadatetime=dt_ground,
-    ).get_dataname())
+    )
+    if not os.path.exists(ground_data.get_datapath()):
+        set_expected.add(ground_data.get_dataname())
 
     logging.debug('looking for {}'.format(', '.join(set_expected)))
 
@@ -189,10 +200,12 @@ def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
     # files are found or the timeout expires.
     ftp_importer = FtpImporter(datetime=dt_calculation)
     while True:
-        ftp_importer.do()
+        fetched = ftp_importer.fetch()
+        logging.info('Fetched {} files from FTP.'.format(len(fetched)))
         set_arrived = set()
         for path, dirs, names in os.walk(config.SOURCE_DIR):
             set_names = set(names)
+            # Add the intersection of names and expected to arrived.
             set_arrived |= (set_names & set_expected)
 
         if set_arrived:

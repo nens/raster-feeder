@@ -25,9 +25,13 @@ def master_single_product(prodcode, timeframe, datetime):
     if timeframe not in utils.timeframes(datetime=datetime):
         # Timframe not compatible with datetime
         return products_created
+
+    # Make this important logging stand out.
+    logging.info(60 * '-')
     logging.info('Creating {prodcode}, {timeframe} for {datetime}'.format(
             prodcode=prodcode, timeframe=timeframe, datetime=datetime,
     ))
+    logging.info(60 * '-')
 
     # Calibrated products
     calibrated_product = products.CalibratedProduct(
@@ -87,6 +91,7 @@ def master_auto(args, dt_delivery):
 def master():
     log.setup_logging()
     args = master_args()
+    logging.info(60 * '=')
     logging.info('Master start')
     products_created = []
     try:
@@ -119,6 +124,7 @@ def master():
         logging.exception(e)
 
     logging.info('Master stop')
+    logging.info(60 * '=')
 
 
 def master_args():
