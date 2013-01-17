@@ -5,7 +5,9 @@ Changelog of openradar
 0.1.9 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add ftp info to config
+
+- Add FtpImporter that imports directly from scanfile sources.
 
 
 0.1.8 (2013-01-17)

@@ -88,6 +88,7 @@ def master():
     log.setup_logging()
     args = master_args()
     logging.info('Master start')
+    products_created = []
     try:
 
         if args['range'] is not None:
@@ -95,14 +96,13 @@ def master():
         else:
             dt_delivery = utils.closest_time()
             jobs = master_auto(args, dt_delivery)
-            files.wait_for_files(dt_calculation=dt_delivery)
+            files.sync_and_wait_for_files(dt_calculation=dt_delivery)
         
         # Organize 
         sourcepath = args['source_dir']
         files.organize_from_path(sourcepath=sourcepath)
 
         # Create products
-        products_created = []
         for job in jobs:
             products_created.extend(master_single_product(**job))
         

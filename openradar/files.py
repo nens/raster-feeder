@@ -10,8 +10,10 @@ from __future__ import division
 from radar import config
 
 from openradar import scans
+from openradar import utils
 
 import datetime
+import ftplib
 import logging
 import os
 import shutil
@@ -41,6 +43,7 @@ def organize_from_path(sourcepath):
         sourcepath,
     ))
     count = 0
+    zipcount = 0
 
     for path, dirs, names in os.walk(sourcepath):
         for name in names:
@@ -72,13 +75,88 @@ def organize_from_path(sourcepath):
                 os.makedirs(os.path.dirname(target_path))
             if target_path.endswith('.csv'):
                 move_to_zip(source_path, target_path)
+                zipcount += 1
             else:
                 shutil.move(source_path, target_path)
             count += 1
-    logging.info('Moved {} files'.format(count))
+    logging.info('Moved {} files'.format(count, zipcount))
 
 
-def wait_for_files(dt_calculation, td_wait=None, sleep=10):
+class FtpImporter(object):
+    """
+    Connect to ftp for radars and fetch any files that are not fetched yet.
+    """
+    def __init__(self, datetime, max_age=3600):
+        """
+        Set datetime and empty connection dictionary. Max age is in
+        seconds, measured from datetime.
+        """
+        utils.makedir(config.SOURCE_DIR)
+
+        self.datetime = datetime
+        self.max_age = max_age
+        self.connections = {}
+        # Check what is already there.
+        self.arrived = []
+
+    def _connect(self, group):
+        """ Create and store connection for group on self. """
+        ftp = ftplib.FTP(
+            config.FTP_RADARS[group]['host'],
+            config.FTP_RADARS[group]['user'],
+            config.FTP_RADARS[group]['password'],
+        )
+        ftp.cwd(config.FTP_RADARS[group]['path'])
+        self.connections[group] = ftp
+        logging.debug('FTP connection to {} established.'.format(group))
+
+    def _sync(self, group):
+        """
+        Fetch files that are not older than max_age, and that are not
+        yet in config.SOURCE_DIR or in config.RADAR_DIR, and store them
+        in SOURCE_DIR.
+        """
+        ftp = self.connections[group]
+        remote = ftp.nlst()
+        for name in remote:
+            try:
+                scan_signature = scans.ScanSignature(scanname=name)
+                datetime = scan_signature.get_datetime()
+                path = scan_signature.get_scanpath()
+                age = (self.datetime - datetime).total_seconds()
+                if name in self.arrived or age > self.max_age or os.path.exists(path):
+                    continue
+            except ValueError:
+                continue  # It is not a radar file as we know it.
+            with open(os.path.join(config.SOURCE_DIR, name), 'wb') as scanfile:
+                ftp.retrbinary('RETR ' + name, scanfile.write)
+            logging.debug('Fetched: {}'.format(name))
+
+    def do(self):
+        """ Create connection if necessary and sync any files. """
+        # Update what we already have.
+        for path, dirs, names in os.walk(config.SOURCE_DIR):
+            self.arrived.extend(names)
+
+        # Walk ftp filelists and sync where necessary
+        for group in config.FTP_RADARS:
+            try:
+                if not group in self.connections:
+                    self._connect(group)
+                self._sync(group)
+            except ImportError:
+                logging.debug('FTP connection problem for {}'.format(group))
+                if group in self.connections:
+                    del self.connections[group]
+
+    def close(self):
+        """ Close open connections. """
+        for group in self.connections:
+            self.connections[group].quit()
+            logging.debug('Quit FTP connection to {}'.format(group))
+
+
+def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
     """
     Return if files are present or utcnow > dt_files + td_wait
 
@@ -86,7 +164,6 @@ def wait_for_files(dt_calculation, td_wait=None, sleep=10):
     """
     if td_wait is None:
         td_wait = config.WAIT_EXPIRE_DELTA
-
 
     logging.info('Waiting for files until {}.'.format(
         dt_calculation + td_wait,
@@ -110,8 +187,9 @@ def wait_for_files(dt_calculation, td_wait=None, sleep=10):
 
     # keep walking the source dir until all
     # files are found or the timeout expires.
-
+    ftp_importer = FtpImporter(datetime=dt_calculation)
     while True:
+        ftp_importer.do()
         set_arrived = set()
         for path, dirs, names in os.walk(config.SOURCE_DIR):
             set_names = set(names)
@@ -122,6 +200,7 @@ def wait_for_files(dt_calculation, td_wait=None, sleep=10):
             logging.debug('Found: {}'.format(', '.join(set_arrived)))
             if not set_expected:
                 logging.info('All required files have arrived.')
+                ftp_importer.close()
                 return True
             logging.debug('Awaiting: {}'.format(
                 ', '.join(set_expected),
@@ -136,4 +215,5 @@ def wait_for_files(dt_calculation, td_wait=None, sleep=10):
         ', '.join(set_expected),
     ))
 
+    ftp_importer.close()
     return False
