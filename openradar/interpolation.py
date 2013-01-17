@@ -10,6 +10,7 @@ import datetime
 import logging
 import os
 import sys
+import zipfile
 
 import numpy
 from osgeo import gdal
@@ -73,11 +74,27 @@ class DataLoader(object):
         '''
         This is quite a generic method. But because csv library does not read
         unicode it is specifically in this interpolation.py
+
+        Tries to read file from zipfile with same name if possible,
+        otherwise reads the plaintext file.
         '''
-        file_open = open(filename, 'r')
-        csvdata = csv.reader(file_open, delimiter=',', quotechar='"')
-        data = [i for i in csvdata]
-        return data
+        basename = os.path.basename(filename)
+
+        # Try to return from zipfile
+        zippath = filename[:-3] + 'zip'
+        if os.path.exists(zippath):
+            with zipfile.ZipFile(zippath) as zip_file:
+                with zip_file.open(basename) as csvfile:
+                    reader = csv.reader(csvfile)
+                    data = [i for i in reader]
+                    logging.debug('Returned {} from zip'.format(basename))
+                    return data
+            
+        with open(filename) as csvfile:
+            reader = csv.reader(csvfile)
+            data = [i for i in reader]
+            logging.debug('Returned {} from plaintext'.format(basename))
+            return data
 
     def processdata(self, skip=None, klasse=1):
         '''

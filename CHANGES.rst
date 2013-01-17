@@ -5,7 +5,7 @@ Changelog of openradar
 0.1.8 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- CSV is now read from zipfile if it exists.
 
 
 0.1.7 (2013-01-16)
