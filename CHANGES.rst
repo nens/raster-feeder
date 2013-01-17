@@ -2,7 +2,7 @@ Changelog of openradar
 ===================================================
 
 
-0.1.9 (unreleased)
+0.1.9 (2013-01-17)
 ------------------
 
 - Add ftp info to config
