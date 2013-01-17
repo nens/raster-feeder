@@ -9,6 +9,8 @@ Changelog of openradar
 
 - No longer prepare google gtiff for web viewer.
 
+- Delete existing h5 when creating, even if opening in 'w' mode.
+
 
 0.1.9 (2013-01-17)
 ------------------

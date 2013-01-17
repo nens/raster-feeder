@@ -100,6 +100,7 @@ class ThreddsFile(object):
 
     def create(self, mode='w'):
         """ Return newly created threddsfile. """
+        os.remove(self.path)
         utils.makedir(os.path.dirname(self.path))
         h5 = h5py.File(self.path)
 
