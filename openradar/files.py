@@ -16,6 +16,23 @@ import logging
 import os
 import shutil
 import time
+import zipfile
+
+
+def move_to_zip(source_path, target_path):
+    """ Move the file at source_path to a zipfile at target_path. """
+    # Prepare
+    root, ext = os.path.splitext(target_path)
+    zip_path = root + '.zip'
+    arcname = os.path.basename(target_path)
+
+    # Write to zip
+    with zipfile.ZipFile(zip_path, 'w',
+                      compression=zipfile.ZIP_DEFLATED) as zip_file:
+        zip_file.write(source_path, arcname=arcname)
+    
+    # Remove source
+    os.remove(source_path)
 
 
 def organize_from_path(sourcepath):
@@ -53,7 +70,10 @@ def organize_from_path(sourcepath):
             source_path = os.path.join(path, name)
             if not os.path.exists(os.path.dirname(target_path)):
                 os.makedirs(os.path.dirname(target_path))
-            shutil.move(source_path, target_path)
+            if target_path.endswith('.csv'):
+                move_to_zip(source_path, target_path)
+            else:
+                shutil.move(source_path, target_path)
             count += 1
     logging.info('Moved {} files'.format(count))
 

@@ -7,6 +7,8 @@ Changelog of openradar
 
 - CSV is now read from zipfile if it exists.
 
+- Organize now moves anything with a csv extension to a zipped csv.
+
 
 0.1.7 (2013-01-16)
 ------------------
