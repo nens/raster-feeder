@@ -100,7 +100,6 @@ class ThreddsFile(object):
 
     def create(self, mode='w'):
         """ Return newly created threddsfile. """
-        os.remove(self.path)
         utils.makedir(os.path.dirname(self.path))
         h5 = h5py.File(self.path)
 
@@ -179,6 +178,7 @@ class ThreddsFile(object):
 
                 logging.debug('Old threddsfile encountered, recreating.')
                 h5_thredds.close()
+                os.remove(self.path)
                 h5_thredds = self.create()
         else: 
             h5_thredds = self.create()

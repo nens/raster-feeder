@@ -201,7 +201,8 @@ def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
     ftp_importer = FtpImporter(datetime=dt_calculation)
     while True:
         fetched = ftp_importer.fetch()
-        logging.info('Fetched {} files from FTP.'.format(len(fetched)))
+        if fetched:
+            logging.info('Fetched {} files from FTP.'.format(len(fetched)))
         set_arrived = set()
         for path, dirs, names in os.walk(config.SOURCE_DIR):
             set_names = set(names)

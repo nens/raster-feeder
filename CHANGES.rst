@@ -5,7 +5,9 @@ Changelog of openradar
 0.2.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- No logging for FtpImporter if nothing fetched.
+
+- Fix crashing when creating new threddsfiles.
 
 
 0.2.0 (2013-01-17)
