@@ -2,7 +2,7 @@ Changelog of openradar
 ===================================================
 
 
-0.2.1 (unreleased)
+0.2.1 (2013-01-18)
 ------------------
 
 - No logging for FtpImporter if nothing fetched.
