@@ -2,7 +2,7 @@ Changelog of openradar
 ===================================================
 
 
-0.2.2 (unreleased)
+0.2.2 (2013-01-21)
 ------------------
 
 - Even less crashing of threddsfiles.
