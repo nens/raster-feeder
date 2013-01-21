@@ -98,7 +98,7 @@ class ThreddsFile(object):
         return thredds_file
 
 
-    def create(self, mode='w'):
+    def create(self):
         """ Return newly created threddsfile. """
         utils.makedir(os.path.dirname(self.path))
         h5 = h5py.File(self.path)
@@ -164,24 +164,40 @@ class ThreddsFile(object):
         logging.debug(self.path)
         return h5
 
-    def open(self, mode='r'):
-        """ Return existing threddsfile. """
-        return h5py.File(self.path, mode=mode)
+    def check(self):
+        """ Raise ValueError if check fails. """
+        
+        with h5py.File(self.path) as h5:
+            if not 'time' in h5:
+                raise ValueError("No 'time' dataset.")
+            if not h5['time'].size == self.timesteps:
+                raise ValueError('Expected size {}, found {}.'.format(
+                    self.timesteps, h5['time'].size,
+                ))
+
+    def get_or_create(self):
+        """
+        Return h5 ready for writing.
+
+        If already exists, it is checked against some criteria. If it
+        fails the test or does not exist at all, a new file is created
+        and initialized.
+        """
+        if not os.path.exists(self.path):
+            logging.debug(self.path)
+            return self.create()
+        try:
+            self.check()
+        except ValueError as e:
+            logging.debug('Check said: "{}"; Creating new file.'.format(e))
+            os.remove(self.path)
+            return self.create()
+        return h5py.File(self.path)
 
     def update(self, product):
         """ Update from product """
         # Create or reuse existing thredds file
-        if os.path.exists(self.path):
-            h5_thredds = self.open(mode='a')
-            if ('time' in h5_thredds and
-                h5_thredds['time'].size != self.timesteps):
-
-                logging.debug('Old threddsfile encountered, recreating.')
-                h5_thredds.close()
-                os.remove(self.path)
-                h5_thredds = self.create()
-        else: 
-            h5_thredds = self.create()
+        h5_thredds = self.get_or_create()
 
         # Update from products
         target = h5_thredds['precipitation']
