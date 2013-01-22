@@ -402,7 +402,6 @@ class Consistifier(object):
     """ Is a class purily for encapsulation purposes."""
     SUB_TIMEFRAME = {'d': 'h', 'h': 'f'}
     
-    
     @classmethod
     def _reliable(cls, product):
         """
@@ -425,7 +424,7 @@ class Consistifier(object):
         sub_timeframe = cls.SUB_TIMEFRAME[product.timeframe]
         sub_timedelta = config.TIMEFRAME_DELTA[sub_timeframe]
         for i in range(amount_of_subproducts):
-            yield product.date + sub_timedelta * (i - amount_of_subproducts)
+            yield product.date + sub_timedelta * (i - amount_of_subproducts + 1)
 
     @classmethod
     def _subproducts(cls, product):
@@ -435,7 +434,6 @@ class Consistifier(object):
             yield CalibratedProduct(date=datetime,
                                     product=product.product,
                                     timeframe=sub_timeframe)
-        
 
     @classmethod
     def _precipitation_from_product(cls, product):
@@ -446,7 +444,6 @@ class Consistifier(object):
             precipitation = np.ma.array(data, mask=mask)
         return precipitation
         
-
     @classmethod
     def create_consistent_products(cls, product):
         """ Returns a list of consistent products that were created. """
