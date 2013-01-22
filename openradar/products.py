@@ -382,7 +382,7 @@ class ConsistentProduct(object):
 
 
 class Consistifier(object):
-    '''
+    """
     The products that are updated afterwards with new gaugestations need to
     be consistent with the aggregates of the same date.
     E.g. In the hour 12.00 there are 12 * 5 minute products and 1 one hour
@@ -394,12 +394,8 @@ class Consistifier(object):
         - 5 minute afterwards
         - hour near-realtime
 
-    To make the products one can initiate class and run make_consistent:
-    cproduct = ConsistentProduct('n', 'f', 201212180700)
-    cproduct.make_consistent()
-    Products are written in config.CONSISTENT_DIR
-    '''
-    """ Is a class purily for encapsulation purposes."""
+    Is a class purily for encapsulation purposes.
+    """
     SUB_TIMEFRAME = {'d': 'h', 'h': 'f'}
     
     @classmethod
