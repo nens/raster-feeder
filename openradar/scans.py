@@ -747,6 +747,13 @@ def make_aggregate(aggregate):
 
 class Aggregate(object):
     """
+    The Aggregate contains the sum of a number of radar composites,
+    depending on the timeframe.
+    
+    It is the aggregate that is calibrated using ground gauges. The
+    aggregate uses the composites of 5 minutes earlier, because the
+    composite datetime is when the radar starts to scan, and the detected
+    rain still has to fall down.
     """
     CODE = {
         datetime.timedelta(minutes=5): '5min',
