@@ -2,7 +2,7 @@ Changelog of openradar
 ===================================================
 
 
-0.2.3 (unreleased)
+0.2.3 (2013-01-22)
 ------------------
 
 - Add script for syncing of ftp folders (hirlam, eps)
