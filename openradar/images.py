@@ -49,6 +49,18 @@ def shape_image():
     return shape_layer.image()
 
 
+def shape_image_filled():
+    """ Return rgba image with shape of country. """
+    basegrid = scans.BASEGRID
+    shape_layer = basegrid.create_vectorlayer()
+    shape_layer.add_multipolygon(
+        os.path.join(config.SHAPE_DIR, 'nederland_rd.shp'),
+        color='g',
+        linewidth=1,
+    )
+    return shape_layer.image()
+
+
 def osm_image():
     """ Return rgba image with osm background. """
     ds_osm_rd = gdal.Open(os.path.join(config.SHAPE_DIR, 'osm-rd.tif'))
@@ -60,14 +72,14 @@ def osm_image():
     return Image.fromarray(osm_rgba)
 
 
-def white_image():
-    """ Return white rgba image. """
+def plain_image(color=(255, 255, 255)):
+    """ Return opaque rgba image with color color. """
     basegrid = scans.BASEGRID
-    white_rgba = np.ones(
-        basegrid.size + (4,),
+    rgba = np.ones(
+        basegrid.get_shape() + (4,),
         dtype=np.uint8,
-    ) * 255
-    return Image.fromarray(white_rgba)
+    ) * np.uint8(color + (255,))
+    return Image.fromarray(rgba)
 
 
 def create_geotiff(dt_aggregate, code='5min'):
@@ -88,11 +100,7 @@ def create_geotiff(dt_aggregate, code='5min'):
         config.IMG_DIR, 'geotiff', 'rd',
         dt_aggregate.strftime('%Y-%m-%d-%H-%M.tiff')
     )
-    tifpath_google = os.path.join(
-        config.IMG_DIR, 'geotiff', 'google',
-        dt_aggregate.strftime('%Y-%m-%d-%H-%M.tiff')
-    )
-
+    
     with h5py.File(aggregatepath, 'r') as h5:
         array = h5['precipitation']
         mask = np.equal(array, h5.attrs['fill_value'])
