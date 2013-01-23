@@ -362,23 +362,3 @@ class VectorLayer(AbstractLayer):
                     self.axes.add_patch(
                         patches.Polygon(xy, *plotargs, **plotkwargs)
                     )
-
-
-
-#class GeoImage(AbstractLayer):
-    #def __init__(self, layers):
-        #self.layers = layers
-
-    #def _merge(self, rgba1, rgba2):
-        #""" Return rgba for rgba1 pasted on rgba2. """
-        #img1 = Image.fromarray(rgba1)
-        #img2 = Image.fromarray(rgba2)
-        #img2.paste(img1, None, img1)
-        #return np.array(img2)
-
-    #def _iterrgba(self):
-        #for layer in self.layers:
-            #yield layer._rgba()
-
-    #def _rgba(self):
-        #return reduce(self._merge, self._iterrgba())
