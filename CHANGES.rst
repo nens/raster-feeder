@@ -2,7 +2,7 @@ Changelog of openradar
 ===================================================
 
 
-0.2.4 (unreleased)
+0.2.4 (2013-01-24)
 ------------------
 
 - Add animated gif creation.
