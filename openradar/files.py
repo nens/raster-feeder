@@ -222,8 +222,11 @@ def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
         
         if datetime.datetime.utcnow() > dt_calculation + td_wait:
             break
-        
-        time.sleep(config.WAIT_SLEEP_TIME)
+       
+        try:
+            time.sleep(config.WAIT_SLEEP_TIME)
+        except KeyboardInterrupt:
+            break
 
     logging.info('Timeout expired, but {} not found.'.format(
         ', '.join(set_expected),

@@ -772,7 +772,8 @@ class Aggregate(object):
 
     def __init__(self, dt_aggregate, td_aggregate, scancodes, declutter):
 
-        self.dt_aggregate = dt_aggregate
+        self.dt_aggregate = dt_aggregate  # Backwards compatibility
+        self.datetime = dt_aggregate
         self.td_aggregate = td_aggregate
         self.scancodes = scancodes
         self.code = self.CODE[td_aggregate]

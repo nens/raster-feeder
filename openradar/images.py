@@ -9,6 +9,8 @@ from __future__ import division
 
 from radar import config
 
+from matplotlib import patches
+
 from openradar import utils
 from openradar import gridtools
 from openradar import scans
@@ -20,6 +22,7 @@ import h5py
 import logging
 import numpy as np
 import os
+import pytz
 import shlex
 import subprocess
 
@@ -43,8 +46,8 @@ def shape_image():
     shape_layer = basegrid.create_vectorlayer()
     shape_layer.add_line(
         os.path.join(config.SHAPE_DIR, 'west_europa_lijn.shp'),
-        color='k',
-        linewidth=1,
+        color='0.5',
+        linewidth=0.5,
     )
     return shape_layer.image()
 
@@ -82,6 +85,48 @@ def plain_image(color=(255, 255, 255)):
     return Image.fromarray(rgba)
 
 
+def radars_image(h5, label=''):
+    """ Return radar image with optional label from open h5. """
+    
+    # Create vectorlayer get metadata
+    label_layer = scans.BASEGRID.create_vectorlayer()
+    metadata = h5.attrs
+    locations = metadata['locations']
+    stations = metadata['radars']
+    ranges = metadata['ranges']
+
+    for i in range(len(stations)):
+
+        # Plot stations
+        label_layer.axes.add_artist(patches.Circle(
+            locations[i], 4000,
+            facecolor='r', edgecolor='k', linewidth=2,
+        ))
+
+        # Plot labels
+        #xytext = locations[i][0], locations[i][1] + 7000
+        #label_layer.axes.annotate(
+            #stations[i], locations[i],
+            #xytext=xytext, ha='center', weight='bold', size='large',
+        #)
+
+        # Plot range circles
+        label_layer.axes.add_artist(patches.Circle(
+            locations[i], ranges[i] * 1000,
+            facecolor='none', edgecolor='0.5', linestyle='dotted',
+        ))
+
+    # Plot timestamp
+    if label:
+        label_layer.axes.annotate(
+            label, (0.25, 0.82), xycoords='axes fraction',
+            ha='left', va='top', size='x-large', weight='bold',
+            color='w',
+        )
+
+    return label_layer.image()
+
+
 def create_geotiff(dt_aggregate, code='5min'):
 
     pathhelper = utils.PathHelper(
@@ -114,3 +159,67 @@ def create_geotiff(dt_aggregate, code='5min'):
                               **rasterlayerkwargs).save(tifpath_rd, rgba=True)
 
     logging.info('saved {}.'.format(tifpath_rd))
+
+
+def create_png(products, **kwargs):
+    """ Create image for products. """
+    utils.makedir(config.IMG_DIR)
+    
+    # Load some images
+    img_osm = osm_image()
+    img_shape = shape_image()
+    img_blue = plain_image(color=(0, 0, 127))
+    img_shape_filled = shape_image_filled()
+    
+    # Loop products
+    for product in products:
+        
+        # Get dutch time label
+        tz_amsterdam = pytz.timezone('Europe/Amsterdam')
+        tz_utc = pytz.timezone('UTC')
+        utc = tz_utc.localize(product.datetime)
+        amsterdam = utc.astimezone(tz_amsterdam)
+        label = amsterdam.strftime('%Y-%m-%d %H:%M')
+        
+        with product.get() as h5:
+            array = h5['precipitation'][...] / h5.attrs['composite_count']
+            mask = np.equal(array, h5.attrs['fill_value'])
+            img_radars = radars_image(h5=h5, label=label)
+        masked_array = np.ma.array(array, mask=mask)
+        img_rain = data_image(masked_array, max_rain=2, threshold=0.008)
+
+        timestamp = utils.datetime2timestamp(product.datetime)
+
+        filename = '{}{}.{}'.format(
+            timestamp, kwargs.get('postfix', ''), kwargs.get('format', 'png'),
+        )
+        path = os.path.join(config.IMG_DIR, filename)
+        utils.merge([
+            img_radars, 
+            img_rain,
+            img_shape,
+            img_shape_filled,
+            img_blue,
+        ]).save(path)
+    logging.debug(path)
+
+
+def create_animated_gif(datetime):
+    """ Produces animated gif file from images in IMG_DIR. """
+    template = 'convert -set delay 20 -loop 0 -crop 340x370+80+40 +repage {} {}'
+    step = config.TIMEFRAME_DELTA['f']
+    pngpaths = []
+
+    # Add files if they exist
+    for i in range(36):
+        timestamp = utils.datetime2timestamp(datetime - i * step)
+        pngpath = os.path.join(config.IMG_DIR, timestamp + '.png')
+        if os.path.exists(pngpath):
+            pngpaths = [pngpath] + pngpaths
+    logging.debug('Found {} suitable png files.'.format(len(pngpaths)))
+
+    # Create the gif
+    gifpath = os.path.join(config.IMG_DIR, 'radar.gif')
+    command = template.format(' '.join(pngpaths), gifpath)
+    subprocess.call(shlex.split(command))
+    logging.debug(gifpath)

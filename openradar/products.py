@@ -519,7 +519,7 @@ class FtpPublisher(object):
         )
 
 
-def publish(products):
+def publish(products, dt_delivery):
     """
     Each product is published to a number of locations.
 
@@ -579,3 +579,12 @@ def publish(products):
     logging.info('Thredds publishing complete.')
    
     logging.info('Done publishing products.')
+
+    # Create png and animated gif if called with a delivery date
+    if dt_delivery is not None:
+        logging.info('Creating png and animated gif.')
+        images.create_png([CalibratedProduct(date=dt_delivery,
+                                                      product='r',
+                                                      timeframe='f')])
+        images.create_animated_gif(datetime=dt_delivery)
+

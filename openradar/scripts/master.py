@@ -98,6 +98,7 @@ def master():
 
         if args['range'] is not None:
             jobs = master_manual(args)
+            dt_delivery = None
         else:
             dt_delivery = utils.closest_time()
             jobs = master_auto(args, dt_delivery)
@@ -118,7 +119,7 @@ def master():
     # Separate handling, to publish products created before eventual crash.
     try:
         # Publish products
-        products.publish(products_created)
+        products.publish(products_created, dt_delivery)
     except Exception as e:
         logging.error('Exception during publication.')
         logging.exception(e)

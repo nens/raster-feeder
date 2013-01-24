@@ -14,6 +14,7 @@ install_requires = [
     'matplotlib',
     'numpy',
     'PIL',
+    'pytz',
     'rpy2',
     'scipy',
     'setuptools',
