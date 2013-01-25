@@ -220,6 +220,8 @@ def create_animated_gif(datetime):
 
     # Create the gif
     gifpath = os.path.join(config.IMG_DIR, 'radar.gif')
-    command = template.format(' '.join(pngpaths), gifpath)
+    tempgifpath = gifpath.replace('radar.gif', 'radar_temp.gif')
+    command = template.format(' '.join(pngpaths), tempgifpath)
     subprocess.call(shlex.split(command))
+    os.rename(tempgifpath, gifpath)
     logging.debug(gifpath)

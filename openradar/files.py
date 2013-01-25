@@ -224,6 +224,7 @@ def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
             break
        
         try:
+            logging.debug('Sleeping...')
             time.sleep(config.WAIT_SLEEP_TIME)
         except KeyboardInterrupt:
             break
