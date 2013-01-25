@@ -2,7 +2,7 @@ Changelog of openradar
 ===================================================
 
 
-0.2.5 (unreleased)
+0.2.5 (2013-01-25)
 ------------------
 
 - Create the animated gif as tempfile, then move to actual target.
