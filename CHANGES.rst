@@ -2,7 +2,7 @@ Changelog of openradar
 ===================================================
 
 
-0.2.6 (unreleased)
+0.2.6 (2013-02-12)
 ------------------
 
 - Publish a merged threddsfile as well, where the realtime products
