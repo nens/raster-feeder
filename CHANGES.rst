@@ -5,7 +5,11 @@ Changelog of openradar
 0.2.6 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Publish a merged threddsfile as well, where the realtime products
+  are overwritten by near-realtime products, etc. The available variable
+  functions as a flag to indicate what data was written.
+
+- Range is now an optional positional argument.
 
 
 0.2.5 (2013-01-25)

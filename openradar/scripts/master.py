@@ -129,33 +129,35 @@ def master():
 
 
 def master_args():
+    """ 
+    Return a dictionary of arguments with their commandline supplied values.
+    """
     parser = argparse.ArgumentParser(
-        description='Get latest <timeframe> image or '
-                    ' get date range and process it to a calibrated image'
+        description='Organize files, create and publish products.'
+    )
+    parser.add_argument(
+        'range',
+        nargs='?',
+        metavar='RANGE',
+        type=str,
+        help='Ranges to use, for example 20110101-20110103,20110105',
     )
     parser.add_argument(
         '-p', '--product',
         nargs='*',
         choices=['r', 'n', 'a'],
         default=['r', 'n', 'a'],
-        help=('Choose product near-realtime, realtime etc.. Options are \n'
-              'r = realtime\n'
-              'n = near realtime\n'
-              'a = afterwards'))
+        help=('Choose product: (n)ear-realtime, (r)ealtime or (a)fterwards'),
+    )
     parser.add_argument(
         '-t', '--timeframe',
         nargs='*',
         choices=['f', 'h', 'd'],
         default=['f', 'h', 'd'],
-        help=('Choose time frame of the data options are: \n'
-              'f = five minute (e.g. at 15.55) \n'
-              'h = hourly aggregates (on whole hours e.g. 09.00 \n'
-              'd = daily aggregates (24 hours from 08.00 AM to 07.55 AM'))
-    parser.add_argument(
-        '-r', '--range',
-        metavar='RANGE',
-        type=str,
-        help='Ranges to use, for example 20110101-20110103,20110105')
+        help=('Choose timeframe: (f)ive minute (e.g. at 15.55), '
+              '(h)ourly aggregates (on whole hours e.g. 09.00) or '
+              '(d)aily aggregates (24 hours from 08.00 AM to 07.55 AM'),
+        )
     parser.add_argument(
         '-s', '--source-dir',
         type=str,
