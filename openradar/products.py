@@ -36,6 +36,11 @@ class ThreddsFile(object):
     """
     Contains a number of products in h5 format.
     """
+    REALTIME = 2
+    NEARREALTIME = 3
+    AFTERWARDS = 4
+    FLAGS = dict(r=REALTIME, n=NEARREALTIME, a=AFTERWARDS)
+
     def _datetime(self, datetime):
         """ Return the timestamp of the threddsfile. """
         if self.timeframe == 'f':
@@ -78,21 +83,41 @@ class ThreddsFile(object):
         """ Return the fill for the time dataset. """
         step = round(self.timedelta.total_seconds())
         end = round(self.timesteps * step)
-        return np.ogrid[0:step:end]
+        return np.ogrid[0:end:step]
 
     @classmethod
-    def get_for_product(cls, product):
+    def get_for_product(cls, product, merge=False):
         """
         Return ThreddsFile instance to which product belongs.
+
+        If merge == True, threddsfiles from all products are merged in
+        one threddsfile per timeframe. The avalailable variable will
+        contain a flag that refers to the product that was stored at a
+        particular time coordinate. The paths will be the same regardless
+        of the productcode, and the data will only be overwritten if
+        the new flag is equal or higher than the already existing flag.
+        The flags are:
+            2: Realtime
+            3: Near-realtime
+            4: Afterwards
         """
         thredds_file = cls()
         thredds_file.timeframe = product.timeframe
         thredds_file.datetime = thredds_file._datetime(product.datetime)
         thredds_file.timedelta = config.TIMEFRAME_DELTA[product.timeframe]
         thredds_file.timesteps = thredds_file._timesteps()
+        
+        basecode = config.PRODUCT_CODE[product.timeframe][product.prodcode]
+        if merge:
+            code = basecode.split('_')[0]
+            thredds_file.flag = cls.FLAGS[product.prodcode]
+        else:
+            code = basecode
+            thredds_file.flag = 1
+
         thredds_file.path = utils.PathHelper(
             basedir=config.THREDDS_DIR,
-            code=config.PRODUCT_CODE[thredds_file.timeframe][product.prodcode],
+            code=code,
             template=config.PRODUCT_TEMPLATE,
         ).path(thredds_file.datetime)
         return thredds_file
@@ -198,15 +223,19 @@ class ThreddsFile(object):
         """ Update from product """
         # Create or reuse existing thredds file
         h5_thredds = self.get_or_create()
+        
+        # Temporarily update time because it is zero-filled.
+        h5_thredds['time'][...] = self._time()
 
-        # Update from products
-        target = h5_thredds['precipitation']
+        # Update from products if necessary
+        index = self._index(product)
         available = h5_thredds['available']
-        with product.get() as h5_product:
-            index = self._index(product)
-            source = h5_product['precipitation']
-            target[..., index] = source[...]
-            available[index] = 1
+        if self.flag >= available[index]:
+            target = h5_thredds['precipitation']
+            with product.get() as h5_product:
+                source = h5_product['precipitation']
+                target[..., index] = source[...]
+                available[index] = self.flag
 
         # Roundup
         logging.info(
@@ -214,7 +243,7 @@ class ThreddsFile(object):
         )
         logging.debug(self.path)
         logging.debug('ThreddsFile fill status: {} %'.format(
-            available[:].sum() / available.size))
+            np.bool8(available[:]).sum() / available.size))
 
         h5_thredds.close()
 
@@ -575,7 +604,12 @@ def publish(products, dt_delivery):
     
     # Update thredds
     for product in publications:
+        # Unmerged
         ThreddsFile.get_for_product(product=product).update(product)
+        # Merged
+        ThreddsFile.get_for_product(
+            product=product, merge=True,
+        ).update(product)
     logging.info('Thredds publishing complete.')
    
     logging.info('Done publishing products.')
