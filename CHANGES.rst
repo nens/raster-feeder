@@ -2,7 +2,7 @@ Changelog of openradar
 ===================================================
 
 
-0.2.10 (unreleased)
+0.2.10 (2013-02-13)
 -------------------
 
 - Fix the last SHAPE_DIR references.
