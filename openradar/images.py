@@ -44,7 +44,7 @@ def shape_image():
     basegrid = scans.BASEGRID
     shape_layer = basegrid.create_vectorlayer()
     shape_layer.add_line(
-        os.path.join(config.SHAPE_DIR, 'west_europa_lijn.shp'),
+        os.path.join(config.MISC_DIR, 'west_europa_lijn.shp'),
         color='0.5',
         linewidth=0.5,
     )
@@ -56,7 +56,7 @@ def shape_image_filled():
     basegrid = scans.BASEGRID
     shape_layer = basegrid.create_vectorlayer()
     shape_layer.add_multipolygon(
-        os.path.join(config.SHAPE_DIR, 'nederland_rd.shp'),
+        os.path.join(config.MISC_DIR, 'nederland_rd.shp'),
         color='g',
         linewidth=1,
     )

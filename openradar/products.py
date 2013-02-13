@@ -340,7 +340,7 @@ class CalibratedProduct(object):
     def make_cfgrid(self):
         td_aggregate = config.TIMEFRAME_DELTA[self.timeframe]
         dataloader = DataLoader(
-            metafile=os.path.join(config.SHAPE_DIR, 'grondstations.csv'),
+            metafile=os.path.join(config.MISC_DIR, 'grondstations.csv'),
             datafile=self.groundpath,
             date=self.datadatetime,
             delta=td_aggregate)
