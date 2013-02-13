@@ -5,7 +5,7 @@ Changelog of openradar
 0.2.8 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix bug regarding missing shapedir.
 
 
 0.2.7 (2013-02-13)
