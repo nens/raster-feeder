@@ -42,5 +42,6 @@ setup(name='openradar',
       extras_require={'test': tests_require},
       entry_points={
           'console_scripts': [
+              'openradar = openradar.scripts.sandbox:main',
           ]},
       )

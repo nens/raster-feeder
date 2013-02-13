@@ -21,7 +21,7 @@ BUILDOUT_DIR = os.path.join(
 
 AGGREGATE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'aggregate')
 CALIBRATE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'calibrate')
-COMPOSITE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'composite')
+# COMPOSITE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'composite')
 CONSISTENT_DIR = os.path.join(BUILDOUT_DIR, 'var', 'consistent')
 GROUND_DIR = os.path.join(BUILDOUT_DIR, 'var', 'ground')
 IMG_DIR = os.path.join(BUILDOUT_DIR, 'var', 'img')

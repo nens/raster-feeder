@@ -584,7 +584,7 @@ class Composite(object):
             if 'NL60' in stations and 'NL61' in stations:
                 logging.debug('Starting history declutter.')
                 h5 = h5py.File(
-                    os.path.join(config.SHAPE_DIR, 'clutter.h5'), 'r',
+                    os.path.join(config.MISC_DIR, 'clutter.h5'), 'r',
                 )
 
                 logging.debug('Using clutter threshold of {}'.format(
