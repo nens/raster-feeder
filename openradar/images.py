@@ -65,7 +65,7 @@ def shape_image_filled():
 
 def osm_image():
     """ Return rgba image with osm background. """
-    ds_osm_rd = gdal.Open(os.path.join(config.SHAPE_DIR, 'osm-rd.tif'))
+    ds_osm_rd = gdal.Open(os.path.join(config.MISC_DIR, 'osm-rd.tif'))
     osm_rgba = np.ones(
         (ds_osm_rd.RasterYSize, ds_osm_rd.RasterXSize, 4),
         dtype=np.uint8,
@@ -165,7 +165,6 @@ def create_png(products, **kwargs):
     utils.makedir(config.IMG_DIR)
     
     # Load some images
-    img_osm = osm_image()
     img_shape = shape_image()
     img_blue = plain_image(color=(0, 0, 127))
     img_shape_filled = shape_image_filled()

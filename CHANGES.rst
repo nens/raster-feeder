@@ -5,7 +5,7 @@ Changelog of openradar
 0.2.9 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Correct path to osm image and remove from png making.
 
 
 0.2.8 (2013-02-13)
