@@ -8,7 +8,7 @@ from __future__ import division
 
 from osgeo import osr
 
-from radar import config
+from openradar import config
 
 from matplotlib import colors
 from matplotlib import cm

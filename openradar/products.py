@@ -21,8 +21,7 @@ import os
 import shutil
 import tempfile
 
-from radar import config
-
+from openradar import config
 from openradar import images
 from openradar import log
 from openradar import utils
@@ -281,9 +280,9 @@ class CalibratedProduct(object):
     def make(self):
         td_aggregate = config.TIMEFRAME_DELTA[self.timeframe]
         if self.groundfile_datetime.year < 2012:
-            groundpath = os.path.join(config.SHAPE_DIR, 'tests/2011.csv')
+            groundpath = os.path.join(config.MISC_DIR, 'tests/2011.csv')
         dataloader = DataLoader(
-            metafile=os.path.join(config.SHAPE_DIR, 'grondstations.csv'),
+            metafile=os.path.join(config.MISC_DIR, 'grondstations.csv'),
             datafile=self.groundpath,
             date=self.date,
             delta=td_aggregate)

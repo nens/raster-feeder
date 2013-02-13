@@ -11,8 +11,7 @@ import logging.config
 import logging
 import os
 
-from radar import config
-
+from openradar import config
 
 CONSOLE_LEVEL = 'DEBUG' if config.DEBUG else 'INFO'
 LOGFILE = os.path.join(config.LOG_DIR, 'radar.log')

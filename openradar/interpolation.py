@@ -15,8 +15,7 @@ import zipfile
 import numpy
 from osgeo import gdal
 
-from radar import config
-
+from openradar import config
 from openradar import gridtools
 from openradar import log
 from openradar import utils

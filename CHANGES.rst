@@ -5,7 +5,7 @@ Changelog of openradar
 0.2.7 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Major rewrite of configuration system. Most configuration is now moved to this package. Stuff may be broken now, but it enables standalone testing of this library in the future.
 
 
 0.2.6 (2013-02-12)

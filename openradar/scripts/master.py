@@ -7,17 +7,16 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
-from radar import config
 
-from openradar import log
-from openradar import utils
+from openradar import config
 from openradar import files
+from openradar import log
 from openradar import products
+from openradar import utils
 
 import argparse
 import datetime
 import logging
-
 
 def master_single_product(prodcode, timeframe, datetime):
     """ Returns the created products. """
