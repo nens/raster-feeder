@@ -7,6 +7,10 @@ Changelog of openradar
 
 - Change threddsfile time:unit attribute to time:units
 
+- Add opendap retrieval functionality to ThreddsFile
+
+- Add function to retrieve data from multiple threddsfiles.
+
 
 0.2.10 (2013-02-13)
 -------------------

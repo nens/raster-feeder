@@ -7,8 +7,6 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
-from osgeo import gdal
-
 import argparse
 import calendar
 import collections
@@ -20,6 +18,10 @@ import numpy as np
 import os
 import shutil
 import tempfile
+
+from osgeo import gdal
+from pydap import client
+from pydap.exceptions import ServerError
 
 from openradar import config
 from openradar import images
@@ -34,11 +36,43 @@ log.setup_logging()
 class ThreddsFile(object):
     """
     Contains a number of products in h5 format.
+
+    TODO Currently used to both write the files and retrieve the files from
+    thredds, common functionality must be abstracted later.
     """
     REALTIME = 2
     NEARREALTIME = 3
     AFTERWARDS = 4
     FLAGS = dict(r=REALTIME, n=NEARREALTIME, a=AFTERWARDS)
+    
+    def __init__(self, datetime=None, timeframe=None, prodcode='r', merge=True):
+        """
+        Return a threddsfile object configured with an url attribute
+        that is suitable for use with opendap.
+        """
+        if datetime is None or timeframe is None:
+            # Create a bare thredds_file object,
+            # so get_for_product() does not break.
+            return
+
+        self.timeframe = timeframe
+        self.datetime = self._datetime(datetime)
+        self.timedelta = config.TIMEFRAME_DELTA[timeframe]
+        self.timesteps = self._timesteps()
+        self.prodcode = prodcode
+        self.merge = merge
+        
+        basecode = config.PRODUCT_CODE[timeframe][prodcode]
+        if merge:
+            code = basecode.split('_')[0]
+        else:
+            code = basecode
+        self.url = utils.PathHelper(
+            basedir=config.OPENDAP_ROOT,
+            code=code,
+            template=config.PRODUCT_TEMPLATE,
+        ).path(self.datetime)
+
 
     def _datetime(self, datetime):
         """ Return the timestamp of the threddsfile. """
@@ -73,10 +107,77 @@ class ThreddsFile(object):
         return days * dict(f=288, h=24, d=1)[self.timeframe]
 
     def _index(self, product):
-        """ Return the index for the time dimension. """
+        """ 
+        Return the index for the time dimension for a product.
+
+        Rounding is because of uncertainties in the total_seconds() method.
+        """
         return round((product.datetime -
-                        self.datetime).total_seconds() / 
-                       self.timedelta.total_seconds())
+                      self.datetime).total_seconds() / 
+                     self.timedelta.total_seconds())
+
+    def index(self, datetime):
+        """
+        Return the index for the time dimension for a datetime.
+
+        Clips to first and last element.
+        """
+        unclipped = int((datetime - self.datetime).total_seconds() / 
+                          self.timedelta.total_seconds())
+        return min(max(unclipped, 0), self.timesteps - 1)
+
+    def _get_datetime_generator(self, start, end):
+        """
+        Return generator of datetimes for data at x, y.
+        
+        Start, end are indexes.
+        """
+        for i in range(start, end + 1):
+            yield self.datetime + i * self.timedelta
+
+    def get_data_from_opendap(self, x, y, start=None, end=None):
+        """
+        Return list of dicts for data at x, y.
+
+        Start, end are datetimes, and default to the first and last
+        datetime in the file.
+        """
+        try:
+            dataset = client.open_url(self.url)
+        except ServerError:
+            return []
+
+        if start is None:
+            index_start = 0
+        else:
+            index_start = self.index(start)
+
+        if end is None:
+            index_end = self.timesteps - 1
+        else:
+            index_end = self.index(end)
+
+        precipitation = dataset['precipitation']['precipitation']
+        
+        tuples = zip(
+            iter(self._get_datetime_generator(start=index_start, end=index_end)),
+            precipitation[y, x, index_start: index_end + 1][0, 0, :],
+        )
+
+        return [dict(unit='mm', datetime=d, value=p)
+                for d, p in tuples
+                if not p == config.NODATAVALUE]
+
+    def next(self):
+        """ Return thredds_file object that comes after this one in time. """
+        last = list(self._get_datetime_generator(
+            self.timesteps - 1, self.timesteps - 1)
+        )[0]
+        first_of_next = last + self.timedelta
+        return ThreddsFile(datetime=first_of_next,
+                           timeframe=self.timeframe,
+                           prodcode=self.prodcode,
+                           merge=self.merge)
 
     def _time(self):
         """ Return the fill for the time dataset. """
@@ -251,6 +352,18 @@ class ThreddsFile(object):
             np.bool8(available[:]).sum() / available.size))
 
         h5_thredds.close()
+
+    def __eq__(self, other):
+        return unicode(self) == unicode(other)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    def __unicode__(self):
+        if hasattr(self, 'path'):
+            return self.path
+        if hasattr(self, 'url'):
+            return self.url
 
 
 class CalibratedProduct(object):
@@ -627,3 +740,16 @@ def publish(products, dt_delivery):
                                                       timeframe='f')])
         images.create_animated_gif(datetime=dt_delivery)
 
+
+def get_values_from_opendap(x, y, start_date, end_date):
+    result = []
+    current = ThreddsFile(timeframe='f', datetime=start_date)
+    end = ThreddsFile(timeframe='f', datetime=end_date)
+    while True:
+        result.extend(current.get_data_from_opendap(x=x,
+                                                    y=y,
+                                                    start=start_date,
+                                                    end=end_date))
+        if current == end:
+            return result
+        current = current.next()

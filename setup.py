@@ -14,6 +14,7 @@ install_requires = [
     'matplotlib',
     'numpy',
     'PIL',
+    'pydap',
     'pytz',
     'rpy2',
     'scipy',
@@ -42,6 +43,6 @@ setup(name='openradar',
       extras_require={'test': tests_require},
       entry_points={
           'console_scripts': [
-              'openradar = openradar.scripts.sandbox:main',
+              'sandbox = openradar.scripts.sandbox:main',
           ]},
       )
