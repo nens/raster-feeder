@@ -10,9 +10,14 @@ from __future__ import division
 import datetime
 
 from openradar import products
+from pylab import *
 
 def main():
-    end = datetime.datetime.utcnow().replace(month=2)
-    start = end - datetime.timedelta(days=14)
-    import pprint
-    pprint.pprint(products.get_values_from_opendap(x=200, y=200, start_date=start, end_date=end))
+    end = datetime.datetime.utcnow()
+    start = end - datetime.timedelta(days=1)
+    print('getting values')
+    values = products.get_values_from_opendap(x=200, y=200, start_date=start, end_date=end)
+    print('got values')
+    plot([v['datetime'] for v in values],[v['value'] for v in values])
+    show()
+
