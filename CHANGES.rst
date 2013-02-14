@@ -5,7 +5,7 @@ Changelog of openradar
 0.2.11 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Change threddsfile time:unit attribute to time:units
 
 
 0.2.10 (2013-02-13)

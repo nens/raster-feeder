@@ -151,7 +151,7 @@ class ThreddsFile(object):
         time.attrs['standard_name'] = b'time'
         time.attrs['long_name'] = b'time'
         time.attrs['calendar'] = b'gregorian'
-        time.attrs['unit'] = self.datetime.strftime(
+        time.attrs['units'] = self.datetime.strftime(
             'seconds since %Y-%m-%d'
         )
         time[...] = self._time()
@@ -223,8 +223,14 @@ class ThreddsFile(object):
         # Create or reuse existing thredds file
         h5_thredds = self.get_or_create()
         
-        # Temporarily update time because it is zero-filled.
-        h5_thredds['time'][...] = self._time()
+        # Temporarily update 
+        try:
+            del h5_thredds['time'].attrs['unit']
+        except KeyError:
+            pass  # It wasn't there anyway.
+        h5_thredds['time'].attrs['units'] = self.datetime.strftime(
+            'seconds since %Y-%m-%d'
+        )
 
         # Update from products if necessary
         index = self._index(product)
