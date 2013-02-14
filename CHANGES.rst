@@ -2,8 +2,8 @@ Changelog of openradar
 ===================================================
 
 
-0.4 (unreleased)
-----------------
+0.3.1 (2013-02-14)
+------------------
 
 - Adjust unit and coerce value to float for opendap data.
 
