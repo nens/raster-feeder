@@ -308,8 +308,8 @@ class ThreddsFile(object):
         fails the test or does not exist at all, a new file is created
         and initialized.
         """
+        logging.debug(self.path)
         if not os.path.exists(self.path):
-            logging.debug(self.path)
             return self.create()
         try:
             self.check()
