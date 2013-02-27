@@ -9,12 +9,11 @@ long_description = '\n\n'.join([
     ])
 
 install_requires = [
-    'openradar',
     'h5py',
     'matplotlib',
     'numpy',
     'PIL',
-    'pydap',
+    'pydap >= 3.1.RC1',
     'pytz',
     'rpy2',
     'scipy',
