@@ -13,9 +13,6 @@ import os
 
 from openradar import config
 
-CONSOLE_LEVEL = 'DEBUG' if config.DEBUG else 'INFO'
-LOGFILE = os.path.join(config.LOG_DIR, 'radar.log')
-
 LOGGING = {
     'disable_existing_loggers': True,
     'version': 1,
@@ -30,14 +27,14 @@ LOGGING = {
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'level': CONSOLE_LEVEL,
+            'level': None,
             'formatter': 'simple',
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
             'level': 'INFO',
             'formatter': 'verbose',
-            'filename': LOGFILE,
+            'filename': None,
             'mode': 'a',
             'maxBytes': 10485760,
             'backupCount': 5,
@@ -57,18 +54,23 @@ LOGGING = {
 
 
 def setup_logging(logfile=None):
-
+    """ Setup logging according to logfile and settings. """
+    logging_dict = copy.deepcopy(LOGGING)
+    # Set console level from config
+    _console_level = 'DEBUG' if config.DEBUG else 'INFO'
+    logging_dict['handlers']['console']['level'] = _console_level
+    # Set logfile from config or logfile
     if logfile is None:
-        logging_dict = LOGGING
+        _logfile = os.path.join(config.LOG_DIR, 'radar.log')
     else:
-        logging_dict = copy.deepcopy(LOGGING)
-        logging_dict['handlers']['file']['filename'] = logfile
-    
+        _logfile = logfile
+    logging_dict['handlers']['file']['filename'] = _logfile
+    # Create directory if necessary
     try:
         os.makedirs(os.path.dirname(
             logging_dict['handlers']['file']['filename'],
         ))
     except OSError:
         pass  # Already exists
-    
+    # Config logging
     logging.config.dictConfig(logging_dict)
