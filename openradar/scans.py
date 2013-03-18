@@ -440,6 +440,7 @@ class ScanDWD(GenericScan):
 
 
 class MultiScan(object):
+    """ Container for aligned recangular precipitationdata. """
 
     def __init__(self, multiscandatetime, scancodes):
         self.scancodes = scancodes
@@ -769,45 +770,36 @@ class Aggregate(object):
         'uur': '5min',
     }
 
-    def __init__(self, dt_aggregate, td_aggregate, scancodes, declutter):
+    SUB_TIMEFRAME = {'d': 'h',
+                     'h': 'f'}
 
-        self.dt_aggregate = dt_aggregate  # Backwards compatibility
-        self.datetime = dt_aggregate
-        self.td_aggregate = td_aggregate
-        self.scancodes = scancodes
-        self.code = self.CODE[td_aggregate]
-
-        # Coerce self.declutter to requirement for Composite object
-        if declutter is None or declutter['size'] is None:
-            declutter_size = config.DECLUTTER_SIZE
-        else:
-            declutter_size = declutter['size']
-
-        if declutter is None or declutter['history'] is None:
-            declutter_history = config.DECLUTTER_HISTORY
-        else:
-            declutter_history = declutter['history']
-
-        self.declutter = dict(size=declutter_size, history=declutter_history)
+    def __init__(self, datetime, timeframe, radars, declutter):
+        """ Do some argument checking. """
+        # Attributes
+        self.datetime = datetime
+        self.timeframe = timeframe
+        self.radars = radars
+        self.declutter = declutter
+        # Derived attributes
+        self.timedelta = config.TIMEFRAME_DELTA[timeframe]
+        self.code = self.CODE[self.timedelta]
         # Prevent illegal combinations of dt and dd, can be nicer...
         if self.code == '48uur':
-            if dt_aggregate != dt_aggregate.replace(hour=8, minute=0,
-                                                    second=0, microsecond=0):
+            if datetime != datetime.replace(hour=8, minute=0,
+                                            second=0, microsecond=0):
                 raise ValueError
         if self.code == '24uur':
-            if dt_aggregate != dt_aggregate.replace(hour=8, minute=0,
-                                                    second=0, microsecond=0):
+            if datetime != datetime.replace(hour=8, minute=0,
+                                            second=0, microsecond=0):
                 raise ValueError
         if self.code == 'uur':
-            if dt_aggregate != dt_aggregate.replace(minute=0,
-                                                    second=0, microsecond=0):
+            if datetime != datetime.replace(minute=0,
+                                            second=0, microsecond=0):
                 raise ValueError
         if self.code == '5min':
-            if dt_aggregate != dt_aggregate.replace(
-                minute=(dt_aggregate.minute // 5) * 5,
-                second=0,
-                microsecond=0,
-            ):
+            if datetime != datetime.replace(second=0,
+                                            microsecond=0,
+                                            minute=(datetime.minute // 5) * 5):
                 raise ValueError
 
     def _sub_datetimes(self):
@@ -818,8 +810,8 @@ class Aggregate(object):
         Note that it ends at this aggregate's datetime.
         """
         step = self.TD[self.SUB_CODE[self.code]]
-        end = self.dt_aggregate
-        start = self.dt_aggregate - self.td_aggregate + step
+        end = self.datetime
+        start = self.datetime - self.timedelta + step
 
         current = start
         while current <= end:
@@ -831,13 +823,13 @@ class Aggregate(object):
         path_helper = utils.PathHelper(basedir=config.AGGREGATE_DIR,
                                        code=self.code,
                                        template='{code}_{timestamp}.h5')
-        return path_helper.path(self.dt_aggregate)
+        return path_helper.path(self.datetime)
 
     def _check(self, h5):
         """ Return if h5 is consistent with requested parameters. """
-        if set(h5.attrs['radars']) != set(self.scancodes):
+        if set(h5.attrs['radars']) != set(self.radars):
             # Aggregate was made for a different set of radars
-            raise ValueError('Unmatched radarset in existing aggregate.')
+            raise ValueError('Unmatched radarset in existing aggregate')
         if h5.attrs['declutter_history'] != self.declutter['history']:
             raise ValueError('Other history declutter setting in aggregate')
         if h5.attrs['declutter_size'] != self.declutter['size']:
@@ -846,9 +838,9 @@ class Aggregate(object):
             if self.code != '5min':
                 raise ValueError('Missing radars in existing aggregate')
             # Check if it is useful to create a new composite
-            dt_composite = self.dt_aggregate - self.TD[self.code]
+            dt_composite = self.datetime - self.TD[self.code]
             files_available = []
-            for radar in sorted(self.scancodes):
+            for radar in sorted(self.radars):
                 files_available.append(os.path.exists(ScanSignature(
                     scancode=radar, scandatetime=dt_composite
                 ).get_scanpath()))
@@ -863,10 +855,10 @@ class Aggregate(object):
         Create a new dataset from the composite.
         """
         # Create the composite
-        dt_composite = self.dt_aggregate - self.TD[self.code]
+        dt_composite = self.datetime - self.TD[self.code]
 
         composite = Composite(compositedatetime=dt_composite,
-                              scancodes=self.scancodes,
+                              scancodes=self.radars,
                               declutter=self.declutter).get()
 
         # Composite unit is mm/hr and covers 5 minutes. It must be in mm.
@@ -919,7 +911,7 @@ class Aggregate(object):
         path = self.get_path()
         utils.save_dataset(h5_data, h5_meta, path)
         logging.info('Created aggregate {} ({})'.format(
-            self.dt_aggregate, self.code
+            self.datetime, self.code
         ))
 
     def _merge(self, aggregates):
@@ -983,14 +975,14 @@ class Aggregate(object):
 
         utils.save_dataset(data, meta, path)
         logging.info('Created aggregate {} ({})'.format(
-            self.dt_aggregate, self.code
+            self.datetime, self.code
         ))
 
     def make(self):
 
         """ Creates the hdf5 file corresponding to this objects. """
         logging.debug('Creating aggregate {} ({})'.format(
-            self.dt_aggregate, self.code,
+            self.datetime, self.code,
         ))
         path = self.get_path()
 
@@ -1001,6 +993,9 @@ class Aggregate(object):
                 with h5py.File(path, 'r') as h5:
                     self._check(h5)
                 logging.debug('Check ok.')
+                logging.info('Reuse aggregate {} ({})'.format(
+                    self.datetime, self.code
+                ))
                 return
             except KeyError as error:
                 logging.debug('Check failed: {}.'.format(error))
@@ -1014,13 +1009,11 @@ class Aggregate(object):
             return self._create()
 
         # If there is a sub_code, return corresponding aggregates merged.
-        td_aggregate = self.TD[sub_code]
-        dt_aggregate = self._sub_datetimes()
-        sub_aggregates = (Aggregate(dt_aggregate=dt_aggregate,
-                                    td_aggregate=td_aggregate,
-                                    scancodes=self.scancodes,
-                                    declutter=self.declutter)
-                          for dt_aggregate in self._sub_datetimes())
+        sub_aggregates = (Aggregate(datetime=datetime,
+                                    radars=self.radars,
+                                    declutter=self.declutter,
+                                    timeframe=self.SUB_TIMEFRAME[self.timeframe])
+                          for datetime in self._sub_datetimes())
 
         return self._merge(aggregates=sub_aggregates)
 
@@ -1032,7 +1025,7 @@ class Aggregate(object):
         except IOError:
             logging.warn(
                 'Creating aggregate {} ({}) because it did not exist'.format(
-                    self.dt_aggregate, self.code,
+                    self.datetime, self.code,
                 ),
             )
             self.make()

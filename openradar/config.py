@@ -19,19 +19,25 @@ BUILDOUT_DIR = os.path.join(
     '..',
 )
 
+# Likely to be overwritten
 AGGREGATE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'aggregate')
 CALIBRATE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'calibrate')
-# COMPOSITE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'composite')
 CONSISTENT_DIR = os.path.join(BUILDOUT_DIR, 'var', 'consistent')
 GROUND_DIR = os.path.join(BUILDOUT_DIR, 'var', 'ground')
 IMG_DIR = os.path.join(BUILDOUT_DIR, 'var', 'img')
-JSON_DIR = os.path.join(BUILDOUT_DIR, 'json')
-LOG_DIR = os.path.join(BUILDOUT_DIR, 'var', 'log')
-MISC_DIR = os.path.join(BUILDOUT_DIR, 'misc')
+#JSON_DIR = os.path.join(BUILDOUT_DIR, 'json')
+MISC_DIR = os.path.join(BUILDOUT_DIR, 'var', 'misc')
 MULTISCAN_DIR = os.path.join(BUILDOUT_DIR, 'var', 'multiscan')
 RADAR_DIR = os.path.join(BUILDOUT_DIR, 'var', 'radar')
 SOURCE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'source')
 THREDDS_DIR = os.path.join(BUILDOUT_DIR, 'var', 'thredds')
+
+# Unlikely to be overwritten
+CELERY_DIR = os.path.join(BUILDOUT_DIR, 'var', 'celery')
+LOG_DIR = os.path.join(BUILDOUT_DIR, 'var', 'log')
+
+# Celery
+CELERY_DB = os.path.join(CELERY_DIR, 'celerydb.sqlite')
 
 # Default nodatavalue
 NODATAVALUE = -9999
@@ -144,3 +150,11 @@ FTP_PASSWORD = 'MyPassword'
 FTP_RADARS = {}
 # Throughputs of radar related data to client ftp.
 FTP_THROUGH = {}
+
+# Import local settings
+try:
+    from openradar.localconfig import *
+except ImportError:
+    pass
+
+

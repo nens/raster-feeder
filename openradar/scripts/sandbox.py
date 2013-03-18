@@ -8,16 +8,12 @@ from __future__ import absolute_import
 from __future__ import division
 
 import datetime
+import logging
 
-from openradar import products
-from pylab import *
+from openradar import tasks
+from openradar import loghelper
+from openradar import config
 
 def main():
-    end = datetime.datetime.utcnow()
-    start = end - datetime.timedelta(days=1)
-    print('getting values')
-    values = products.get_values_from_opendap(x=200, y=200, start_date=start, end_date=end)
-    print('got values')
-    plot([v['datetime'] for v in values],[v['value'] for v in values])
-    show()
-
+    tasks.test_concurrency.delay('a')
+    tasks.test_concurrency.delay('b')

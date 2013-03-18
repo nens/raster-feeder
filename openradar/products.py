@@ -25,12 +25,9 @@ from pydap.exceptions import ServerError
 
 from openradar import config
 from openradar import images
-from openradar import log
 from openradar import utils
 from openradar import scans
 from openradar.interpolation import DataLoader, Interpolator
-
-log.setup_logging()
 
 
 class ThreddsFile(object):
@@ -344,8 +341,9 @@ class ThreddsFile(object):
                 available[index] = self.flag
 
         # Roundup
-        logging.info(
-            'Updated ThreddsFile {}'.format(os.path.basename(self.path)),
+        logging.info('Updated {} ({})'.format(
+            os.path.basename(self.path), 
+            product.datetime),
         )
         logging.debug(self.path)
         logging.debug('ThreddsFile fill status: {} %'.format(
@@ -376,12 +374,21 @@ class CalibratedProduct(object):
             afterwards          => 2012-12-16-09:05
     '''
 
-    def __init__(self, product, timeframe, date):
-        self.prodcode = product
-        self.product = self.prodcode  # Backwards compatible
+    def __init__(self, prodcode, timeframe, 
+                 datetime, radars=None, declutter=None):
+        # Attributes
+        self.datetime = datetime
+        self.prodcode = prodcode
         self.timeframe = timeframe
+        # Derived attributes
+        self.radars = config.ALL_RADARS if radars is None else radars
+        if declutter is None:
+            self.declutter = dict(size=config.DECLUTTER_SIZE,
+                                  history=config.DECLUTTER_HISTORY)
+        else:
+            self.declutter = declutter
         self.groundfile_datetime = utils.get_groundfile_datetime(
-            prodcode=product, date=date,
+            prodcode=prodcode, date=datetime,
         )
         self.groundpath = scans.GroundData(
             datacode=config.GROUND_CODE[self.timeframe],
@@ -389,22 +396,29 @@ class CalibratedProduct(object):
         ).get_datapath()
         self.path = utils.PathHelper(
             basedir=config.CALIBRATE_DIR,
-            code=config.PRODUCT_CODE[self.timeframe][self.product],
+            code=config.PRODUCT_CODE[self.timeframe][self.prodcode],
             template=config.PRODUCT_TEMPLATE,
-        ).path(date)
-        self.calibratepath = self.path  # Backwards compatible
-        self.datetime = date
-        self.date = date  # Backwards compatible
+        ).path(datetime)
+
+    def _get_aggregate(self):
+        """ Return Aggregate object. """
+        return scans.Aggregate(radars=self.radars,
+                               datetime=self.datetime,
+                               timeframe=self.timeframe,
+                               declutter=self.declutter)
+            
 
     def make(self):
-        td_aggregate = config.TIMEFRAME_DELTA[self.timeframe]
+        aggregate = self._get_aggregate()
+        aggregate.make()
         if self.groundfile_datetime.year < 2012:
             groundpath = os.path.join(config.MISC_DIR, 'tests/2011.csv')
-        dataloader = DataLoader(
-            metafile=os.path.join(config.MISC_DIR, 'grondstations.csv'),
-            datafile=self.groundpath,
-            date=self.date,
-            delta=td_aggregate)
+        else:
+            groundpath = self.groundpath
+        metafile = os.path.join(config.MISC_DIR, 'grondstations.csv')
+        dataloader = DataLoader(metafile=metafile,
+                                datafile=groundpath,
+                                aggregate=aggregate)
         try:
             dataloader.processdata()
             stations_count = len(dataloader.rainstations)
@@ -421,8 +435,9 @@ class CalibratedProduct(object):
             self.calibrated =  result
         except:
             self.calibrated = interpolater.precipitation
-            logging.warn("Taking the original radar data for date: {}".format(
-                self.date))
+            logging.warn('Taking the original radar data for date: {}'.format(
+                self.datetime,
+            ))
         self.metadata = dict(dataloader.dataset.attrs)
         dataloader.dataset.close()
         self.metadata.update({'stations_count': stations_count})
@@ -436,37 +451,36 @@ class CalibratedProduct(object):
         )
         calibrated_ma[np.ma.less(calibrated_ma, 0)] = 0
 
-        calibrate = utils.save_dataset(
-            dict(precipitation=calibrated_ma),
-            self.metadata,
-            self.calibratepath,
-        )
+        calibrate = utils.save_dataset(path=self.path,
+                                       meta=self.metadata,
+                                       data=dict(precipitation=calibrated_ma))
+            
         logging.info('Created CalibratedProduct {}'.format(
-            os.path.basename(self.calibratepath)
+            os.path.basename(self.path)
         ))
-        logging.debug(self.calibratepath)
+        logging.debug(self.path)
 
     def get(self):
         try:
-            return h5py.File(self.calibratepath, 'r')
+            return h5py.File(self.path, 'r')
         except IOError:
             logging.warn(
                     'Creating calibrated product {}, because it did not'
-                    ' exist'.format(self.calibratepath))
+                    ' exist'.format(self.path))
             self.make()
-        return h5py.File(self.calibratepath, 'r')
+        return h5py.File(self.path, 'r')
 
-    def make_cfgrid(self):
-        td_aggregate = config.TIMEFRAME_DELTA[self.timeframe]
-        dataloader = DataLoader(
-            metafile=os.path.join(config.MISC_DIR, 'grondstations.csv'),
-            datafile=self.groundpath,
-            date=self.datadatetime,
-            delta=td_aggregate)
-        dataloader.processdata()
-        stations_count = len(dataloader.rainstations)
-        interpolator = Interpolator(dataloader)
-        interpolator.get_correction_factor()
+    #def make_cfgrid(self):
+        #td_aggregate = config.TIMEFRAME_DELTA[self.timeframe]
+        #dataloader = DataLoader(
+            #metafile=os.path.join(config.MISC_DIR, 'grondstations.csv'),
+            #datafile=self.groundpath,
+            #date=self.datadatetime,
+            #delta=td_aggregate)
+        #dataloader.processdata()
+        #stations_count = len(dataloader.rainstations)
+        #interpolator = Interpolator(dataloader)
+        #interpolator.get_correction_factor()
 
 
 class ConsistentProduct(object):
@@ -502,8 +516,8 @@ class ConsistentProduct(object):
         """
         # Create the consistent product object
         consistent_product = cls(
-            datetime=product.date,
-            prodcode=product.product,
+            datetime=product.datetime,
+            prodcode=product.prodcode,
             timeframe=product.timeframe,
         )
 
@@ -523,8 +537,8 @@ class ConsistentProduct(object):
         # get() will now work, so return the object.
         filepath = consistent_product.path
         filename = os.path.basename(filepath)
-        logging.info('Created consistent product {}'.format(filename))
-        logging.debug('Created consistent product {}'.format(filepath))
+        logging.info('Created ConsistentProduct {}'.format(filename))
+        logging.debug('Created ConsistentProduct {}'.format(filepath))
         return consistent_product
 
 
@@ -567,15 +581,16 @@ class Consistifier(object):
         sub_timeframe = cls.SUB_TIMEFRAME[product.timeframe]
         sub_timedelta = config.TIMEFRAME_DELTA[sub_timeframe]
         for i in range(amount_of_subproducts):
-            yield product.date + sub_timedelta * (i - amount_of_subproducts + 1)
+            offset = sub_timedelta * (i - amount_of_subproducts + 1)
+            yield product.datetime + offset
 
     @classmethod
     def _subproducts(cls, product):
         """ Return the CalibratedProducts to be consistified with product """
         sub_timeframe = cls.SUB_TIMEFRAME[product.timeframe]
         for datetime in cls._subproduct_datetimes(product):
-            yield CalibratedProduct(date=datetime,
-                                    product=product.product,
+            yield CalibratedProduct(datetime=datetime,
+                                    prodcode=product.prodcode,
                                     timeframe=sub_timeframe)
 
     @classmethod
@@ -623,122 +638,23 @@ class Consistifier(object):
             consistified_products.extend(more_consistified_products)
         return consistified_products
 
-
-class FtpPublisher(object):
-    
-    def __enter__(self):
-        """ 
-        Make the connection to the FTP server.
-        
-        If necessary, create the directories.
-        """
-        self.ftp = ftplib.FTP(config.FTP_HOST, config.FTP_USER, config.FTP_PASSWORD)
-        # Create directories when necessary
-        ftp_paths = self.ftp.nlst()
-        for path in [path 
-                     for d in config.PRODUCT_CODE.values()
-                     for path in d.values()]:
-            if not path in ftp_paths:
-                self.ftp.mkd(path)
-        
-        return self
-    
-    def __exit__(self, exception_type, error, traceback):
-        """ Close ftp connection. """
-        self.ftp.quit()
-
-    def publish(self, product):
-        """ Publish the product in the correct folder. """
-        ftp_file = os.path.join(
-            config.PRODUCT_CODE[product.timeframe][product.prodcode],
-            os.path.basename(product.path),
-        )
-        with open(product.path, 'rb') as product_file:
-            response = self.ftp.storbinary(
-                'STOR {}'.format(ftp_file),
-                product_file,
+    @classmethod
+    def get_rescaled_products(cls, product):
+        """ Return the rescaled products that are scaled to product. """
+        rescaled_products = []
+        if cls._reliable(product):
+            rescaled_products.extend(
+                [ConsistentProduct(datetime=p.datetime,
+                                   prodcode=p.prodcode,
+                                   timeframe=p.timeframe)
+                 for p in cls._subproducts(product)],
             )
-
-        logging.debug('ftp response: {}'.format(response))
-        logging.debug(ftp_file)
-        logging.info(
-            'Stored FTP file {}'.format(os.path.basename(ftp_file)),
-        )
-
-
-def publish(products, dt_delivery):
-    """
-    Each product is published to a number of locations.
-
-    The difference between products and publications is that for some
-    calibrated products, there also exists a consistent product. In that
-    case, only the consistent product should be published.
-    """
-    # Get rid of the calibrated products that have a consistent equivalent
-    publications = []
-    for product in products:
-        consistent_expected = utils.consistent_product_expected(
-            product=product.product, timeframe=product.timeframe,
-        )
-        if consistent_expected and isinstance(product, CalibratedProduct):
-            continue
-        publications.append(product)
-
-    logging.debug('{} publications out of {} products'.format(
-        len(publications), len(products),
-    ))
-    logging.info('Start publishing {} publications.'.format(len(publications)))
-
-    # Publish to geotiff image for webviewer
-    for product in publications:
-        if product.timeframe == 'f' and product.prodcode == 'r':
-            images.create_geotiff(product.datetime)
-
-    # Publish to target dirs as configured in config
-    logging.debug('Preparing {} dirs.'.format(len(config.COPY_TARGET_DIRS)))
-    for target_dir in config.COPY_TARGET_DIRS:
-        for path in [path 
-                     for d in config.PRODUCT_CODE.values()
-                     for path in d.values()]:
-            utils.makedir(os.path.join(target_dir, path))
-    logging.debug('Copying publications.')
-    for product in publications:
-        for target_dir in config.COPY_TARGET_DIRS:
-            target_subdir = os.path.join(
-                target_dir,
-                config.PRODUCT_CODE[product.timeframe][product.prodcode],
+        extra_rescaled_products = []
+        for rescaled_product in rescaled_products:
+            extra_rescaled_products.extend(
+                cls.get_rescaled_products(rescaled_product),
             )
-            shutil.copy(product.path, target_subdir)
-    logging.info('Local target dir copying complete.')
-        
-    # Publish to FTP configured in config:
-    if hasattr(config, 'FTP_HOST') and config.FTP_HOST != '':
-        with FtpPublisher() as ftp_publisher:
-            for product in publications:
-                ftp_publisher.publish(product)
-        logging.info('FTP publishing complete.')
-    else:
-        logging.warning('FTP not configured, FTP publishing not possible.')
-    
-    # Update thredds
-    for product in publications:
-        # Unmerged
-        ThreddsFile.get_for_product(product=product).update(product)
-        # Merged
-        ThreddsFile.get_for_product(
-            product=product, merge=True,
-        ).update(product)
-    logging.info('Thredds publishing complete.')
-   
-    logging.info('Done publishing products.')
-
-    # Create png and animated gif if called with a delivery date
-    if dt_delivery is not None:
-        logging.info('Creating png and animated gif.')
-        images.create_png([CalibratedProduct(date=dt_delivery,
-                                                      product='r',
-                                                      timeframe='f')])
-        images.create_animated_gif(datetime=dt_delivery)
+        return rescaled_products
 
 
 def get_values_from_opendap(x, y, start_date, end_date):

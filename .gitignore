@@ -3,6 +3,9 @@
 # Pyc/pyo files.
 *.py[co]
 
+# Local config
+openradar/local*
+
 # Packages
 *.egg
 *.egg-info

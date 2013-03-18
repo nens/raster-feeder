@@ -8,7 +8,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 from openradar import config
-from openradar import log
+from openradar import loghelper
 
 import logging
 import ftplib
@@ -28,8 +28,7 @@ def ftp_sync(source, target):
     """ Synchronize working directory of target ftp to that of source ftp. """
     removed = 0
     copied = 0
-    
-    
+
     # Get the lists
     source_names = source.nlst()
     target_names = target.nlst()
@@ -54,11 +53,18 @@ def ftp_sync(source, target):
 
 
 def sync():
-    log.setup_logging(os.path.join(config.LOG_DIR, 'sync.log'))
-    logging.info(60 * '-')
-    logging.info('Starting sync of througput data.')
+    """ Synchronize specific remote ftp folders with our ftp. """
+    loghelper.setup_logging(os.path.join(config.LOG_DIR, 'sync.log'))
+
+    # Check sync possible
+    if not hasattr(config, 'FTP_HOST') or config.FTP_HOST == '':
+        logging.warning('FTP not configured, FTP syncing not possible.')
+        return
+
     try:
-        target = ftplib.FTP(config.FTP_HOST, config.FTP_USER, config.FTP_PASSWORD)
+        target = ftplib.FTP(config.FTP_HOST,
+                            config.FTP_USER,
+                            config.FTP_PASSWORD)
 
         for name, info in config.FTP_THROUGH.items():
             logging.info('Syncing {}...'.format(name))
@@ -83,3 +89,7 @@ def sync():
     except:
         logging.exception('Error:')
     logging.info('Sync done.')
+
+
+def main():
+    return sync()

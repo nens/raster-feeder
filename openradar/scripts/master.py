@@ -8,160 +8,92 @@ from __future__ import absolute_import
 from __future__ import division
 
 
+from openradar import arguments
 from openradar import config
 from openradar import files
-from openradar import log
-from openradar import products
+from openradar import loghelper
+from openradar import tasks
 from openradar import utils
 
-import argparse
 import datetime
 import logging
 
-def master_single_product(prodcode, timeframe, datetime):
-    """ Returns the created products. """
-    products_created = []
-    if timeframe not in utils.timeframes(datetime=datetime):
-        # Timframe not compatible with datetime
-        return products_created
 
-    # Make this important logging stand out.
-    logging.info(60 * '-')
-    logging.info('Creating {prodcode}, {timeframe} for {datetime}'.format(
-            prodcode=prodcode, timeframe=timeframe, datetime=datetime,
-    ))
-    logging.info(60 * '-')
+def master(**kwargs):
+    """ Run the radar production chain for a single datetime. """
+    loghelper.setup_logging(logfile_name='radar_master.log')
+    logging.info(20 * '-' + ' master ' + 20 * '-')
 
-    # Calibrated products
-    calibrated_product = products.CalibratedProduct(
-        product=prodcode,
-        timeframe=timeframe,
-        date=datetime,
+    # Determine the delivery datetime and if necessary wait for files.
+    if kwargs['range'] is not None:
+        datetimes = utils.DateRange(kwargs['range']).iterdatetimes()
+        for i, datetime_delivery in enumerate(datetimes):
+            if i > 0:
+                logging.warning('Range of datetimes given. Using the first.')
+                break
+    else:
+        datetime_delivery = utils.closest_time()
+        files.sync_and_wait_for_files(dt_calculation=datetime_delivery)
+
+    # Organize
+    files.organize_from_path(sourcepath=config.SOURCE_DIR)
+
+    # Product datetime depends on delevery times
+    declutter = dict(
+        size=config.DECLUTTER_SIZE,
+        history=config.DECLUTTER_HISTORY,
     )
-    calibrated_product.make()
-    products_created.append(calibrated_product)
-
-    # Consistent products, if possible:
-    consistent_products_created = []
-    for calibrated_product in products_created:
-        consistent_products_created.extend(  
-            products.Consistifier.create_consistent_products(calibrated_product)
-        )
-
-    # Add to products_created
-    products_created += consistent_products_created
-    logging.info('Created {} product'.format(len(products_created)))
-    return products_created
-
-
-def master_manual(args):
-    """ Manual mode """
-    datetimes = utils.MultiDateRange(args['range']).iterdatetimes()
-    for datetime in datetimes:
-        for prodcode in args['product']:
-            for timeframe in args['timeframe']:
-                yield dict(
-                    timeframe=timeframe, 
-                    prodcode=prodcode, 
-                    datetime=datetime,
-                )
-    
-
-def master_auto(args, dt_delivery):
-    """
-    auto mode; destined to run from cronjob. Makes the products
-    that are possible now based on the delivery time.
-    """
-    delivery_time=dict(
+    radars = config.ALL_RADARS
+    delivery_times = dict(
         r=datetime.timedelta(),
         n=datetime.timedelta(hours=1),
         a=datetime.timedelta(days=2),
     )
 
-    for prodcode in args['product']:
-        for timeframe in args['timeframe']:
-            yield dict(
-                timeframe=timeframe, 
-                prodcode=prodcode, 
-                datetime=dt_delivery - delivery_time[prodcode]
+    # Submit aggregate tasks.
+    submitted_aggregate_kwargs = []
+    for prodcode, timedelta_delivery in delivery_times.items():
+        datetime_product = datetime_delivery - timedelta_delivery
+        combinations = utils.get_aggregate_combinations(
+            datetimes=[datetime_product],
+        )
+        for combination in combinations:
+            aggregate_kwargs = dict(declutter=declutter, radars=radars)
+            aggregate_kwargs.update(combination)
+            tasks.aggregate.delay(**aggregate_kwargs)
+
+            # Submit calibrate tasks
+            calibrate_kwargs = dict(prodcode=prodcode)
+            calibrate_kwargs.update(aggregate_kwargs)
+            tasks.calibrate.delay(**calibrate_kwargs)
+
+            # Submit rescale tasks
+            rescale_kwargs = {k: v 
+                              for k, v in calibrate_kwargs.items()
+                              if k in ['datetime', 'prodcode', 'timeframe']}
+            tasks.rescale.delay(**rescale_kwargs)
+            
+
+            # Submit publication tasks
+            tasks.publish.delay(
+                datetimes=[calibrate_kwargs['datetime']],
+                prodcodes=[calibrate_kwargs['prodcode']],
+                timeframes=[calibrate_kwargs['timeframe']],
+                endpoints=['ftp', 'h5', 'local', 'image', 'h5m'],
+                cascade=True,
             )
 
-
-def master():
-    log.setup_logging()
-    args = master_args()
-    logging.info(60 * '=')
-    logging.info('Master start')
-    products_created = []
-    try:
-
-        if args['range'] is not None:
-            jobs = master_manual(args)
-            dt_delivery = None
-        else:
-            dt_delivery = utils.closest_time()
-            jobs = master_auto(args, dt_delivery)
-            files.sync_and_wait_for_files(dt_calculation=dt_delivery)
-        
-        # Organize 
-        sourcepath = args['source_dir']
-        files.organize_from_path(sourcepath=sourcepath)
-
-        # Create products
-        for job in jobs:
-            products_created.extend(master_single_product(**job))
-        
-    except Exception as e:
-        logging.error('Exception during product creation.')
-        logging.exception(e)
-
-    # Separate handling, to publish products created before eventual crash.
-    try:
-        # Publish products
-        products.publish(products_created, dt_delivery)
-    except Exception as e:
-        logging.error('Exception during publication.')
-        logging.exception(e)
-
-    logging.info('Master stop')
-    logging.info(60 * '=')
+    # Create task to create animated gif
+    tasks.animate.delay(datetime=datetime_delivery)
+    
+    logging.info(20 * '-' + ' master complete ' + 20 * '-')
 
 
-def master_args():
-    """ 
-    Return a dictionary of arguments with their commandline supplied values.
-    """
-    parser = argparse.ArgumentParser(
-        description='Organize files, create and publish products.'
+def main():
+    argument = arguments.Argument()
+    parser = argument.parser(
+        ['opt_range'],
+        description=('Run the radar production chain for '
+                     'now, or for a single moment in time.'),
     )
-    parser.add_argument(
-        'range',
-        nargs='?',
-        metavar='RANGE',
-        type=str,
-        help='Ranges to use, for example 20110101-20110103,20110105',
-    )
-    parser.add_argument(
-        '-p', '--product',
-        nargs='*',
-        choices=['r', 'n', 'a'],
-        default=['r', 'n', 'a'],
-        help=('Choose product: (n)ear-realtime, (r)ealtime or (a)fterwards'),
-    )
-    parser.add_argument(
-        '-t', '--timeframe',
-        nargs='*',
-        choices=['f', 'h', 'd'],
-        default=['f', 'h', 'd'],
-        help=('Choose timeframe: (f)ive minute (e.g. at 15.55), '
-              '(h)ourly aggregates (on whole hours e.g. 09.00) or '
-              '(d)aily aggregates (24 hours from 08.00 AM to 07.55 AM'),
-        )
-    parser.add_argument(
-        '-s', '--source-dir',
-        type=str,
-        default=config.SOURCE_DIR,
-        help=('Path from where all the files'
-              ' are stored that need to be organized'),
-    )
-    return vars(parser.parse_args())
+    master(**vars(parser.parse_args()))

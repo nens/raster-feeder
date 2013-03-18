@@ -157,7 +157,8 @@ def create_geotiff(dt_aggregate, code='5min'):
                               projection=h5.attrs['grid_projection'],
                               **rasterlayerkwargs).save(tifpath_rd, rgba=True)
 
-    logging.info('saved {}.'.format(tifpath_rd))
+    logging.info('saved {}.'.format(os.path.basename(tifpath_rd)))
+    logging.debug('saved {}.'.format(tifpath_rd))
 
 
 def create_png(products, **kwargs):
@@ -179,6 +180,7 @@ def create_png(products, **kwargs):
         amsterdam = utc.astimezone(tz_amsterdam)
         label = amsterdam.strftime('%Y-%m-%d %H:%M')
         
+        # Get data image
         with product.get() as h5:
             array = h5['precipitation'][...] / h5.attrs['composite_count']
             mask = np.equal(array, h5.attrs['fill_value'])
@@ -191,6 +193,7 @@ def create_png(products, **kwargs):
         filename = '{}{}.{}'.format(
             timestamp, kwargs.get('postfix', ''), kwargs.get('format', 'png'),
         )
+        # Merge and save
         path = os.path.join(config.IMG_DIR, filename)
         utils.merge([
             img_radars, 
@@ -199,7 +202,9 @@ def create_png(products, **kwargs):
             img_shape_filled,
             img_blue,
         ]).save(path)
-    logging.debug(path)
+        
+        logging.info('saved {}.'.format(os.path.basename(path)))
+        logging.debug('saved {}.'.format(path))
 
 
 def create_animated_gif(datetime):
@@ -223,3 +228,4 @@ def create_animated_gif(datetime):
     subprocess.call(shlex.split(command))
     os.rename(tempgifpath, gifpath)
     logging.debug(gifpath)
+    logging.info('Animation created at {}.'.format(gifpath))

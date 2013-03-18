@@ -9,15 +9,17 @@ long_description = '\n\n'.join([
     ])
 
 install_requires = [
+    'celery',
     'h5py',
     'matplotlib',
     'numpy',
-    'PIL',
+    'Pillow',
     'pydap >= 3.1.RC1',
     'pytz',
     'rpy2',
     'scipy',
     'setuptools',
+    'SQLAlchemy',
     ],
 
 tests_require = [
@@ -42,6 +44,18 @@ setup(name='openradar',
       extras_require={'test': tests_require},
       entry_points={
           'console_scripts': [
+              # Main tasks
+              'sync = openradar.scripts.sync:main',
+              'master = openradar.scripts.master:main',
+              # Subtasks
+              'aggregate = openradar.scripts.aggregate:main',
+              'calibrate = openradar.scripts.calibrate:main',
+              'rescale = openradar.scripts.rescale:main',
+              'publish = openradar.scripts.publish:main',
+              # Tools
               'sandbox = openradar.scripts.sandbox:main',
+              'organize = openradar.scripts.organize:main',
+              'image = openradar.scripts.image:main',
+              
           ]},
       )

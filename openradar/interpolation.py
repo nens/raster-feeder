@@ -17,11 +17,9 @@ from osgeo import gdal
 
 from openradar import config
 from openradar import gridtools
-from openradar import log
 from openradar import utils
 from openradar import scans
 
-log.setup_logging()
 
 class RainStation(object):
     '''
@@ -43,29 +41,23 @@ class DataLoader(object):
     The input format of the ground station data is in csv. The Dataloader
     serves as a prerequisite for the Interpolator.
     '''
-    def __init__(self, datafile=None, metafile=None, date=None,
-            delta=datetime.timedelta(minutes=5), scs=config.ALL_RADARS):
+    def __init__(self, datafile, metafile, aggregate):
+        # Attributes
+        self.delta = aggregate.timedelta
+        self.date = aggregate.datetime
+        self.dataset = aggregate.get()
+        # Basegrid
+        self.basegrid = gridtools.BaseGrid(
+            extent=self.dataset.attrs['grid_extent'],
+            projection=self.dataset.attrs['grid_projection'],
+            size=self.dataset.attrs['grid_size']
+        )
+        # Read csv files
         try:
             self.raindata = self.read_csv(datafile.encode('utf-8'))
         except:
             logging.warn('Problem reading ground datafile!')
         self.stationsdata = self.read_csv(metafile.encode('utf-8'))
-        td_aggregate = delta
-        self.delta = delta
-        aggregate = scans.Aggregate(
-                dt_aggregate=date,
-                td_aggregate=td_aggregate,
-                scancodes=scs,
-                declutter=None)
-        aggregate.make()
-        self.dataset = aggregate.get()
-        sizex,sizey = self.dataset.attrs['grid_size']
-        self.basegrid = gridtools.BaseGrid(
-            extent=self.dataset.attrs['grid_extent'],
-            projection=self.dataset.attrs['grid_projection'],
-            size=(sizex,sizey)
-            )
-        self.date = date
 
 
     @classmethod

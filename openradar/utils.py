@@ -131,6 +131,7 @@ class DateRange(object):
         8: '%Y%m%d',
         10: '%Y%m%d%H',
         12: '%Y%m%d%H%M',
+        14: '%Y%m%d%H%M%S',
     }
     STEP = datetime.timedelta(minutes=5)
 
@@ -140,7 +141,7 @@ class DateRange(object):
 
     def _start_stop_from_text(self, text):
         """
-        Ste
+        Return start and end timestamps.
         """
         if '-' in text:
             text1, text2 = text.split('-')
@@ -266,7 +267,7 @@ def closest_time(timeframe='f', dt_close=None):
     return closesttime
 
 
-def timeframes(datetime):
+def get_valid_timeframes(datetime):
     """ Return a list of timeframe codes corresponding to a datetime."""
     result = []
     if datetime.second == 0 and datetime.microsecond == 0:
@@ -279,9 +280,34 @@ def timeframes(datetime):
     return result
 
 
-def consistent_product_expected(product, timeframe):
-    return (timeframe == 'f' and (product == 'n' or product =='a')
-            or (timeframe == 'f' and product == 'n'))
+def get_aggregate_combinations(datetimes,
+                               timeframes=['f', 'h', 'd']):
+    """ Return generator of dictionaries. """
+    for datetime in datetimes:
+        valid_timeframes = get_valid_timeframes(datetime=datetime)
+        for timeframe in timeframes:
+            if timeframe in valid_timeframes:
+                yield dict(datetime=datetime, 
+                           timeframe=timeframe)
+
+
+def get_product_combinations(datetimes,
+                             prodcodes=['r', 'n', 'a'],
+                             timeframes=['f', 'h','d']):
+    """ Return generator of dictionaries. """
+    for datetime in datetimes:
+        valid_timeframes = get_valid_timeframes(datetime=datetime)
+        for prodcode in prodcodes:
+            for timeframe in timeframes:
+                if timeframe in valid_timeframes:
+                    yield dict(datetime=datetime, 
+                               prodcode=prodcode,
+                               timeframe=timeframe)
+
+
+def consistent_product_expected(prodcode, timeframe):
+    return (timeframe == 'f' and (prodcode == 'n' or prodcode =='a')
+            or (timeframe == 'f' and prodcode == 'n'))
 
 
 def get_groundfile_datetime(prodcode, date):
