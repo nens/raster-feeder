@@ -21,9 +21,6 @@ package and symlink the necessary configuration files::
     $ bin/buildout  # Again, yes.
     $ ln -s src/radar/misc
     $ ln -s src/radar/radar/productionconfig.py openradar/localconfig.py
-    
-
-
 
 Scripts
 -------
