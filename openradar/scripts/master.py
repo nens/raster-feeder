@@ -51,7 +51,6 @@ def master(**kwargs):
     )
 
     # Submit aggregate tasks.
-    submitted_aggregate_kwargs = []
     for prodcode, timedelta_delivery in delivery_times.items():
         datetime_product = datetime_delivery - timedelta_delivery
         combinations = utils.get_aggregate_combinations(
@@ -68,11 +67,10 @@ def master(**kwargs):
             tasks.calibrate.delay(**calibrate_kwargs)
 
             # Submit rescale tasks
-            rescale_kwargs = {k: v 
+            rescale_kwargs = {k: v
                               for k, v in calibrate_kwargs.items()
                               if k in ['datetime', 'prodcode', 'timeframe']}
             tasks.rescale.delay(**rescale_kwargs)
-            
 
             # Submit publication tasks
             tasks.publish.delay(
@@ -85,7 +83,7 @@ def master(**kwargs):
 
     # Create task to create animated gif
     tasks.animate.delay(datetime=datetime_delivery)
-    
+
     logging.info(20 * '-' + ' master complete ' + 20 * '-')
 
 
