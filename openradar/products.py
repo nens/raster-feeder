@@ -482,6 +482,12 @@ class CalibratedProduct(object):
         #interpolator = Interpolator(dataloader)
         #interpolator.get_correction_factor()
 
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    def __unicode__(self):
+        return self.path
+
 
 class ConsistentProduct(object):
     """ Conisitified products are usually created by the consisitier. """
@@ -540,6 +546,12 @@ class ConsistentProduct(object):
         logging.info('Created ConsistentProduct {}'.format(filename))
         logging.debug('Created ConsistentProduct {}'.format(filepath))
         return consistent_product
+    
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    def __unicode__(self):
+        return self.path
 
 
 class Consistifier(object):
@@ -654,6 +666,7 @@ class Consistifier(object):
             extra_rescaled_products.extend(
                 cls.get_rescaled_products(rescaled_product),
             )
+        rescaled_products.extend(extra_rescaled_products)
         return rescaled_products
 
 
