@@ -13,7 +13,7 @@ import os
 from openradar import config
 
 
-def _get_logging_dict(console_level, logfile_path):
+def _get_logging_dict(logfile_path):
     return {
         'disable_existing_loggers': True,
         'version': 1,
@@ -28,7 +28,7 @@ def _get_logging_dict(console_level, logfile_path):
         'handlers': {
             'console': {
                 'class': 'logging.StreamHandler',
-                'level': console_level,
+                'level': 'DEBUG',
                 'formatter': 'simple',
             },
             'file': {
@@ -57,10 +57,8 @@ def _get_logging_dict(console_level, logfile_path):
 def setup_logging(logfile_name='radar.log'):
     """ Setup logging according to logfile and settings. """
     # Get logging dictionary
-    console_level = 'DEBUG' if config.DEBUG else 'INFO'
     logfile_path = os.path.join(config.LOG_DIR, logfile_name)
-    logging_dict = _get_logging_dict(logfile_path=logfile_path,
-                                     console_level=console_level)
+    logging_dict = _get_logging_dict(logfile_path=logfile_path)
     # Create directory if necessary
     try:
         os.makedirs(os.path.dirname(

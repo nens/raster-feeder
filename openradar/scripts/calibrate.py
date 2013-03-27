@@ -21,7 +21,6 @@ def calibrate(**kwargs):
     else:
         action = task.delay
     # Determine derived arguments
-    # Determine derived arguments
     declutter = dict(
         size=kwargs['declutter_size'],
         history=kwargs['declutter_history'],

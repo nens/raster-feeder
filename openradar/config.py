@@ -10,9 +10,6 @@ import datetime
 import os
 import re
 
-# Debug
-DEBUG = True
-
 # Directories
 BUILDOUT_DIR = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
@@ -25,7 +22,6 @@ CALIBRATE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'calibrate')
 CONSISTENT_DIR = os.path.join(BUILDOUT_DIR, 'var', 'consistent')
 GROUND_DIR = os.path.join(BUILDOUT_DIR, 'var', 'ground')
 IMG_DIR = os.path.join(BUILDOUT_DIR, 'var', 'img')
-#JSON_DIR = os.path.join(BUILDOUT_DIR, 'json')
 MISC_DIR = os.path.join(BUILDOUT_DIR, 'var', 'misc')
 MULTISCAN_DIR = os.path.join(BUILDOUT_DIR, 'var', 'multiscan')
 RADAR_DIR = os.path.join(BUILDOUT_DIR, 'var', 'radar')
