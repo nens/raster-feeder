@@ -51,6 +51,7 @@ def master(**kwargs):
     )
 
     # Submit aggregate tasks.
+    logging.info(20 * '-' + ' create tasks ' + 20 * '-')
     for prodcode, timedelta_delivery in delivery_times.items():
         datetime_product = datetime_delivery - timedelta_delivery
         combinations = utils.get_aggregate_combinations(
@@ -60,17 +61,23 @@ def master(**kwargs):
             aggregate_kwargs = dict(declutter=declutter, radars=radars)
             aggregate_kwargs.update(combination)
             tasks.aggregate.delay(**aggregate_kwargs)
+            log_template = 'Agg. task: {datetime} {timeframe}'
+            logging.info(log_template.format(**aggregate_kwargs))
 
             # Submit calibrate tasks
             calibrate_kwargs = dict(prodcode=prodcode)
             calibrate_kwargs.update(aggregate_kwargs)
             tasks.calibrate.delay(**calibrate_kwargs)
+            log_template = 'Cal. task: {datetime} {timeframe} {prodcode}'
+            logging.info(log_template.format(**calibrate_kwargs))
 
             # Submit rescale tasks
             rescale_kwargs = {k: v
                               for k, v in calibrate_kwargs.items()
                               if k in ['datetime', 'prodcode', 'timeframe']}
             tasks.rescale.delay(**rescale_kwargs)
+            log_template = 'Res. task: {datetime} {timeframe} {prodcode}'
+            logging.info(log_template.format(**rescale_kwargs))
 
             # Submit publication tasks
             tasks.publish.delay(
@@ -80,6 +87,9 @@ def master(**kwargs):
                 endpoints=['ftp', 'h5', 'local', 'image', 'h5m'],
                 cascade=True,
             )
+            log_template = 'Pub. task: {datetime} {timeframe} {prodcode}'
+            logging.info(log_template.format(**calibrate_kwargs))
+            logging.info(40 * '-')
 
     # Create task to create animated gif
     tasks.animate.delay(datetime=datetime_delivery)
