@@ -7,6 +7,10 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
+import datetime
+import logging
+
+from celery import chain
 
 from openradar import arguments
 from openradar import config
@@ -14,9 +18,6 @@ from openradar import files
 from openradar import loghelper
 from openradar import tasks
 from openradar import utils
-
-import datetime
-import logging
 
 
 def master(**kwargs):
@@ -50,7 +51,8 @@ def master(**kwargs):
         ('a', datetime.timedelta(days=2)),
     )
 
-    # Submit aggregate tasks.
+    # Submit tasks in a chain.
+    subtasks = [tasks.do_nothing.s()]
     logging.info(20 * '-' + ' create tasks ' + 20 * '-')
     for prodcode, timedelta_delivery in delivery_times:
         datetime_product = datetime_delivery - timedelta_delivery
@@ -58,16 +60,17 @@ def master(**kwargs):
             datetimes=[datetime_product],
         )
         for combination in combinations:
+            # Determine aggregate kwargs
             aggregate_kwargs = dict(declutter=declutter, radars=radars)
             aggregate_kwargs.update(combination)
-            tasks.aggregate.delay(**aggregate_kwargs)
+            subtasks.append(tasks.aggregate.s(**aggregate_kwargs))
             tpl = 'Agg. task: {datetime} {timeframe}'
             logging.info(tpl.format(**aggregate_kwargs))
 
             # Submit calibrate tasks
             calibrate_kwargs = dict(prodcode=prodcode)
             calibrate_kwargs.update(aggregate_kwargs)
-            tasks.calibrate.delay(**calibrate_kwargs)
+            subtasks.append(tasks.calibrate.s(**calibrate_kwargs))
             tpl = 'Cal. task: {datetime} {timeframe} {prodcode}'
             logging.info(tpl.format(**calibrate_kwargs))
 
@@ -75,24 +78,27 @@ def master(**kwargs):
             rescale_kwargs = {k: v
                               for k, v in calibrate_kwargs.items()
                               if k in ['datetime', 'prodcode', 'timeframe']}
-            tasks.rescale.delay(**rescale_kwargs)
+            subtasks.append(tasks.rescale.s(**rescale_kwargs))
             tpl = 'Res. task: {datetime} {timeframe} {prodcode}'
             logging.info(tpl.format(**rescale_kwargs))
 
             # Submit publication tasks
-            tasks.publish.delay(
+            subtasks.append(tasks.publish.s(
                 datetimes=[calibrate_kwargs['datetime']],
                 prodcodes=[calibrate_kwargs['prodcode']],
                 timeframes=[calibrate_kwargs['timeframe']],
                 endpoints=['ftp', 'h5', 'local', 'image', 'h5m'],
                 cascade=True,
-            )
+            ))
             tpl = 'Pub. task: {datetime} {timeframe} {prodcode}'
             logging.info(tpl.format(**calibrate_kwargs))
             logging.info(40 * '-')
 
     # Create task to create animated gif
-    tasks.animate.delay(datetime=datetime_delivery)
+    subtasks.append(tasks.animate.s(datetime=datetime_delivery))
+
+    # Submit all
+    chain(*subtasks).apply_async()
 
     logging.info(20 * '-' + ' master complete ' + 20 * '-')
 

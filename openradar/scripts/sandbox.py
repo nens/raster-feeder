@@ -8,12 +8,17 @@ from __future__ import absolute_import
 from __future__ import division
 
 import datetime
-import logging
 
-from openradar import tasks
-from openradar import loghelper
-from openradar import config
+from openradar import products
 
 def main():
-    tasks.test_concurrency.delay('a')
-    tasks.test_concurrency.delay('b')
+    start = datetime.datetime(2013,3,1,0)
+    delta = datetime.timedelta(hours=1)
+    end = start + delta
+    values = products.get_values_from_opendap(
+        x=220,
+        y=220,
+        start_date=start,
+        end_date=end,
+    )
+    print(values)

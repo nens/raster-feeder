@@ -39,10 +39,15 @@ app.conf.update(
 
 
 @celery.task
-def aggregate(datetime, timeframe, radars,
+def do_nothing():
+    """ Empty task that can be used as the start of a chain. """
+
+
+@celery.task
+def aggregate(result, datetime, timeframe, radars,
               declutter, direct=False, cascade=False):
     """ Create aggregates and optionally cascade to depending products. """
-    loghelper.setup_logging(logfile_name='radar_aggregate.log')
+    loghelper.setup_logging(logfile_name='radar.log')
     logging.info(20 * '-' + ' aggregate ' + 20 * '-')
     try:
         # Create aggregates
@@ -72,10 +77,10 @@ def aggregate(datetime, timeframe, radars,
 
 
 @celery.task
-def calibrate(datetime, prodcode, timeframe, radars,
-              declutter, direct=False, cascade=False):
+def calibrate(result, datetime, prodcode, timeframe,
+              radars, declutter, direct=False, cascade=False):
     """ Created calibrated aggregated composites. """
-    loghelper.setup_logging(logfile_name='radar_calibrate.log')
+    loghelper.setup_logging(logfile_name='radar.log')
     logging.info(20 * '-' + ' calibrate ' + 20 * '-')
     try:
         # Create products
@@ -105,16 +110,17 @@ def calibrate(datetime, prodcode, timeframe, radars,
 
 
 @celery.task
-def rescale(datetime, prodcode, timeframe, direct=False, cascade=False):
+def rescale(result, datetime, prodcode, timeframe, direct=False, cascade=False):
     """ Create rescaled products wherever possible. """
-    loghelper.setup_logging(logfile_name='radar_rescale.log')
+    loghelper.setup_logging(logfile_name='radar.log')
     logging.info(20 * '-' + ' rescale ' + 20 * '-')
     try:
         product = products.CalibratedProduct(prodcode=prodcode,
                                              datetime=datetime,
                                              timeframe=timeframe)
-        result = products.Consistifier.create_consistent_products(product)
-        if not result:
+        rescaleds = products.Consistifier.create_consistent_products(product)
+        logging.info(product)
+        if not rescaleds:
             logging.info('Nothing to rescale.')
     except Exception as e:
         logging.exception(e)
@@ -122,7 +128,7 @@ def rescale(datetime, prodcode, timeframe, direct=False, cascade=False):
 
 
 @celery.task
-def publish(datetimes, prodcodes, timeframes, endpoints, cascade):
+def publish(result, datetimes, prodcodes, timeframes, endpoints, cascade):
     """
     Publish products.
 
@@ -130,7 +136,7 @@ def publish(datetimes, prodcodes, timeframes, endpoints, cascade):
     If the calibrate task is also run with 'cascade=True', this should
     be no problem.
     """
-    loghelper.setup_logging(logfile_name='radar_publish.log')
+    loghelper.setup_logging(logfile_name='radar.log')
     logging.info(20 * '-' + ' publish ' + 20 * '-')
     try:
         publisher = publishing.Publisher(datetimes=datetimes,
@@ -144,14 +150,14 @@ def publish(datetimes, prodcodes, timeframes, endpoints, cascade):
 
 
 @celery.task
-def animate(datetime):
+def animate(result, datetime):
     """
     Create animation
     Publish products.
 
     Cascade means rescaled (derived) products are published as well.
     """
-    loghelper.setup_logging(logfile_name='radar_publish.log')
+    loghelper.setup_logging(logfile_name='radar.log')
     logging.info(20 * '-' + ' animate ' + 20 * '-')
     try:
         images.create_animated_gif(datetime=datetime)

@@ -160,6 +160,10 @@ class ThreddsFile(object):
             iter(self._get_datetime_generator(start=index_start, end=index_end)),
             precipitation[y, x, index_start: index_end + 1][0, 0, :],
         )
+        print(index_start, index_end)
+        available = dataset['available']
+        print(available[index_start: index_end + 1])
+        print(precipitation[y, x, index_start: index_end + 1][0, 0, :])
         
         return [dict(unit='mm/5min', datetime=d, value=float(p))
                 for d, p in tuples
