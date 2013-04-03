@@ -34,7 +34,10 @@ def master(**kwargs):
                 break
     else:
         datetime_delivery = utils.closest_time()
-        files.sync_and_wait_for_files(dt_calculation=datetime_delivery)
+        try:
+            files.sync_and_wait_for_files(dt_calculation=datetime_delivery)
+        except Exception as exception:
+            logging.exception(exception)
 
     # Organize
     files.organize_from_path(sourcepath=config.SOURCE_DIR)
