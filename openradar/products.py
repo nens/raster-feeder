@@ -7,24 +7,16 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
-import argparse
 import calendar
-import collections
-import datetime
-import ftplib
 import h5py
 import logging
 import numpy as np
 import os
-import shutil
-import tempfile
 
-from osgeo import gdal
 from pydap import client
 from pydap.exceptions import ServerError
 
 from openradar import config
-from openradar import images
 from openradar import utils
 from openradar import scans
 from openradar.interpolation import DataLoader, Interpolator
@@ -41,8 +33,9 @@ class ThreddsFile(object):
     NEARREALTIME = 3
     AFTERWARDS = 4
     FLAGS = dict(r=REALTIME, n=NEARREALTIME, a=AFTERWARDS)
-    
-    def __init__(self, datetime=None, timeframe=None, prodcode='r', merge=True):
+
+    def __init__(self, datetime=None,
+                 timeframe=None, prodcode='r', merge=True):
         """
         Return a threddsfile object configured with an url attribute
         that is suitable for use with opendap.
@@ -58,7 +51,7 @@ class ThreddsFile(object):
         self.timesteps = self._timesteps()
         self.prodcode = prodcode
         self.merge = merge
-        
+
         basecode = config.PRODUCT_CODE[timeframe][prodcode]
         if merge:
             code = basecode.split('_')[0]
@@ -69,7 +62,6 @@ class ThreddsFile(object):
             code=code,
             template=config.PRODUCT_TEMPLATE,
         ).path(self.datetime)
-
 
     def _datetime(self, datetime):
         """ Return the timestamp of the threddsfile. """
@@ -91,11 +83,11 @@ class ThreddsFile(object):
         months = dict(f=1, h=12, d=12)[self.timeframe]
         yearmonths = []
         for year in range(self.datetime.year,
-                       self.datetime.year + years):
+                          self.datetime.year + years):
             for month in range(self.datetime.month,
-                           self.datetime.month + months):
+                               self.datetime.month + months):
                 yearmonths.append(dict(year=year, month=month))
-        
+
         # Calculate total amount of days in the file:
         days = 0
         for yearmonth in yearmonths:
@@ -104,13 +96,13 @@ class ThreddsFile(object):
         return days * dict(f=288, h=24, d=1)[self.timeframe]
 
     def _index(self, product):
-        """ 
+        """
         Return the index for the time dimension for a product.
 
         Rounding is because of uncertainties in the total_seconds() method.
         """
         return round((product.datetime -
-                      self.datetime).total_seconds() / 
+                      self.datetime).total_seconds() /
                      self.timedelta.total_seconds())
 
     def index(self, datetime):
@@ -119,14 +111,14 @@ class ThreddsFile(object):
 
         Clips to first and last element.
         """
-        unclipped = int((datetime - self.datetime).total_seconds() / 
-                          self.timedelta.total_seconds())
+        unclipped = int((datetime - self.datetime).total_seconds() /
+                        self.timedelta.total_seconds())
         return min(max(unclipped, 0), self.timesteps - 1)
 
     def _get_datetime_generator(self, start, end):
         """
         Return generator of datetimes for data at x, y.
-        
+
         Start, end are indexes.
         """
         for i in range(start, end + 1):
@@ -155,16 +147,17 @@ class ThreddsFile(object):
             index_end = self.index(end)
 
         precipitation = dataset['precipitation']['precipitation']
-        
+
         tuples = zip(
-            iter(self._get_datetime_generator(start=index_start, end=index_end)),
+            iter(self._get_datetime_generator(start=index_start,
+                                              end=index_end)),
             precipitation[y, x, index_start: index_end + 1][0, 0, :],
         )
         print(index_start, index_end)
         available = dataset['available']
         print(available[index_start: index_end + 1])
         print(precipitation[y, x, index_start: index_end + 1][0, 0, :])
-        
+
         return [dict(unit='mm/5min', datetime=d, value=float(p))
                 for d, p in tuples
                 if not p == config.NODATAVALUE]
@@ -207,7 +200,7 @@ class ThreddsFile(object):
         thredds_file.datetime = thredds_file._datetime(product.datetime)
         thredds_file.timedelta = config.TIMEFRAME_DELTA[product.timeframe]
         thredds_file.timesteps = thredds_file._timesteps()
-        
+
         basecode = config.PRODUCT_CODE[product.timeframe][product.prodcode]
         if merge:
             code = basecode.split('_')[0]
@@ -223,7 +216,6 @@ class ThreddsFile(object):
         ).path(thredds_file.datetime)
         return thredds_file
 
-
     def create(self):
         """ Return newly created threddsfile. """
         utils.makedir(os.path.dirname(self.path))
@@ -236,7 +228,7 @@ class ThreddsFile(object):
             compression='gzip', shuffle=True,
         )
         dataset[...] = east
-        
+
         # North
         north = scans.BASEGRID.get_grid()[1][:, 0]
         dataset = h5.create_dataset(
@@ -271,12 +263,12 @@ class ThreddsFile(object):
             compression='gzip', shuffle=True,
         )
         dataset[...] = 0
-        
+
         # Dimensions
         h5['precipitation'].dims.create_scale(h5['north'])
         h5['precipitation'].dims.create_scale(h5['east'])
         h5['precipitation'].dims.create_scale(h5['time'])
-        
+
         h5['precipitation'].dims[0].attach_scale(h5['north'])
         h5['precipitation'].dims[1].attach_scale(h5['east'])
         h5['precipitation'].dims[2].attach_scale(h5['time'])
@@ -292,7 +284,7 @@ class ThreddsFile(object):
 
     def check(self):
         """ Raise ValueError if check fails. """
-        
+
         with h5py.File(self.path) as h5:
             if not 'time' in h5:
                 raise ValueError("No 'time' dataset.")
@@ -324,8 +316,8 @@ class ThreddsFile(object):
         """ Update from product """
         # Create or reuse existing thredds file
         h5_thredds = self.get_or_create()
-        
-        # Temporarily update 
+
+        # Temporarily update
         try:
             del h5_thredds['time'].attrs['unit']
         except KeyError:
@@ -346,7 +338,7 @@ class ThreddsFile(object):
 
         # Roundup
         logging.info('Updated {} ({})'.format(
-            os.path.basename(self.path), 
+            os.path.basename(self.path),
             product.datetime),
         )
         logging.debug(self.path)
@@ -354,6 +346,10 @@ class ThreddsFile(object):
             np.bool8(available[:]).sum() / available.size))
 
         h5_thredds.close()
+
+    def get(self):
+        """ Return readonly dataset. """
+        return h5py.File(self.path, 'r')
 
     def __eq__(self, other):
         return unicode(self) == unicode(other)
@@ -378,7 +374,7 @@ class CalibratedProduct(object):
             afterwards          => 2012-12-16-09:05
     '''
 
-    def __init__(self, prodcode, timeframe, 
+    def __init__(self, prodcode, timeframe,
                  datetime, radars=None, declutter=None):
         # Attributes
         self.datetime = datetime
@@ -410,7 +406,6 @@ class CalibratedProduct(object):
                                datetime=self.datetime,
                                timeframe=self.timeframe,
                                declutter=self.declutter)
-            
 
     def make(self):
         aggregate = self._get_aggregate()
@@ -435,8 +430,8 @@ class CalibratedProduct(object):
             mask = utils.get_countrymask()
             calibrated_radar = interpolater.get_calibrated()
             result = (mask * calibrated_radar + (1 - mask) *
-                    interpolater.precipitation)
-            self.calibrated =  result
+                      interpolater.precipitation)
+            self.calibrated = result
         except:
             self.calibrated = interpolater.precipitation
             logging.warn('Taking the original radar data for date: {}'.format(
@@ -455,10 +450,10 @@ class CalibratedProduct(object):
         )
         calibrated_ma[np.ma.less(calibrated_ma, 0)] = 0
 
-        calibrate = utils.save_dataset(path=self.path,
-                                       meta=self.metadata,
-                                       data=dict(precipitation=calibrated_ma))
-            
+        utils.save_dataset(path=self.path,
+                           meta=self.metadata,
+                           data=dict(precipitation=calibrated_ma))
+
         logging.info('Created CalibratedProduct {}'.format(
             os.path.basename(self.path)
         ))
@@ -469,8 +464,8 @@ class CalibratedProduct(object):
             return h5py.File(self.path, 'r')
         except IOError:
             logging.warn(
-                    'Creating calibrated product {}, because it did not'
-                    ' exist'.format(self.path))
+                'Creating calibrated product {}, because it did not'
+                ' exist'.format(self.path)),
             self.make()
         return h5py.File(self.path, 'r')
 
@@ -507,9 +502,9 @@ class ConsistentProduct(object):
             code=config.PRODUCT_CODE[self.timeframe][self.prodcode],
             template=config.PRODUCT_TEMPLATE,
         ).path(datetime)
-    
+
     def get(self):
-        """ 
+        """
         Return h5 dataset opened in read mode.
 
         Crashes when the file does not exist. This should be catched by caller.
@@ -520,7 +515,7 @@ class ConsistentProduct(object):
     def create(cls, product, factor, consistent_with):
         """
         Return ConsistentProduct.
-        
+
         Creates a ConsistentProduct from product with data multiplied
         by factor and adds consistent_with to the metadata.
         """
@@ -539,8 +534,8 @@ class ConsistentProduct(object):
             meta = dict(h5.attrs)
             meta.update(consistent_with=consistent_with)
         utils.save_dataset(
-            data=data, 
-            meta=meta, 
+            data=data,
+            meta=meta,
             path=consistent_product.path
         )
 
@@ -550,7 +545,7 @@ class ConsistentProduct(object):
         logging.info('Created ConsistentProduct {}'.format(filename))
         logging.debug('Created ConsistentProduct {}'.format(filepath))
         return consistent_product
-    
+
     def __str__(self):
         return unicode(self).encode('utf-8')
 
@@ -574,7 +569,7 @@ class Consistifier(object):
     Is a class purily for encapsulation purposes.
     """
     SUB_TIMEFRAME = {'d': 'h', 'h': 'f'}
-    
+
     @classmethod
     def _reliable(cls, product):
         """
@@ -617,7 +612,7 @@ class Consistifier(object):
             mask = np.equal(data, config.NODATAVALUE)
             precipitation = np.ma.array(data, mask=mask)
         return precipitation
-        
+
     @classmethod
     def create_consistent_products(cls, product):
         """ Returns a list of consistent products that were created. """
@@ -630,9 +625,13 @@ class Consistifier(object):
                         subproduct_sum,
                         cls._precipitation_from_product(subproduct),
                     ], 0)
-            
+
             # Calculate factor
-            factor = cls._precipitation_from_product(product) / subproduct_sum
+            factor = np.where(
+                np.ma.equal(subproduct_sum, 0),
+                1,
+                cls._precipitation_from_product(product) / subproduct_sum,
+            )
 
             # Create consistent products
             for subproduct in cls._subproducts(product):
@@ -640,7 +639,7 @@ class Consistifier(object):
                     ConsistentProduct.create(
                         product=subproduct,
                         factor=factor,
-                        consistent_with = os.path.basename(subproduct.path)
+                        consistent_with=os.path.basename(subproduct.path)
                     )
                 )
             # Run this method on those products as well, since some

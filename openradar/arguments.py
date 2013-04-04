@@ -130,3 +130,9 @@ class Argument(object):
             metavar='TIMESTAMP',
             help='A timestamp of the form 201302030405.',
         )
+    
+    def indices(self, parser):
+        parser.add_argument(
+            '-i', '--indices',
+            help='Indices into the product, for example 5,7',
+        )
