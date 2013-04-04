@@ -46,8 +46,9 @@ setup(name='openradar',
       entry_points={
           'console_scripts': [
               # Main tasks
-              'sync = openradar.scripts.sync:main',
               'master = openradar.scripts.master:main',
+              'sync = openradar.scripts.sync:main',
+              'cleanup = openradar.scripts.cleanup:main',
               # Subtasks
               'aggregate = openradar.scripts.aggregate:main',
               'calibrate = openradar.scripts.calibrate:main',
