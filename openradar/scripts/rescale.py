@@ -28,7 +28,8 @@ def rescale(**kwargs):
         timeframes=kwargs['timeframes'])
     # Execute or delay task
     for combination in combinations:
-        action_kwargs = dict(direct=kwargs['direct'],
+        action_kwargs = dict(result=None,
+                             direct=kwargs['direct'],
                              cascade=kwargs['cascade'])
         action_kwargs.update(combination)
         action(**action_kwargs)

@@ -33,7 +33,8 @@ def calibrate(**kwargs):
     )
     # Execute or delay task
     for combination in combinations:
-        action_kwargs = dict(declutter=declutter,
+        action_kwargs = dict(result=None,
+                             declutter=declutter,
                              radars=kwargs['radars'],
                              direct=kwargs['direct'],
                              cascade=kwargs['cascade'])

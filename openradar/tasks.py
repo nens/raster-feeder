@@ -62,7 +62,8 @@ def aggregate(result, datetime, timeframe, radars,
                 datetimes=[datetime], timeframes=[timeframe],
             )
             for combination in combinations:
-                calibrate_kwargs = dict(radars=radars,
+                calibrate_kwargs = dict(result=None,
+                                        radars=radars,
                                         declutter=declutter,
                                         direct=direct,
                                         cascade=cascade)
@@ -98,7 +99,9 @@ def calibrate(result, datetime, prodcode, timeframe,
                 timeframes=[timeframe],
             )
             for combination in combinations:
-                rescale_kwargs = dict(direct=direct, cascade=cascade)
+                rescale_kwargs = dict(result=None, 
+                                      direct=direct,
+                                      cascade=cascade)
                 rescale_kwargs.update(combination)
                 if direct:
                     rescale(**rescale_kwargs)

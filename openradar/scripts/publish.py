@@ -21,7 +21,8 @@ def publish(**kwargs):
     else:
         action = task.delay
     # Execute or delay task
-    action_kwargs = dict(datetimes=kwargs['range'],
+    action_kwargs = dict(result=None,
+                         datetimes=kwargs['range'],
                          prodcodes=kwargs['prodcodes'],
                          timeframes=kwargs['timeframes'],
                          endpoints=kwargs['endpoints'],
