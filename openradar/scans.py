@@ -531,10 +531,15 @@ class MultiScan(object):
             if scan.is_readable():
                 self._add(dataset=dataset, scan=scan)
             else:
-                logging.warn('We could remove {}'.format(
-                    os.path.basename(scan.signature.get_scanpath())
-                ))
-                pass  # Maybe remove the dataset altogether?
+                # Remove it.
+                scanpath = scan.signature.get_scanpath()
+                try:
+                    os.remove(scanpath)
+                    logging.warn('Removed corrupt scanfile {}'.format(
+                        os.path.basename(scanpath),
+                    ))
+                except OSError:
+                    pass  # No permission.
 
         dataset.close()
         return h5py.File(self.path, 'r')
