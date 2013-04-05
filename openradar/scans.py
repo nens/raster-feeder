@@ -214,7 +214,7 @@ class ScanSignature(object):
     def get_scan(self):
         if not os.path.exists(self.get_scanpath()):
             logging.warn(
-                '{} not found.'.format(self.get_scanpath()),
+                '{} not found.'.format(os.path.basename(self.get_scanpath())),
             )
             return None
         elif self._code in config.DWD_RADARS:
@@ -268,8 +268,10 @@ class GenericScan(object):
     def get(self):
         try:
             data = self.data()
-        except IOError as error:
-            logging.error('{}: {}'.format(error.strerror, error.filename))
+        except Exception as error:
+            logging.exception('{} read failure:'.format(
+                self.signature.get_scanname(),
+            ))
             return None
         rang, azim, elev = data['polar']
         rain = data['rain']
@@ -346,14 +348,13 @@ class ScanKNMI(GenericScan):
 
     def data(self):
         """ Return data dict for further processing. """
-        dataset = h5py.File(self.signature.get_scanpath(), 'r')
-        scan_key = 'scan{}'.format(config.KNMI_SCAN_NUMBER)
+        with h5py.File(self.signature.get_scanpath(), 'r') as dataset:
+            scan_key = 'scan{}'.format(config.KNMI_SCAN_NUMBER)
 
-        latlon = self._latlon(dataset)
-        rain = self._rain(dataset[scan_key])
-        polar = self._polar(dataset[scan_key])
-        ant_alt = config.ANTENNA_HEIGHT[self.signature.get_code()]
-
+            latlon = self._latlon(dataset)
+            rain = self._rain(dataset[scan_key])
+            polar = self._polar(dataset[scan_key])
+            ant_alt = config.ANTENNA_HEIGHT[self.signature.get_code()]
         dataset.close()
 
         return dict(
@@ -452,13 +453,11 @@ class MultiScan(object):
             template='{code}_{timestamp}.h5'
         ).path(multiscandatetime)
 
-    def _add(self, dataset, scan):
+    def _add(self, dataset, source):
         """
         Add scan to dataset, if it is available
         """
-        source = scan.get()
-
-        radar = scan.signature.get_code()
+        radar = source.GetMetadata()['station']
         target = dataset.create_group(radar)
 
         # Add general metadata
@@ -518,7 +517,10 @@ class MultiScan(object):
             ).get_scan()
             if scan is None or scancode in dataset:
                 continue
-            self._add(dataset=dataset, scan=scan)
+            source = scan.get()
+            if source is None:
+                continue
+            self._add(dataset=dataset, source=source)
 
         dataset.close()
         return h5py.File(self.path, 'r')
