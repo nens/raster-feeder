@@ -21,6 +21,7 @@ import multiprocessing
 import numpy as np
 import os
 import re
+import shutil
 
 BAND_RAIN = 1
 BAND_RANG = 2
@@ -534,11 +535,11 @@ class MultiScan(object):
                 # Remove it.
                 scanpath = scan.signature.get_scanpath()
                 try:
-                    os.remove(scanpath)
+                    shutil.move(scanpath, config.RADAR_DIR)
                     logging.warn('Removed corrupt scanfile {}'.format(
                         os.path.basename(scanpath),
                     ))
-                except OSError:
+                except (OSError, IOError):
                     pass  # No permission.
 
         dataset.close()
