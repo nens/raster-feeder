@@ -28,9 +28,9 @@ def move_to_zip(source_path, target_path):
 
     # Write to zip
     with zipfile.ZipFile(zip_path, 'w',
-                      compression=zipfile.ZIP_DEFLATED) as zip_file:
+                         compression=zipfile.ZIP_DEFLATED) as zip_file:
         zip_file.write(source_path, arcname=arcname)
-    
+
     # Remove source
     os.remove(source_path)
 
@@ -120,17 +120,28 @@ class FtpImporter(object):
         for name in remote:
             try:
                 scan_signature = scans.ScanSignature(scanname=name)
-                datetime = scan_signature.get_datetime()
+                scandatetime = scan_signature.get_datetime()
                 path = scan_signature.get_scanpath()
-                age = (self.datetime - datetime).total_seconds()
-                if name in self.arrived or age > self.max_age or os.path.exists(path):
+                age = (self.datetime - scandatetime).total_seconds()
+                no_need = (name in self.arrived or
+                           age > self.max_age or
+                           os.path.exists(path))
+                if no_need:
                     continue
             except ValueError:
                 continue  # It is not a radar file as we know it.
-            with open(os.path.join(config.SOURCE_DIR, name), 'wb') as scanfile:
-                ftp.retrbinary('RETR ' + name, scanfile.write)
-            logging.debug('Fetched: {}'.format(name))
-            synced.append(name)
+
+            # Try to retrieve the file, but remove it when errors occur.
+            targetpath = os.path.join(config.SOURCE_DIR, name)
+            try:
+                with open(targetpath, 'wb') as scanfile:
+                    ftp.retrbinary('RETR ' + name, scanfile.write)
+                synced.append(name)
+                logging.debug('Fetched: {}'.format(name))
+            except ftp.all_errors:
+                logging.warn('Fetch of {} failed.'.format(name))
+                if os.path.exists(targetpath):
+                    os.remove(targetpath)
         return synced
 
     def fetch(self):
@@ -217,10 +228,10 @@ def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
             logging.debug('Awaiting: {}'.format(
                 ', '.join(set_expected),
             ))
-        
+
         if datetime.datetime.utcnow() > dt_calculation + td_wait:
             break
-       
+
         try:
             logging.debug('Sleeping...')
             time.sleep(config.WAIT_SLEEP_TIME)

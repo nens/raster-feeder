@@ -265,14 +265,23 @@ class GenericScan(object):
 
         return ma_out
 
-    def get(self):
+    def is_readable(self):
+        """ Return True if readable, else return False. """
         try:
             data = self.data()
+            logging.debug('Read test for {}.'.format(
+                self.signature.get_scanname(),
+            ))
+            return True
         except Exception as error:
             logging.exception('{} read failure:'.format(
                 self.signature.get_scanname(),
             ))
-            return None
+            return False
+
+    def get(self):
+        """ Return gdal dataset in rd projection. """
+        data = self.data()
         rang, azim, elev = data['polar']
         rain = data['rain']
         latlon = data['latlon']
@@ -346,16 +355,16 @@ class GenericScan(object):
 
 class ScanKNMI(GenericScan):
 
-    def data(self):
+    def data(self,):
         """ Return data dict for further processing. """
-        with h5py.File(self.signature.get_scanpath(), 'r') as dataset:
+        scanpath = self.signature.get_scanpath()
+        with h5py.File(scanpath, 'r') as dataset:
             scan_key = 'scan{}'.format(config.KNMI_SCAN_NUMBER)
 
             latlon = self._latlon(dataset)
             rain = self._rain(dataset[scan_key])
             polar = self._polar(dataset[scan_key])
             ant_alt = config.ANTENNA_HEIGHT[self.signature.get_code()]
-        dataset.close()
 
         return dict(
             latlon=latlon,
@@ -414,9 +423,10 @@ class ScanKNMI(GenericScan):
 
 class ScanDWD(GenericScan):
 
-    def data(self):
+    def data(self, path=None):
         """ Return data dict for further processing. """
-        dBZ, meta = io.readDX(self.signature.get_scanpath())
+        scanpath = self.signature.get_scanpath()
+        dBZ, meta = io.readDX(scanpath)
 
         return dict(
             latlon=self._latlon(),
@@ -453,10 +463,11 @@ class MultiScan(object):
             template='{code}_{timestamp}.h5'
         ).path(multiscandatetime)
 
-    def _add(self, dataset, source):
+    def _add(self, dataset, scan):
         """
         Add scan to dataset, if it is available
         """
+        source = scan.get()
         radar = source.GetMetadata()['station']
         target = dataset.create_group(radar)
 
@@ -517,10 +528,13 @@ class MultiScan(object):
             ).get_scan()
             if scan is None or scancode in dataset:
                 continue
-            source = scan.get()
-            if source is None:
-                continue
-            self._add(dataset=dataset, source=source)
+            if scan.is_readable():
+                self._add(dataset=dataset, scan=scan)
+            else:
+                logging.warn('We could remove {}'.format(
+                    os.path.basename(scan.signature.get_scanpath())
+                ))
+                pass  # Maybe remove the dataset altogether?
 
         dataset.close()
         return h5py.File(self.path, 'r')
