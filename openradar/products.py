@@ -418,7 +418,8 @@ class CalibratedProduct(object):
             dataloader.processdata()
             stations_count = len(dataloader.rainstations)
         except:
-            logging.debug("Can't process data; there is none for: {}".format(
+            logging.exception('Exception during calibration preprocessing:')
+            logging.warn("Can't process data; there is none for: {}".format(
                 self.groundfile_datetime))
             stations_count = 0
         interpolater = Interpolator(dataloader)
@@ -429,6 +430,7 @@ class CalibratedProduct(object):
                       interpolater.precipitation)
             self.calibrated = result
         except:
+            logging.exception('Exception during calibration:')
             self.calibrated = interpolater.precipitation
             logging.warn('Taking the original radar data for date: {}'.format(
                 self.datetime,

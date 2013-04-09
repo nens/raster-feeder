@@ -64,8 +64,8 @@ def product_generator(product, prodcode, timeframe, datetimes):
                 timeframe=timeframe,
             )
         if product == 'b':
-            yield products.CalibratedProduct(date=datetime,
-                                             product=prodcode,
+            yield products.CalibratedProduct(datetime=datetime,
+                                             prodcode=prodcode,
                                              timeframe=timeframe)
         if product == 'c':
             yield products.ConsistentProduct(datetime=datetime,
