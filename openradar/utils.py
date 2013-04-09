@@ -593,7 +593,8 @@ def get_countrymask():
     50 km outside the country. If extent and cellsize are not as in
     config.py, this breaks.
     """
-    h5 = h5py.File(os.path.join(config.MISC_DIR, 'countrymask.h5'))
+    countrymask_path = os.path.join(config.MISC_DIR, 'countrymask.h5')
+    h5 = h5py.File(countrymask_path, 'r')
     mask = h5['mask'][...]
     h5.close()
     return mask
