@@ -417,24 +417,42 @@ class CalibratedProduct(object):
         try:
             dataloader.processdata()
             stations_count = len(dataloader.rainstations)
+            data_count = len([r 
+                             for r in dataloader.rainstations 
+                             if r.measurement != -999])
+            logging.info('{} out of {} gauges have data for {}.'.format(
+                data_count, stations_count, dataloader.date)
+            )
         except:
             logging.exception('Exception during calibration preprocessing:')
-            logging.warn("Can't process data; there is none for: {}".format(
-                self.groundfile_datetime))
             stations_count = 0
-        interpolater = Interpolator(dataloader)
-        try:
-            mask = utils.get_countrymask()
-            calibrated_radar = interpolater.get_calibrated()
-            result = (mask * calibrated_radar + (1 - mask) *
-                      interpolater.precipitation)
-            self.calibrated = result
-        except:
-            logging.exception('Exception during calibration:')
-            self.calibrated = interpolater.precipitation
-            logging.warn('Taking the original radar data for date: {}'.format(
-                self.datetime,
-            ))
+        interpolator = Interpolator(dataloader)
+        mask = utils.get_countrymask()
+
+        # Calibrate, method depending on prodcode and timeframe
+        if self.prodcode == 'a' and self.timeframe in ['h', 'd']:
+            logging.info('Calibrating using kriging.')
+            try:
+                calibrated_radar = interpolator.get_calibrated()
+            except:
+                logging.exception('Exception during kriging:')
+                calibrated_radar = None
+        else:
+            logging.info('Calibrating using idw.')
+            try:
+                factor = interpolator.get_correction_factor()
+                calibrated_radar = interpolator.precipitation * factor
+            except:
+                logging.exception('Exception during idw:')
+                calibrated_radar = None
+
+        if calibrated_radar is None:
+            logging.warn('Calibration failed.')
+            self.calibrated = interpolator.precipitation
+        else:
+            self.calibrated = (mask * calibrated_radar +
+                               (1 - mask) * interpolator.precipitation)
+
         self.metadata = dict(dataloader.dataset.attrs)
         dataloader.dataset.close()
         self.metadata.update({'stations_count': stations_count})
@@ -466,18 +484,6 @@ class CalibratedProduct(object):
                 ' exist'.format(self.path)),
             self.make()
         return h5py.File(self.path, 'r')
-
-    #def make_cfgrid(self):
-        #td_aggregate = config.TIMEFRAME_DELTA[self.timeframe]
-        #dataloader = DataLoader(
-            #metafile=os.path.join(config.MISC_DIR, 'grondstations.csv'),
-            #datafile=self.groundpath,
-            #date=self.datadatetime,
-            #delta=td_aggregate)
-        #dataloader.processdata()
-        #stations_count = len(dataloader.rainstations)
-        #interpolator = Interpolator(dataloader)
-        #interpolator.get_correction_factor()
 
     def __str__(self):
         return unicode(self).encode('utf-8')

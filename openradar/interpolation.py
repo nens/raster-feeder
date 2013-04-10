@@ -103,9 +103,6 @@ class DataLoader(object):
             if measurement != 'nothere':
                 self.rainstations.append(RainStation(line[idcol],
                     line[xcol], line[ycol], measurement, line[klassecol]))
-        logging.info('Amount of gauge stations available: {}'.format(
-            len(self.rainstations),
-        ))
 
     def processrain(self, station_id):
         '''
@@ -161,8 +158,6 @@ class Interpolator:
         self.mask = mask
         z = numpy.ma.array(z, mask=mask)
         x,y = xy.T[0], xy.T[1]
-        if len(x[~mask]) == 0:
-            logging.debug('All stations returned NODATA.')
         return x[~mask],y[~mask],z.data[~mask], klasse[~mask]
 
     def get_dummies(self):
@@ -190,15 +185,17 @@ class Interpolator:
         '''
         countrymask = utils.get_countrymask()
         x,y,z, klasse = self.get_rain_and_location()
-        radar = self.get_radar_for_locations()
-        correction_factor = z / radar
-        # correction_factor cannot be infinite, but this can occur by
-        # zero division
-        correction_factor[correction_factor==numpy.inf] = 1.0
-        # correction_factor should not be larger than 10 or negative
+        radar = numpy.array(self.get_radar_for_locations())
+
+        # Calculate correction factor, but limit extreme cases
+        zero_radar = radar == 0
+        correction_factor = numpy.empty(z.shape)
+        correction_factor[zero_radar] = 1.0
+        correction_factor[~zero_radar] = z[~zero_radar] / radar[~zero_radar]
         correction_factor[correction_factor > 10] = 1.0
         correction_factor[correction_factor < 0.0] = 1.0
-        stationsx,stationsy,stationsz = self.get_dummies()
+
+        stationsx, stationsy, stationsz = self.get_dummies()
         for i in range(len(z)):
             stationsz[stationsx==x[i]] = correction_factor[i]
         self.create_interpolation_grid()
@@ -463,6 +460,7 @@ class Interpolator:
             rain_est = numpy.array(result[2])
             #self.crossval_ked = robj.r('gstat.cv')(ked)
         except:
+            logging.exception('Exception during kriging:')
             rain_est = dataset
         rain_est = rain_est.reshape((self.ny, self.nx))
         return rain_est
