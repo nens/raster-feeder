@@ -65,7 +65,7 @@ def master(**kwargs):
             # Add a separator between groups of tasks
             logging.info(40 * '-')
             
-            # Append calibrate subtask
+            # Append aggregate subtask
             aggregate_kwargs = dict(declutter=declutter, radars=radars)
             aggregate_kwargs.update(combination)
             subtasks.append(tasks.aggregate.s(**aggregate_kwargs))
