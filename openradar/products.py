@@ -435,12 +435,14 @@ class CalibratedProduct(object):
         )
         if data_count == 0:
             logging.info('Calibrating is not useful without stations.')
+            calibration_method = 'None'
             calibrated_radar = np.ma.array(
                 interpolator.precipitation,
                 mask=precipitation_mask,
             )
         elif self.prodcode == 'a' and self.timeframe in ['h', 'd']:
             logging.info('Calibrating using kriging.')
+            calibration_method = 'Kriging External Drift'
             try:
                 calibrated_radar = np.ma.where(
                     precipitation_mask,
@@ -452,6 +454,7 @@ class CalibratedProduct(object):
                 calibrated_radar = None
         else:
             logging.info('Calibrating using idw.')
+            calibration_method = 'Inverse Distance Weigting'
             try:
                 factor = interpolator.get_correction_factor()
                 calibrated_radar = np.ma.where(
@@ -465,6 +468,7 @@ class CalibratedProduct(object):
 
         if calibrated_radar is None:
             logging.warn('Calibration failed.')
+            calibration_method = 'None'
             self.calibrated = interpolator.precipitation
         else:
             mask = utils.get_countrymask()
@@ -473,7 +477,13 @@ class CalibratedProduct(object):
 
         self.metadata = dict(dataloader.dataset.attrs)
         dataloader.dataset.close()
-        self.metadata.update({'stations_count': stations_count})
+        # Append metadata about the calibration
+        self.metadata.update(dict(
+            cal_stations_count=stations_count,
+            cal_data_count=data_count,
+            cal_method=calibration_method,
+        ))
+        
         calibrated_ma = np.ma.array(
             self.calibrated,
             mask=np.equal(self.calibrated, config.NODATAVALUE),
