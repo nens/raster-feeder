@@ -427,14 +427,23 @@ class CalibratedProduct(object):
             logging.exception('Exception during calibration preprocessing:')
             stations_count = 0
         interpolator = Interpolator(dataloader)
-        mask = utils.get_countrymask()
 
         # Calibrate, method depending on prodcode and timeframe
-        if self.prodcode == 'a' and self.timeframe in ['h', 'd']:
+        precipitation_mask = np.equal(
+            interpolator.precipitation,
+            config.NODATAVALUE,
+        )
+        if data_count == 0:
+            logging.info('Calibrating is not useful without stations.')
+            calibrated_radar = np.ma.array(
+                interpolator.precipitation,
+                mask=precipitation_mask,
+            )
+        elif self.prodcode == 'a' and self.timeframe in ['h', 'd']:
             logging.info('Calibrating using kriging.')
             try:
                 calibrated_radar = np.ma.where(
-                    np.ma.equal(interpolator.precipitation, config.NODATAVALUE),
+                    precipitation_mask,
                     interpolator.precipitation,
                     interpolator.get_calibrated(),
                 )
@@ -446,7 +455,7 @@ class CalibratedProduct(object):
             try:
                 factor = interpolator.get_correction_factor()
                 calibrated_radar = np.ma.where(
-                    np.ma.equal(interpolator.precipitation, config.NODATAVALUE),
+                    precipitation_mask,
                     interpolator.precipitation,
                     interpolator.precipitation * factor,
                 )
@@ -458,6 +467,7 @@ class CalibratedProduct(object):
             logging.warn('Calibration failed.')
             self.calibrated = interpolator.precipitation
         else:
+            mask = utils.get_countrymask()
             self.calibrated = (mask * calibrated_radar +
                                (1 - mask) * interpolator.precipitation)
 
