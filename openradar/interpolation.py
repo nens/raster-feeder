@@ -276,16 +276,14 @@ class Interpolator:
         '''
         Simple idw function. Slow, but memory efficient implementation.
         '''
-        sum_of_weights = numpy.ma.array(numpy.zeros(xi.shape))
-        sum_of_weighted_gauges = numpy.ma.array(numpy.zeros(xi.shape))
+        sum_of_weights = numpy.zeros(xi.shape)
+        sum_of_weighted_gauges = numpy.zeros(xi.shape)
         for i in range(x.size):
-            distance = numpy.ma.sqrt((x[i] - xi) ** 2 + (y[i] - yi) ** 2)
+            distance = numpy.sqrt((x[i] - xi) ** 2 + (y[i] - yi) ** 2)
             weight = 1.0 / distance ** p
             weighted_gauge = z[i] * weight
-            sum_of_weights = numpy.ma.sum([sum_of_weights, weight], axis=0)
-            sum_of_weighted_gauges = numpy.ma.sum(
-                [sum_of_weighted_gauges, weighted_gauge], axis=0,
-            )
+            sum_of_weights += weight
+            sum_of_weighted_gauges += weighted_gauge
         zi = sum_of_weighted_gauges / sum_of_weights
         
         return zi
