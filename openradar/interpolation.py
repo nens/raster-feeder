@@ -249,7 +249,7 @@ class Interpolator:
         self.xi, self.yi = [numpy.float32(array).flatten()
                             for array in basegrid.get_grid()]
 
-    def get_idwgrid(self, x,y, z, p=2):
+    def get_idwgrid(self, x, y, z, p=2):
         '''
         This function returns a idwgrid with inputs x,y location and z
         as the to be interpolated value
@@ -274,15 +274,21 @@ class Interpolator:
 
     def simple_idw(self, x, y, z, xi, yi, p):
         '''
-        Simple idw function
+        Simple idw function. Slow, but memory efficient implementation.
         '''
-        dist = self.distance_matrix(x,y, xi,yi)
-        # In IDW, weights are 1 / distance
-        weights = 1.0 / dist**(p)
-        # Make weights sum to one
-        weights /= weights.sum(axis=0)
-        # Multply the weights for each interpolated point by all observed Z-values
-        zi = numpy.ma.dot(weights.T, z)
+        sum_of_weights = numpy.ma.array(numpy.zeros(xi.shape))
+        sum_of_weighted_gauges = numpy.ma.array(numpy.zeros(xi.shape))
+        for i in range(x.size):
+            logging.debug(i)
+            distance = numpy.ma.sqrt((x[i] - xi) ** 2 + (y[i] - yi) ** 2)
+            weight = 1.0 / distance ** p
+            weighted_gauge = z[i] * weight
+            sum_of_weights = numpy.ma.sum([sum_of_weights, weight], axis=0)
+            sum_of_weighted_gauges = numpy.ma.sum(
+                [sum_of_weighted_gauges, weighted_gauge], axis=0,
+            )
+        zi = sum_of_weighted_gauges / sum_of_weights
+        
         return zi
 
     def linear_rbf(self, x, y, z, xi, yi):
