@@ -433,7 +433,11 @@ class CalibratedProduct(object):
         if self.prodcode == 'a' and self.timeframe in ['h', 'd']:
             logging.info('Calibrating using kriging.')
             try:
-                calibrated_radar = interpolator.get_calibrated()
+                calibrated_radar = np.ma.where(
+                    np.ma.equal(interpolator.precipitation, config.NODATAVALUE),
+                    interpolator.precipitation,
+                    interpolator.get_calibrated(),
+                )
             except:
                 logging.exception('Exception during kriging:')
                 calibrated_radar = None
@@ -441,7 +445,11 @@ class CalibratedProduct(object):
             logging.info('Calibrating using idw.')
             try:
                 factor = interpolator.get_correction_factor()
-                calibrated_radar = interpolator.precipitation * factor
+                calibrated_radar = np.ma.where(
+                    np.ma.equal(interpolator.precipitation, config.NODATAVALUE),
+                    interpolator.precipitation,
+                    interpolator.precipitation * factor,
+                )
             except:
                 logging.exception('Exception during idw:')
                 calibrated_radar = None

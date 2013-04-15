@@ -279,7 +279,6 @@ class Interpolator:
         sum_of_weights = numpy.ma.array(numpy.zeros(xi.shape))
         sum_of_weighted_gauges = numpy.ma.array(numpy.zeros(xi.shape))
         for i in range(x.size):
-            logging.debug(i)
             distance = numpy.ma.sqrt((x[i] - xi) ** 2 + (y[i] - yi) ** 2)
             weight = 1.0 / distance ** p
             weighted_gauge = z[i] * weight
