@@ -269,12 +269,12 @@ class GenericScan(object):
     def is_readable(self):
         """ Return True if readable, else return False. """
         try:
-            data = self.data()
+            self.data()
             logging.debug('Read test for {}.'.format(
                 self.signature.get_scanname(),
             ))
             return True
-        except Exception as error:
+        except Exception:
             logging.exception('{} read failure:'.format(
                 self.signature.get_scanname(),
             ))
@@ -383,7 +383,7 @@ class ScanKNMI(GenericScan):
         """ Convert and return rain values. """
         type_key = 'scan_{}_data'.format(config.KNMI_SCAN_TYPE)
         PV = np.float64(dataset[type_key])
-        
+
         # Get calibration from attribute
         calibration_formula = (
             dataset['calibration'].attrs['calibration_Z_formulas'][0]
@@ -396,7 +396,7 @@ class ScanKNMI(GenericScan):
         logging.debug('From "{}": a={}, b={} in dBZ = a * PV + b'.format(
             calibration_formula, a, b,
         ))
-            
+
         dBZ = a * PV + b
         return calc.Rain(dBZ).get()
 
@@ -771,7 +771,7 @@ class Aggregate(object):
     """
     The Aggregate contains the sum of a number of radar composites,
     depending on the timeframe.
-    
+
     It is the aggregate that is calibrated using ground gauges. The
     aggregate uses the composites of 5 minutes earlier, because the
     composite datetime is when the radar starts to scan, and the detected
@@ -856,7 +856,10 @@ class Aggregate(object):
             raise ValueError('Other history declutter setting in aggregate')
         if h5.attrs['declutter_size'] != self.declutter['size']:
             raise ValueError('Other size declutter setting in aggregate')
-        if not h5.attrs['available'].all():
+        is_recent = (datetime.datetime.utcnow() - self.datetime).days < 7
+        if not is_recent:
+            logging.info('Skipping completeness check for old aggregate')
+        if is_recent and not h5.attrs['available'].all():
             if self.code != '5min':
                 raise ValueError('Missing radars in existing aggregate')
             # Check if it is useful to create a new composite
@@ -1031,13 +1034,13 @@ class Aggregate(object):
             return self._create()
 
         # If there is a sub_code, return corresponding aggregates merged.
-        sub_aggregates = (Aggregate(datetime=datetime,
-                                    radars=self.radars,
-                                    declutter=self.declutter,
-                                    timeframe=self.SUB_TIMEFRAME[self.timeframe])
-                          for datetime in self._sub_datetimes())
+        sub_aggrs = (Aggregate(datetime=datetime,
+                               radars=self.radars,
+                               declutter=self.declutter,
+                               timeframe=self.SUB_TIMEFRAME[self.timeframe])
+                     for datetime in self._sub_datetimes())
 
-        return self._merge(aggregates=sub_aggregates)
+        return self._merge(aggregates=sub_aggrs)
 
     def get(self):
         """ Return opened h5 dataset in read mode. """
