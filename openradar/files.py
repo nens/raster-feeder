@@ -184,8 +184,13 @@ def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
     ))
 
     dt_radar = dt_calculation - datetime.timedelta(minutes=5)
-    dt_ground = dt_calculation
-
+    # Fews exports data currently 1 minute after dt_calculation.
+    dt_ground_5min = dt_calculation + datetime.timedelta(minutes=1)
+    if 'h' in utils.get_valid_timeframes(dt_calculation):
+        dt_ground_hour = dt_calculation
+    else:
+        dt_ground_hour = None
+    
     set_expected = set()
 
     # Add radars to expected files.
@@ -196,12 +201,20 @@ def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
         if not os.path.exists(scan_signature.get_scanpath()):
             set_expected.add(scan_signature.get_scanname())
 
-    # Add ground to expected files
-    ground_data = scans.GroundData(
-        datacode='5min', datadatetime=dt_ground,
+    # Add ground to expected files (5min)
+    ground_data_5min = scans.GroundData(
+        datacode='5min', datadatetime=dt_ground_5min,
     )
-    if not os.path.exists(ground_data.get_datapath()):
-        set_expected.add(ground_data.get_dataname())
+    if not os.path.exists(ground_data_5min.get_datapath()):
+        set_expected.add(ground_data_5min.get_dataname())
+
+    # Add ground to expected files (hour)
+    if dt_ground_hour is not None:
+        ground_data_hour = scans.GroundData(
+            datacode='uur', datadatetime=dt_ground_hour,
+        )
+        if not os.path.exists(ground_data_hour.get_datapath()):
+            set_expected.add(ground_data_hour.get_dataname())
 
     logging.debug('looking for {}'.format(', '.join(set_expected)))
 
