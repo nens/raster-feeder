@@ -383,18 +383,36 @@ class CalibratedProduct(object):
                                   history=config.DECLUTTER_HISTORY)
         else:
             self.declutter = declutter
-        self.groundfile_datetime = utils.get_groundfile_datetime(
-            prodcode=prodcode, date=datetime,
-        )
-        self.groundpath = scans.GroundData(
-            datacode=config.GROUND_CODE[self.timeframe],
-            datadatetime=self.groundfile_datetime,
-        ).get_datapath()
+
+        # Determine the groundpath and groundfile datetime
+        self.grounddata = self._get_grounddata()
+        self.groundpath = self.grounddata.get_datapath()
+        self.groundfile_datetime = self.grounddata._datetime
+
         self.path = utils.PathHelper(
             basedir=config.CALIBRATE_DIR,
             code=config.PRODUCT_CODE[self.timeframe][self.prodcode],
             template=config.PRODUCT_TEMPLATE,
         ).path(datetime)
+
+    def _get_grounddata(self):
+        """ Return the best existing GroundData instance. """
+        datacode = config.GROUND_CODE[self.timeframe]
+        datetimes = utils.get_groundfile_datetimes(date=self.datetime,
+                                                   prodcode=self.prodcode,
+                                                   timeframe=self.timeframe)
+        for datetime in datetimes:
+            grounddata = scans.GroundData(datacode=datacode,
+                                          datadatetime=datetime)
+            root, ext = os.path.splitext(grounddata.get_datapath())
+            for extension in ['.zip', '.csv']:
+                path = root + extension
+                if os.path.exists(path):
+                    logging.debug('Groundfile selected: {}'.format(path))
+                    return grounddata
+        # Always return a grounddata object
+        logging.warning('Groundfile not found, returning: {}'.format(path))
+        return grounddata
 
     def _get_aggregate(self):
         """ Return Aggregate object. """
@@ -417,9 +435,9 @@ class CalibratedProduct(object):
         try:
             dataloader.processdata()
             stations_count = len(dataloader.rainstations)
-            data_count = len([r 
-                             for r in dataloader.rainstations 
-                             if r.measurement != -999])
+            data_count = len([r
+                              for r in dataloader.rainstations
+                              if r.measurement != -999])
             logging.info('{} out of {} gauges have data for {}.'.format(
                 data_count, stations_count, dataloader.date)
             )
@@ -483,7 +501,7 @@ class CalibratedProduct(object):
             cal_data_count=data_count,
             cal_method=calibration_method,
         ))
-        
+
         calibrated_ma = np.ma.array(
             self.calibrated,
             mask=np.equal(self.calibrated, config.NODATAVALUE),

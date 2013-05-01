@@ -208,13 +208,20 @@ def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
     if not os.path.exists(ground_data_5min.get_datapath()):
         set_expected.add(ground_data_5min.get_dataname())
 
-    # Add ground to expected files (hour)
+    # Add ground to expected files (hour and day)
     if dt_ground_hour is not None:
+        # Hour
         ground_data_hour = scans.GroundData(
             datacode='uur', datadatetime=dt_ground_hour,
         )
         if not os.path.exists(ground_data_hour.get_datapath()):
             set_expected.add(ground_data_hour.get_dataname())
+        # Day
+        ground_data_day = scans.GroundData(
+            datacode='24uur', datadatetime=dt_ground_hour,
+        )
+        if not os.path.exists(ground_data_day.get_datapath()):
+            set_expected.add(ground_data_day.get_dataname())
 
     logging.debug('looking for {}'.format(', '.join(set_expected)))
 

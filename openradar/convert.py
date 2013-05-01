@@ -9,7 +9,7 @@ from __future__ import division
 
 from openradar import config
 from openradar import gridtools
-from openradar import log
+from openradar import loghelper
 from openradar import utils
 
 from osgeo import gdal
@@ -23,7 +23,7 @@ import logging
 import numpy as np
 import os
 
-log.setup_logging()
+loghelper.setup_logging()
 
 
 class Aggregator(object):

@@ -202,7 +202,7 @@ class PathHelper(object):
         >>> dt = datetime.datetime(2011, 03, 05, 14, 15, 00)
         >>> ph = PathHelper('a', 'c', '{code}:{timestamp}')
         >>> ph. path(dt)
-        u'a/c/2011/03/05/14/c:20110305141500'
+        u'a/c/2011/03/05/c:20110305141500'
     """
 
     TIMESTAMP_FORMAT = config.TIMESTAMP_FORMAT
@@ -287,30 +287,30 @@ def get_aggregate_combinations(datetimes,
         valid_timeframes = get_valid_timeframes(datetime=datetime)
         for timeframe in timeframes:
             if timeframe in valid_timeframes:
-                yield dict(datetime=datetime, 
+                yield dict(datetime=datetime,
                            timeframe=timeframe)
 
 
 def get_product_combinations(datetimes,
                              prodcodes=['r', 'n', 'a'],
-                             timeframes=['f', 'h','d']):
+                             timeframes=['f', 'h', 'd']):
     """ Return generator of dictionaries. """
     for datetime in datetimes:
         valid_timeframes = get_valid_timeframes(datetime=datetime)
         for prodcode in prodcodes:
             for timeframe in timeframes:
                 if timeframe in valid_timeframes:
-                    yield dict(datetime=datetime, 
+                    yield dict(datetime=datetime,
                                prodcode=prodcode,
                                timeframe=timeframe)
 
 
 def consistent_product_expected(prodcode, timeframe):
-    return (timeframe == 'f' and (prodcode == 'n' or prodcode =='a')
+    return (timeframe == 'f' and (prodcode == 'n' or prodcode == 'a')
             or (timeframe == 'f' and prodcode == 'n'))
 
 
-def get_groundfile_datetime(prodcode, date):
+def get_groundfile_datetimes(prodcode, timeframe, date):
     '''
     Return datetime for groundfile for a given product code and datetime
 
@@ -320,13 +320,28 @@ def get_groundfile_datetime(prodcode, date):
         real-time           => 2012-12-18-09:05
         near-real-time      => 2012-12-18-10:05
         afterwards          => 2012-12-20-09:05
+
+    Unfortunately, for technical reasons, the groundfile dating is
+    not consistent over history. Therefore, this function now takes a
+    timeframe argument and returns a generator of datetimes to try. The
+    first datetime for which a ground file exists, must be used.
     '''
     delta = dict(
         r=datetime.timedelta(minutes=0),
         n=datetime.timedelta(hours=1),
         a=datetime.timedelta(days=2),
     )
-    return date + delta[prodcode]
+    base_datetime = date + delta[prodcode]
+    if timeframe == 'f':
+        # It used to be on exact 5 minutes, but now it is 1 minute late.
+        for minutes in [1, 0]:
+            yield base_datetime + datetime.timedelta(minutes=minutes)
+    elif timeframe == 'd' and prodcode == 'n':
+        # It used to be on 8 o'clock utc, but now it is (correctly) at 9.
+        for hours in [0, -1]:
+            yield base_datetime + datetime.timedelta(hours=hours)
+    else:
+        yield base_datetime
 
 
 # Visualization
@@ -510,8 +525,8 @@ def save_dataset(data, meta, path):
     availables = meta['available']
     availables_any = availables.any(0) if availables.ndim == 2 else availables
     products_missing = str(', '.join(
-        [radar 
-         for radar, available in zip(meta['radars'], availables_any) 
+        [radar
+         for radar, available in zip(meta['radars'], availables_any)
          if not available],
     ))
     product_datetime_start = (timestamp2datetime(
@@ -532,16 +547,15 @@ def save_dataset(data, meta, path):
         #product_group_doc=b'http://nationaleregenradar.nl',
         #dataset_raster_type=b'Composited interpolated rectangular radar data',
     )
-    
+
     # Image group
-    calibration=dict(
+    calibration = dict(
         calibration_flag=b'Y',
         calibration_formulas=b'GEO = 0.010000 * PV + 0.000000',
         calibration_missing_data=0,
         calibration_out_of_image=65535,
     )
 
-    
     image1 = dict(
         calibration=calibration,
         image_bytes_per_pixel=2,
@@ -550,7 +564,6 @@ def save_dataset(data, meta, path):
         image_size=data['precipitation'].size,
     )
 
-    
     groups = dict(
         overview=overview,
         geographic=geographic,
@@ -558,25 +571,26 @@ def save_dataset(data, meta, path):
     )
 
     save_attrs(h5, groups)
-    dataset = h5.create_dataset('image1/image_data', data['precipitation'].shape,
+    dataset = h5.create_dataset('image1/image_data',
+                                data['precipitation'].shape,
                                 dtype='u2', compression='gzip', shuffle=True)
-    
+
     image_data = dict(
         CLASS=b'IMAGE',
         VERSION=b'1.2',
     )
 
     save_attrs(dataset, image_data)
-    
+
     # Creating the pixel values
     dataset[...] = np.uint16(np.round(data['precipitation'] * 100)).filled(
         calibration['calibration_out_of_image'],
     )
-    
+
     # Keep the old way for compatibility with various products
     for name, value in data.items():
-        dataset = h5.create_dataset(name, value.shape,
-            dtype='f4', compression='gzip', shuffle=True)
+        dataset = h5.create_dataset(name, value.shape, dtype='f4',
+                                    compression='gzip', shuffle=True)
         dataset[...] = value.filled(config.NODATAVALUE)
 
     for name, value in meta.items():
