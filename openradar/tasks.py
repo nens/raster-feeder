@@ -99,7 +99,7 @@ def calibrate(result, datetime, prodcode, timeframe,
                 timeframes=[timeframe],
             )
             for combination in combinations:
-                rescale_kwargs = dict(result=None, 
+                rescale_kwargs = dict(result=None,
                                       direct=direct,
                                       cascade=cascade)
                 rescale_kwargs.update(combination)
@@ -140,14 +140,14 @@ def publish(result, datetimes, prodcodes, timeframes, endpoints, cascade):
     """
     loghelper.setup_logging(logfile_name='radar_publish.log')
     logging.info(20 * '-' + ' publish ' + 20 * '-')
-    try:
-        publisher = publishing.Publisher(datetimes=datetimes,
-                                         prodcodes=prodcodes,
-                                         timeframes=timeframes)
-        for endpoint in endpoints:
+    publisher = publishing.Publisher(datetimes=datetimes,
+                                     prodcodes=prodcodes,
+                                     timeframes=timeframes)
+    for endpoint in endpoints:
+        try:
             getattr(publisher, 'publish_' + endpoint)(cascade=cascade)
-    except Exception as e:
-        logging.exception(e)
+        except Exception as e:
+            logging.exception(e)
     logging.info(20 * '-' + ' publish complete ' + 20 * '-')
 
 
