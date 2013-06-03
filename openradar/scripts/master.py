@@ -40,7 +40,7 @@ def master(**kwargs):
             logging.exception(exception)
 
     # Organize
-    files.organize_from_path(sourcepath=config.SOURCE_DIR)
+    files.organize_from_path(source_dir=config.SOURCE_DIR)
 
     # Product datetime depends on delevery times
     declutter = dict(

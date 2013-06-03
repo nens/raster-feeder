@@ -35,15 +35,15 @@ def move_to_zip(source_path, target_path):
     os.remove(source_path)
 
 
-def organize_from_path(sourcepath):
+def organize_from_path(source_dir):
     """ Walk basepath and move every scan in there to it's desired location """
     logging.info('Starting organize from {}'.format(
-        sourcepath,
+        source_dir,
     ))
     count = 0
     zipcount = 0
 
-    for path, dirs, names in os.walk(sourcepath):
+    for path, dirs, names in os.walk(source_dir):
         for name in names:
 
             # Is it radar?

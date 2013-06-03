@@ -8,19 +8,9 @@ from __future__ import absolute_import
 from __future__ import division
 
 from openradar import arguments
-from openradar import tasks
-
-
-def organize(**kwargs):
-    task = tasks.organize_from_path
-    if kwargs['direct']:
-        action = task
-    else:
-        action = task.delay
-    action(source_path=kwargs['source_dir'])
-
+from openradar import files
 
 def main():
     argument = arguments.Argument()
-    parser = argument.parser(['source_dir', 'direct'])
-    organize(**vars(parser.parse_args()))
+    parser = argument.parser(['source_dir'])
+    files.organize_from_path(**vars(parser.parse_args()))
