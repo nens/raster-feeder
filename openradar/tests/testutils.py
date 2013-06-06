@@ -16,9 +16,6 @@ from openradar import utils
 class TestUtils(unittest.TestCase):
     """ Testing functions """
 
-    def setUp(self):
-        pass
-
     def test_get_groundfile_datetimes(self):
         # Five minutes
         dt_calculation = datetime.datetime(2013, 2, 3, 4, 5)
@@ -83,3 +80,22 @@ class TestUtils(unittest.TestCase):
         ))
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0], datetime.datetime(2013, 2, 5, 8))
+
+    def test_consistent_product_expected(self):
+        data = [
+            ('r', 'f', False),
+            ('r', 'h', False),
+            ('r', 'd', False),
+            ('n', 'f', True),
+            ('n', 'h', False),
+            ('n', 'd', False),
+            ('a', 'f', True),
+            ('a', 'h', True),
+            ('a', 'd', False),
+        ]
+        for prodcode, timeframe, expected in data:
+            self.assertEqual(
+                utils.consistent_product_expected(prodcode=prodcode,
+                                                  timeframe=timeframe),
+                expected,
+            )
