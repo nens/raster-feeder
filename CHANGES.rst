@@ -2,7 +2,7 @@ Changelog of openradar
 ===================================================
 
 
-0.3.2 (unreleased)
+0.3.2 (2013-06-06)
 ------------------
 
 - Fix products being published for product 'a' timeframe 'h'
