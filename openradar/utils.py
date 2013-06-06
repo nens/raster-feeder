@@ -306,8 +306,16 @@ def get_product_combinations(datetimes,
 
 
 def consistent_product_expected(prodcode, timeframe):
-    return (timeframe == 'f' and (prodcode == 'n' or prodcode == 'a')
-            or (timeframe == 'f' and prodcode == 'n'))
+    """
+    Return if a consistent product is expected, for a product. It
+    can be used to determine if a product needs to be published, or
+    not. If not, the rescaled equivalent should be published.
+    """
+    if prodcode == 'a' and timeframe in 'fh':
+        return True
+    if prodcode == 'n' and timeframe == 'f':
+        return True
+    return False
 
 
 def get_groundfile_datetimes(prodcode, timeframe, date):
