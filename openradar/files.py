@@ -84,7 +84,7 @@ class FtpImporter(object):
     """
     Connect to ftp for radars and fetch any files that are not fetched yet.
     """
-    def __init__(self, datetime, max_age=3600):
+    def __init__(self, datetime, max_age=86400):
         """
         Set datetime and empty connection dictionary. Max age is in
         seconds, measured from datetime.
