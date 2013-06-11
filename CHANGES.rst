@@ -2,7 +2,7 @@ Changelog of openradar
 ===================================================
 
 
-0.3.3 (unreleased)
+0.3.3 (2013-06-11)
 ------------------
 
 - Change max_age for fetching files to one day.
