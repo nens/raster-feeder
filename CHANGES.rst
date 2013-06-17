@@ -2,7 +2,7 @@ Changelog of openradar
 ===================================================
 
 
-0.3.4 (unreleased)
+0.3.4 (2013-06-17)
 ------------------
 
 - Add ftp to default arguments for publishing.
