@@ -36,7 +36,9 @@ class FtpPublisher(object):
                      for path in d.values()]:
             if not path in ftp_paths:
                 self.ftp.mkd(path)
-
+        
+        # Set empty dictionary for nlst caching
+        self._nlst = {}
         return self
 
     def __exit__(self, exception_type, error, traceback):
@@ -55,7 +57,10 @@ class FtpPublisher(object):
             if not os.path.exists(product.path):
                 logging.debug('Local file does not exist, skipping.')
                 return
-            if ftp_file in self.ftp.nlst(os.path.dirname(ftp_file)):
+            dirname = os.path.dirname(ftp_file)
+            if dirname not in self._nlst:
+                self._nlst[dirname] = self.ftp.nlst(dirname)
+            if ftp_file in self._nlst[dirname]:
                 logging.debug('FTP file already exists, skipping.')
                 return
 
