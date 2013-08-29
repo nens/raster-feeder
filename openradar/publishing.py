@@ -52,8 +52,11 @@ class FtpPublisher(object):
         logging.debug(ftp_file)
         
         if not overwrite:
+            if not os.path.exists(product.path):
+                logging.debug('Local file does not exist, skipping.')
+                return
             if ftp_file in self.ftp.nlst(os.path.dirname(ftp_file)):
-                logging.debug('File exists, skipping.')
+                logging.debug('FTP file already exists, skipping.')
                 return
 
         with open(product.path, 'rb') as product_file:
