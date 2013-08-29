@@ -138,7 +138,7 @@ class FtpImporter(object):
                     ftp.retrbinary('RETR ' + name, scanfile.write)
                 synced.append(name)
                 logging.debug('Fetched: {}'.format(name))
-            except ftp.all_errors:
+            except ftplib.all_errors:
                 logging.warn('Fetch of {} failed.'.format(name))
                 if os.path.exists(targetpath):
                     os.remove(targetpath)
@@ -157,8 +157,8 @@ class FtpImporter(object):
                 if not group in self.connections:
                     self._connect(group)
                 synced.extend(self._sync(group))
-            except ImportError:
-                logging.debug('FTP connection problem for {}'.format(group))
+            except ftplib.all_errors:
+                logging.warn('FTP connection problem for {}'.format(group))
                 if group in self.connections:
                     del self.connections[group]
         return synced

@@ -5,7 +5,7 @@ Changelog of openradar
 0.3.7 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fixed independent volume fetching when one of the providers fails.
 
 
 0.3.6 (2013-08-29)
