@@ -43,12 +43,19 @@ class FtpPublisher(object):
         """ Close ftp connection. """
         self.ftp.quit()
 
-    def publish(self, product):
+    def publish(self, product, overwrite=True):
         """ Publish the product in the correct folder. """
         ftp_file = os.path.join(
             config.PRODUCT_CODE[product.timeframe][product.prodcode],
             os.path.basename(product.path),
         )
+        logging.debug(ftp_file)
+        
+        if not overwrite:
+            if ftp_file in self.ftp.nlst(os.path.dirname(ftp_file)):
+                logging.debug('File exists, skipping.')
+                return
+
         with open(product.path, 'rb') as product_file:
             response = self.ftp.storbinary(
                 'STOR {}'.format(ftp_file),
@@ -56,7 +63,6 @@ class FtpPublisher(object):
             )
 
         logging.debug('ftp response: {}'.format(response))
-        logging.debug(ftp_file)
         logging.info(
             'Stored FTP file {}'.format(os.path.basename(ftp_file)),
         )
@@ -135,12 +141,13 @@ class Publisher(object):
         for publication in self.image_publications():
             images.create_geotiff(publication.datetime)
 
-    def publish_ftp(self, cascade=False):
+    def publish_ftp(self, cascade=False, overwrite=True):
         """ Publish to FTP configured in config. """
         if hasattr(config, 'FTP_HOST') and config.FTP_HOST != '':
             with FtpPublisher() as ftp_publisher:
                 for publication in self.publications(cascade=cascade):
-                    ftp_publisher.publish(publication)
+                    ftp_publisher.publish(product=publication, 
+                                          overwrite=overwrite)
             logging.info('FTP publishing complete.')
         else:
             logging.warning('FTP not configured, FTP publishing not possible.')

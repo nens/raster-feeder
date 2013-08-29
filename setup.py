@@ -49,6 +49,7 @@ setup(name='openradar',
               'master = openradar.scripts.master:main',
               'sync = openradar.scripts.sync:main',
               'cleanup = openradar.scripts.cleanup:main',
+              'sync_radar_to_ftp = openradar.scripts.sync_radar_to_ftp:main',
               # Subtasks
               'aggregate = openradar.scripts.aggregate:main',
               'calibrate = openradar.scripts.calibrate:main',
