@@ -2,7 +2,7 @@ Changelog of openradar
 ===================================================
 
 
-0.3.6 (unreleased)
+0.3.6 (2013-08-29)
 ------------------
 
 - Speedup sync_radar_to_ftp by caching remote listings.
