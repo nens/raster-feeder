@@ -2,7 +2,7 @@ Changelog of openradar
 ===================================================
 
 
-0.3.5 (unreleased)
+0.3.5 (2013-08-29)
 ------------------
 
 - Add sync_radar_to_ftp script to fill holes from ftp outages.
