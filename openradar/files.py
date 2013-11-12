@@ -190,7 +190,7 @@ def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
         dt_ground_hour = dt_calculation
     else:
         dt_ground_hour = None
-    
+
     set_expected = set()
 
     # Add radars to expected files.

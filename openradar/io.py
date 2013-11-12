@@ -21,7 +21,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 """
 # Below is a section copied from wradlib/io.py
 
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Name:         clutter
 # Purpose:
 #
@@ -30,14 +30,15 @@ OTHER DEALINGS IN THE SOFTWARE.
 # Created:      26.10.2011
 # Copyright:    (c) Maik Heistermann, Stephan Jacobi and Thomas Pfaff 2011
 # Licence:      The MIT License
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 #!/usr/bin/env python
 
 """
 Raw Data I/O
 ^^^^^^^^^^^^
 
-Please have a look at the tutorial :doc:`tutorial_supported_formats` for an introduction
+Please have a look at the tutorial :doc:`tutorial_supported_formats` for an
+introduction
 on how to deal with different file formats.
 
 .. autosummary::
@@ -48,7 +49,6 @@ on how to deal with different file formats.
 
 """
 
-import sys
 import re
 import numpy as np
 
@@ -86,16 +86,16 @@ def unpackDX(raw):
     beam.extend(raw[0:flagged[0]])
 
     # iterate over all flags except the last one
-    for this, next in zip(flagged[:-1],flagged[1:]):
+    for this, next in zip(flagged[:-1], flagged[1:]):
         # create as many zeros as there are given within the flagged
         # byte's data part
-        beam.extend([0]* (raw[this] & data))
+        beam.extend([0] * (raw[this] & data))
         # append the data until the next flag
         beam.extend(raw[this+1:next])
 
     # process the last flag
     # add zeroes
-    beam.extend([0]* (raw[flagged[-1]] & data))
+    beam.extend([0] * (raw[flagged[-1]] & data))
 
     # add remaining data
     beam.extend(raw[flagged[-1]+1:])
@@ -130,7 +130,7 @@ def readDX(filename):
     azimuthbitmask = 2**(14-1)
     databitmask = 2**(13-1) - 1
     clutterflag = 2**15
-    dataflag = 2**13 -1
+    dataflag = 2**13 - 1
     # open the DX file in binary mode for reading
     if type(filename) == file:
         f = filename
@@ -165,7 +165,7 @@ def readDX(filename):
     f.seek(0)
 
     # read the actual header
-    header = f.read(headlen)
+    f.read(headlen)
 
     # we can interpret the rest directly as a 1-D array of 16 bit unsigned ints
     raw = np.fromfile(f, dtype='uint16')
@@ -176,11 +176,11 @@ def readDX(filename):
     # a new ray/beam starts with bit 14 set
     # careful! where always returns its results in a tuple, so in order to get
     # the indices we have to retrieve element 0 of this tuple
-    newazimuths = np.where( raw == azimuthbitmask )[0]  ###Thomas kontaktieren!!!!!!!!!!!!!!!!!!!
+    newazimuths = np.where(raw == azimuthbitmask)[0]  # Thomas kontaktieren!!!
 
-    # for the following calculations it is necessary to have the end of the data
-    # as the last index
-    newazimuths = np.append(newazimuths,len(raw))
+    # for the following calculations it is necessary to have the end of the
+    # data as the last index
+    newazimuths = np.append(newazimuths, len(raw))
 
     # initialize our list of rays/beams
     beams = []
@@ -201,10 +201,11 @@ def readDX(filename):
 
     beams = np.array(beams)
 
-    attrs =  {}
-    attrs['elev']  = np.array(elevs)
+    attrs = {}
+    attrs['elev'] = np.array(elevs)
     attrs['azim'] = np.array(azims)
     attrs['clutter'] = (beams & clutterflag) != 0
 
-    # converting the DWD rvp6-format into dBZ data and return as numpy array together with attributes
+    # converting the DWD rvp6-format into dBZ data and return as numpy array
+    # together with attributes
     return (beams & dataflag) * 0.5 - 32.5, attrs

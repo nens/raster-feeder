@@ -152,5 +152,3 @@ try:
     from openradar.localconfig import *
 except ImportError:
     pass
-
-

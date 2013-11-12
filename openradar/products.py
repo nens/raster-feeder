@@ -136,9 +136,8 @@ class ThreddsFile(object):
         except ServerError:
             return []
 
-        if start is None:
-            index_start = 0
-        else:
+        index_start = 0
+        if start is not None:
             index_start = self.index(start)
 
         if end is None:
