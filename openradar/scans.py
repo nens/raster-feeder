@@ -52,7 +52,7 @@ def create_basegrid():
 BASEGRID = create_basegrid()
 
 
-class GroundData():
+class GroundData(object):
     """
     Hold datetime and code for groundstationfile
 
@@ -174,11 +174,11 @@ class ScanSignature(object):
 
         if radar_code in config.KNMI_RADARS:
             return config.TEMPLATE_KNMI.format(**radar_dict)
-        elif radar_code in config.DWD_RADARS:
+        if radar_code in config.DWD_RADARS:
             if radar_id:
                 return config.TEMPLATE_DWD.format(**radar_dict)
             return config.TEMPLATE_DWD_2011.format(**radar_dict)
-        elif radar_code in config.DWD_RADARS_2011:
+        if radar_code in config.DWD_RADARS_2011:
             return config.TEMPLATE_DWD_2011.format(**radar_dict)
         raise ValueError("There is no format for {}".format(radar_dict))
 

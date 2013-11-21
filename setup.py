@@ -59,6 +59,5 @@ setup(name='openradar',
               'sandbox = openradar.scripts.sandbox:main',
               'organize = openradar.scripts.organize:main',
               'image = openradar.scripts.image:main',
-              
           ]},
       )

@@ -36,7 +36,7 @@ def data_image(masked_array, max_rain=20, threshold=0.0):
         array=masked_array,
         extent=basegrid.extent,
         projection=basegrid.projection,
-    **rasterlayerkwargs).image()
+        **rasterlayerkwargs).image()
 
 
 def shape_image():
@@ -70,7 +70,7 @@ def osm_image():
         (ds_osm_rd.RasterYSize, ds_osm_rd.RasterXSize, 4),
         dtype=np.uint8,
     ) * 255
-    osm_rgba[:, :, 0:3] = ds_osm_rd.ReadAsArray().transpose(1 ,2, 0)
+    osm_rgba[:, :, 0:3] = ds_osm_rd.ReadAsArray().transpose(1, 2, 0)
     return Image.fromarray(osm_rgba)
 
 
@@ -86,7 +86,7 @@ def plain_image(color=(255, 255, 255)):
 
 def radars_image(h5, label=''):
     """ Return radar image with optional label from open h5. """
-    
+
     # Create vectorlayer get metadata
     label_layer = scans.BASEGRID.create_vectorlayer()
     metadata = h5.attrs
@@ -101,13 +101,6 @@ def radars_image(h5, label=''):
             locations[i], 4000,
             facecolor='r', edgecolor='k', linewidth=2,
         ))
-
-        # Plot labels
-        #xytext = locations[i][0], locations[i][1] + 7000
-        #label_layer.axes.annotate(
-            #stations[i], locations[i],
-            #xytext=xytext, ha='center', weight='bold', size='large',
-        #)
 
         # Plot range circles
         label_layer.axes.add_artist(patches.Circle(
@@ -144,7 +137,7 @@ def create_geotiff(dt_aggregate, code='5min'):
         config.IMG_DIR, 'geotiff', 'rd',
         dt_aggregate.strftime('%Y-%m-%d-%H-%M.tiff')
     )
-    
+
     with h5py.File(aggregatepath, 'r') as h5:
         array = h5['precipitation']
         mask = np.equal(array, h5.attrs['fill_value'])
@@ -164,22 +157,22 @@ def create_geotiff(dt_aggregate, code='5min'):
 def create_png(products, **kwargs):
     """ Create image for products. """
     utils.makedir(config.IMG_DIR)
-    
+
     # Load some images
     img_shape = shape_image()
     img_blue = plain_image(color=(0, 0, 127))
     img_shape_filled = shape_image_filled()
-    
+
+    # Get dutch time label
+    tz_amsterdam = pytz.timezone('Europe/Amsterdam')
+    tz_utc = pytz.timezone('UTC')
+
     # Loop products
     for product in products:
-        
-        # Get dutch time label
-        tz_amsterdam = pytz.timezone('Europe/Amsterdam')
-        tz_utc = pytz.timezone('UTC')
         utc = tz_utc.localize(product.datetime)
         amsterdam = utc.astimezone(tz_amsterdam)
         label = amsterdam.strftime('%Y-%m-%d %H:%M')
-        
+
         # Get data image
         with product.get() as h5:
             array = h5['precipitation'][...] / h5.attrs['composite_count']
@@ -196,20 +189,21 @@ def create_png(products, **kwargs):
         # Merge and save
         path = os.path.join(config.IMG_DIR, filename)
         utils.merge([
-            img_radars, 
+            img_radars,
             img_rain,
             img_shape,
             img_shape_filled,
             img_blue,
         ]).save(path)
-        
+
         logging.info('saved {}.'.format(os.path.basename(path)))
         logging.debug('saved {}.'.format(path))
 
 
 def create_animated_gif(datetime):
     """ Produces animated gif file from images in IMG_DIR. """
-    template = 'convert -set delay 20 -loop 0 -crop 340x370+80+40 +repage {} {}'
+    template = ('convert -set delay 20 -loop 0 -crop 340x370+80+40 '
+                '+repage {} {}')
     step = config.TIMEFRAME_DELTA['f']
     pngpaths = []
 

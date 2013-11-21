@@ -33,7 +33,7 @@ class Argument(object):
             type=str,
             help='Ranges to use, for example 20110101-20110103,20110105',
         )
-    
+
     def opt_range(self, parser):
         parser.add_argument(
             '-r', '--range',
@@ -113,7 +113,7 @@ class Argument(object):
             action='store_true',
             help='Automatically create depending tasks',
         )
-    
+
     def endpoints(self, parser):
         parser.add_argument(
             '-e', '--endpoints',
@@ -123,14 +123,14 @@ class Argument(object):
             default=['h5', 'h5m', 'image', 'local', 'ftp'],
             help='Endpoint for publication.'
         )
-    
+
     def timestamp(self, parser):
         parser.add_argument(
             '-t', '--timestamp',
             metavar='TIMESTAMP',
             help='A timestamp of the form 201302030405.',
         )
-    
+
     def indices(self, parser):
         parser.add_argument(
             '-i', '--indices',
