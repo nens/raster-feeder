@@ -84,8 +84,11 @@ def plain_image(color=(255, 255, 255)):
     return Image.fromarray(rgba)
 
 
-def radars_image(h5, label=''):
-    """ Return radar image with optional label from open h5. """
+def radars_image(h5, label='', offset=(0, 0)):
+    """ 
+    Return radar image with optional label from open h5. Offset refers
+    to the label position.
+    """
 
     # Create vectorlayer get metadata
     label_layer = scans.BASEGRID.create_vectorlayer()
@@ -111,7 +114,7 @@ def radars_image(h5, label=''):
     # Plot timestamp
     if label:
         label_layer.axes.annotate(
-            label, (0.25, 0.82), xycoords='axes fraction',
+            label, offset, xycoords='axes fraction',
             ha='left', va='top', size='x-large', weight='bold',
             color='w',
         )
@@ -155,7 +158,11 @@ def create_geotiff(dt_aggregate, code='5min'):
 
 
 def create_png(products, **kwargs):
-    """ Create image for products. """
+    """ 
+    Create image for products.
+
+    This is a kind of sandbox version.
+    """
     utils.makedir(config.IMG_DIR)
 
     # Load some images
@@ -172,12 +179,64 @@ def create_png(products, **kwargs):
         utc = tz_utc.localize(product.datetime)
         amsterdam = utc.astimezone(tz_amsterdam)
         label = amsterdam.strftime('%Y-%m-%d %H:%M')
+        offset = 0.1, 0.9
 
         # Get data image
         with product.get() as h5:
             array = h5['precipitation'][...] / h5.attrs['composite_count']
             mask = np.equal(array, h5.attrs['fill_value'])
-            img_radars = radars_image(h5=h5, label=label)
+            img_radars = radars_image(h5=h5, label=label, offset=offset)
+        masked_array = np.ma.array(array, mask=mask)
+        img_rain = data_image(masked_array, max_rain=2, threshold=0.008)
+
+        timestamp = utils.datetime2timestamp(product.datetime)
+
+        filename = '{}{}.{}'.format(
+            timestamp, kwargs.get('postfix', ''), kwargs.get('format', 'png'),
+        )
+        # Merge and save
+        path = os.path.join(config.IMG_DIR, filename)
+        utils.merge([
+            img_radars,
+            img_rain,
+            img_shape,
+            img_shape_filled,
+            img_blue,
+        ]).save(path)
+
+        logging.info('saved {}.'.format(os.path.basename(path)))
+        logging.debug('saved {}.'.format(path))
+
+def create_png_for_animated_gif(products, **kwargs):
+    """ 
+    Create image for products.
+    
+    This is the tweaked version that creates the pngs for use in the
+    animated gif.
+    """
+    utils.makedir(config.IMG_DIR)
+
+    # Load some images
+    img_shape = shape_image()
+    img_blue = plain_image(color=(0, 0, 127))
+    img_shape_filled = shape_image_filled()
+
+    # Get dutch time label
+    tz_amsterdam = pytz.timezone('Europe/Amsterdam')
+    tz_utc = pytz.timezone('UTC')
+
+    # Loop products
+    for product in products:
+        utc = tz_utc.localize(product.datetime)
+        amsterdam = utc.astimezone(tz_amsterdam)
+        label = amsterdam.strftime('%Y-%m-%d %H:%M')
+        offset = 0.25, 0.82
+
+        # Get data image
+        with product.get() as h5:
+            array = h5['precipitation'][...] / h5.attrs['composite_count']
+            mask = np.equal(array, h5.attrs['fill_value'])
+            img_radars = radars_image(h5=h5, label=label, offset=offset)
         masked_array = np.ma.array(array, mask=mask)
         img_rain = data_image(masked_array, max_rain=2, threshold=0.008)
 

@@ -144,7 +144,7 @@ class Publisher(object):
 
     def publish_image(self, cascade=False):
         """ Publish to geotiff image for webviewer. """
-        images.create_png(self.image_publications())
+        images.create_png_for_animated_gif(self.image_publications())
         # TODO Make create_geotiff also operate in batch, like create_png.
         for publication in self.image_publications():
             images.create_geotiff(publication.datetime)
