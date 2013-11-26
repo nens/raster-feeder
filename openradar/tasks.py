@@ -168,7 +168,7 @@ def nowcast(result, datetime, prodcode, timeframe, minutes):
     # the vector products (realtime, five minutes)
     # are used to determine the translation vector.
     vector_products = []
-    for vector_delay in minutes + 5, minutes:
+    for vector_delay in minutes + 15, minutes:
         vector_products.append(products.CalibratedProduct(
             prodcode='r',
             timeframe='f',

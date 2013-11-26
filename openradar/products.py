@@ -780,7 +780,8 @@ class NowcastProduct(object):
         # have the same shape and that the extent of the data corresponds
         # to the configured composite extent.
         if vector_extent is None:
-            vector_extent = 58000, 431000, 116000, 471000
+            #vector_extent = 58000, 431000, 116000, 471000
+            vector_extent = 46126, 416638, 140226, 480951
             # mpl style extent to gdal style extent
             full_extent = np.array(
                 config.COMPOSITE_EXTENT,
@@ -794,6 +795,7 @@ class NowcastProduct(object):
         # get the vector
         vector = calc.calculate_vector(*map(lambda x: x[slices],
                                        correlate_data))
+        logging.debug(vector)
         vector_products_seconds = (vector_products[1].datetime -
                                    vector_products[0].datetime).total_seconds()
         base_product_seconds = (self.datetime -
