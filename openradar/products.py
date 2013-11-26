@@ -16,6 +16,7 @@ import os
 from pydap import client
 from pydap.exceptions import ServerError
 
+from openradar import calc
 from openradar import config
 from openradar import utils
 from openradar import scans
@@ -734,3 +735,105 @@ def get_values_from_opendap(x, y, start_date, end_date):
         if current == end:
             return result
         current = current.next()
+
+
+class NowcastProduct(object):
+    """
+    Represents a nowcasted product. All source products are included in
+    the metadata.
+    """
+    def __init__(self, datetime, prodcode, timeframe):
+        self.datetime = datetime
+        self.prodcode = prodcode
+        self.timeframe = timeframe
+        self.path = utils.PathHelper(
+            basedir=config.NOWCAST_DIR,
+            code=config.PRODUCT_CODE[self.timeframe][self.prodcode],
+            template=config.PRODUCT_TEMPLATE,
+        ).path(datetime)
+
+    def get(self):
+        """
+        Return h5 dataset opened in read mode.
+
+        Crashes when the file does not exist. This should be catched by caller.
+        """
+        return h5py.File(self.path, 'r')
+
+    def make(self, base_product, vector_products, vector_extent=None):
+        """
+        :param baseproduct: the product whose preciptation to shift
+        :param vectorproducts:
+            two-tuple of products to derive the shift vector from
+        :param vectorextent:
+            extent to limit the data region from which the vector is derived
+        """
+        correlate_data = []
+        for vector_product in vector_products:
+            with vector_product.get() as h5:
+                correlate_data.append(np.ma.masked_equal(
+                    h5['precipitation'],
+                    config.NODATAVALUE,
+                ).filled(0))
+
+        # Determine the slices into the data. It is assumed that the data
+        # have the same shape and that the extent of the data corresponds
+        # to the configured composite extent.
+        if vector_extent is None:
+            vector_extent = 58000, 431000, 116000, 471000
+            # mpl style extent to gdal style extent
+            full_extent = np.array(
+                config.COMPOSITE_EXTENT,
+            )[[0, 3, 1, 2]].tolist()
+        slices = calc.calculate_slices(
+            size=correlate_data[0].shape[::-1],
+            full_extent=full_extent,
+            partial_extent=vector_extent,
+        )
+
+        # get the vector
+        vector = calc.calculate_vector(*map(lambda x: x[slices],
+                                       correlate_data))
+        vector_products_seconds = (vector_products[1].datetime -
+                                   vector_products[0].datetime).total_seconds()
+        base_product_seconds = (self.datetime -
+                                base_product.datetime).total_seconds()
+        factor = base_product_seconds / vector_products_seconds
+        shift = [-v * factor for v in vector]
+
+        # Shift the base data
+        with base_product.get() as h5:
+            original = h5['precipitation'][:]
+            meta = dict(h5.attrs)
+        data = dict(
+            precipitation=np.ma.masked_equal(
+                calc.calculate_shifted(data=original, shift=shift),
+                config.NODATAVALUE,
+            ),
+        )
+        meta.update(
+            nowcast_v0=os.path.basename(vector_products[0].path),
+            nowcast_v1=os.path.basename(vector_products[1].path),
+            nowcast_base=os.path.basename(base_product.path),
+            nowcast_seconds=int(base_product_seconds),
+        )
+
+        # Save and log
+        utils.save_dataset(
+            data=data,
+            meta=meta,
+            path=self.path
+        )
+        filepath = self.path
+        filename = os.path.basename(self.path)
+        logging.info('Created NowcastProduct {}'.format(filename))
+        logging.debug('v0 {}'.format(vector_products[0]))
+        logging.debug('v1 {}'.format(vector_products[1]))
+        logging.debug('base {}'.format(base_product))
+        logging.debug('Created NowcastProduct {}'.format(filepath))
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    def __unicode__(self):
+        return self.path

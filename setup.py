@@ -55,6 +55,7 @@ setup(name='openradar',
               'calibrate = openradar.scripts.calibrate:main',
               'rescale = openradar.scripts.rescale:main',
               'publish = openradar.scripts.publish:main',
+              'nowcast = openradar.scripts.nowcast:main',
               # Tools
               'sandbox = openradar.scripts.sandbox:main',
               'organize = openradar.scripts.organize:main',

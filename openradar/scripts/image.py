@@ -38,9 +38,10 @@ def get_image_args():
                         default='r',
                         help='(r)ealtime, (n)ear-realtime or (a)fterwards')
     parser.add_argument('-c', '--product',
-                        choices=['a', 'b', 'c'],
+                        choices=['a', 'b', 'c', 'n'],
                         default='b',
-                        help='(a)ggregate, cali(b)rated or (c)onsistent')
+                        help=('(a)ggregate, cali(b)rated, '
+                              '(c)onsistent or (n)owcast'))
     parser.add_argument('-t', '--timeframe',
                         choices=['f', 'h', 'd'],
                         default='f',
@@ -71,6 +72,11 @@ def product_generator(product, prodcode, timeframe, datetimes):
             yield products.ConsistentProduct(datetime=datetime,
                                              prodcode=prodcode,
                                              timeframe=timeframe)
+        
+        if product == 'n':
+            yield products.NowcastProduct(datetime=datetime,
+                                          prodcode=prodcode,
+                                          timeframe=timeframe)
 
 
 def main():

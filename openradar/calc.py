@@ -23,9 +23,13 @@ from __future__ import absolute_import
 from __future__ import division
 
 from scipy.ndimage import measurements
+from scipy import ndimage
 
 import logging
+import math
 import numpy as np
+
+from openradar import config
 
 RADIUS43 = 8495.  # Effective earth radius in km.
 
@@ -55,7 +59,7 @@ def calculate_theta(rang, elev, anth):
     rang: distance from radar to datapoint in km
     elev: angle between beam and horizontal plane in radians
     anth: the antenna height above the earth surface in km
-    
+
     horizon_height: height relative to horizon plane
     horizon_dist: distance along horizon plane
     """
@@ -63,22 +67,22 @@ def calculate_theta(rang, elev, anth):
     horizon_alt = anth + rang * np.sin(elev)
 
     return np.arctan(horizon_dist / (horizon_alt + RADIUS43))
-    
+
 
 def calculate_cartesian(theta, azim):
-    """ 
+    """
     Return (x,y) in km along earth surface.
-    
+
     All angles must be in radians.
     azim: clockwise from north
     theta: angle <radar, center-of-earth, datapoint>
     """
     dist = theta * RADIUS43
     return dist * np.sin(azim), dist * np.cos(azim)
-    
+
 
 def calculate_height(theta, elev, anth):
-    """ 
+    """
     Return height of datapoint above earth surface.
 
     All angles must be in radians.
@@ -94,7 +98,7 @@ def calculate_height(theta, elev, anth):
     alpha = elev + np.pi / 2
     beta = np.pi - theta - alpha
     b = RADIUS43 + anth
-    a = b * np.sin(alpha) / np.sin(beta) # Law of sines used here.
+    a = b * np.sin(alpha) / np.sin(beta)  # Law of sines used here.
 
     return a - RADIUS43
 
@@ -124,13 +128,12 @@ def declutter_by_area(array, area):
     """
     Remove clusters with area less or equal to area.
     """
-    
+
     # Create array
     if isinstance(array, np.ma.MaskedArray):
         nonzero = np.greater(array.filled(fill_value=0), 0.1)
     else:
         nonzero = np.greater(array, 0.1)
-
 
     logging.debug('Starting size declutter.')
     labels, count1 = measurements.label(nonzero)
@@ -142,10 +145,47 @@ def declutter_by_area(array, area):
     logging.debug(
         'Removed {} clusters with area <= {}.'.format(
             count1 - count2, area,
-        ),   
+        ),
     )
-    
+
     if isinstance(array, np.ma.MaskedArray):
         array.data[index] = 0
     else:
         array[index] = 0
+
+
+def calculate_vector(data1, data2):
+    """
+    Return translation vector based on correlation.
+    """
+    if data1.shape != data2.shape:
+        raise ValueError('arrays must have equal shape.')
+    data3 = ndimage.correlate(data1, data2, mode='constant')
+    return [i - int(s / 2)
+            for s, i in zip(data3.shape,
+                            np.unravel_index(data3.argmax(), data3.shape))]
+
+
+def calculate_slices(size, full_extent, partial_extent):
+    """
+    Return the slices into an array of size size to access a partial
+    extent where the array covers the full extent.
+    """
+    w, h = size
+    p1, q1, p2, q2 = partial_extent
+    f1, g1, f2, g2 = full_extent
+
+    # slice stops for the first array (y) dimension
+    s01 = int(math.floor(h * (q1 - g1) / (g2 - g1)))
+    s02 = int(math.ceil(h * (q2 - g1) / (g2 - g1)))
+
+    # slice stops for the second array (x) dimension
+    s11 = int(math.floor(w * (p1 - f1) / (f2 - f1)))
+    s12 = int(math.ceil(w * (p2 - f1) / (f2 - f1)))
+
+    return slice(s01, s02), slice(s11, s12)
+
+
+def calculate_shifted(data, shift):
+    """ Shift data. """
+    return ndimage.shift(data, shift, cval=config.NODATAVALUE)

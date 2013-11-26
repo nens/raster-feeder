@@ -9,6 +9,7 @@ from __future__ import division
 import logging
 import os
 import sys
+from datetime import timedelta
 
 import celery
 
@@ -149,6 +150,46 @@ def publish(result, datetimes, prodcodes, timeframes, endpoints, cascade):
         except Exception as e:
             logging.exception(e)
     logging.info(20 * '-' + ' publish complete ' + 20 * '-')
+
+
+@celery.task
+def nowcast(result, datetime, prodcode, timeframe, minutes):
+    """
+    Create nowcast product.
+    """
+    loghelper.setup_logging(logfile_name='radar_nowcast.log')
+    logging.info(20 * '-' + ' nowcast ' + 20 * '-')
+    # the result product is called the nowcast product
+    nowcast_product = products.NowcastProduct(
+        prodcode=prodcode,
+        timeframe=timeframe,
+        datetime=datetime,
+    )
+    # the vector products (realtime, five minutes)
+    # are used to determine the translation vector.
+    vector_products = []
+    for vector_delay in minutes + 5, minutes:
+        vector_products.append(products.CalibratedProduct(
+            prodcode='r',
+            timeframe='f',
+            datetime=datetime - timedelta(minutes=vector_delay),
+        ))
+    # the base product is the product for which the data
+    # is shifted to arrive at a nowcasted product.
+    base_product = products.CalibratedProduct(
+        prodcode=prodcode,
+        timeframe=timeframe,
+        datetime=datetime - timedelta(minutes=minutes)
+    )
+
+    try:
+        nowcast_product.make(
+            base_product=base_product,
+            vector_products=vector_products,
+        )
+    except Exception as e:
+        logging.exception(e)
+    logging.info(20 * '-' + ' nowcast complete ' + 20 * '-')
 
 
 @celery.task
