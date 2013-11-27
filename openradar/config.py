@@ -46,7 +46,8 @@ DECLUTTER_SIZE = 4
 DWD_RADARS_2011 = ('ase', 'nhb', 'emd')
 DWD_RADARS = ('ess', 'nhb', 'emd')
 KNMI_RADARS = ('NL60', 'NL61')
-ALL_RADARS = DWD_RADARS + KNMI_RADARS
+JABBEKE_RADARS = ('JAB',)
+ALL_RADARS = DWD_RADARS + KNMI_RADARS + JABBEKE_RADARS
 
 # New DWD files have an id that corresponds to the radar code
 RADAR_ID = {
@@ -69,6 +70,16 @@ RADAR_PATTERNS = [
     re.compile(
         'raa00-dx_(?P<id>.*)-(?P<timestamp>[0-9]{10})-(?P<code>.*)---bin',
     ),
+    # Jabbeke
+    re.compile(
+        'T_PAGZ42_C_EBBR_(?P<timestamp>[0-9]{10})\.hdf',
+    ),
+    # Jabbeke test
+    re.compile(
+        '(?P<code>.*)-(?P<timestamp>[0-9]{12})[0-9]{4}dBZ\.vol\.h5',
+    ),
+
+
 ]
 GROUND_PATTERN = re.compile(
     '(?P<timestamp>[0-9]{14})_Grondstations_(?P<code>.*)\.csv',
@@ -81,6 +92,9 @@ CALIBRATION_PATTERN = re.compile(
 TEMPLATE_KNMI = 'RAD_{code}_VOL_NA_%Y%m%d%H%M.h5'
 TEMPLATE_DWD_2011 = 'raa00-dx_{code}-%y%m%d%H%M-dwd---bin'
 TEMPLATE_DWD = 'raa00-dx_{id}-%y%m%d%H%M-{code}---bin'
+TEMPLATE_JABBEKE = 'T_PAGZ42_C_EBBR_%Y%m%d%H%M%S.hdf'
+#JABBEKE test data
+TEMPLATE_JABBEKE = 'JAB-%Y%m%d%H%M.dBZ.vol.h5'
 TEMPLATE_GROUND = '%Y%m%d%H%M%S_Grondstations_{code}.csv'
 
 # Format for all-digit timestamp

@@ -330,7 +330,6 @@ class VectorLayer(AbstractLayer):
 
     def add_line(self, shapepath, *plotargs, **plotkwargs):
         """ Plot shape as matplotlib line """
-        axes = self.axes
         dataset = ogr.Open(str(shapepath))
         for layer in dataset:
             for feature in layer:
@@ -339,7 +338,6 @@ class VectorLayer(AbstractLayer):
 
     def add_patch(self, shapepath, *plotargs, **plotkwargs):
         """ Plot shape as matplotlib line """
-        axes = self.axes
         dataset = ogr.Open(shapepath)
         for layer in dataset:
             for feature in layer:
@@ -350,7 +348,6 @@ class VectorLayer(AbstractLayer):
 
     def add_multipolygon(self, shapepath, *plotargs, **plotkwargs):
         """ Plot shape as matplotlib line """
-        axes = self.axes
         dataset = ogr.Open(shapepath)
         for layer in dataset:
             for feature in layer:

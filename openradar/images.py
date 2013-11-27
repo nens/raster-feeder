@@ -85,7 +85,7 @@ def plain_image(color=(255, 255, 255)):
 
 
 def radars_image(h5, label='', offset=(0, 0)):
-    """ 
+    """
     Return radar image with optional label from open h5. Offset refers
     to the label position.
     """
@@ -158,7 +158,7 @@ def create_geotiff(dt_aggregate, code='5min'):
 
 
 def create_png(products, **kwargs):
-    """ 
+    """
     Create image for products.
 
     This is a kind of sandbox version.
@@ -207,10 +207,11 @@ def create_png(products, **kwargs):
         logging.info('saved {}.'.format(os.path.basename(path)))
         logging.debug('saved {}.'.format(path))
 
+
 def create_png_for_animated_gif(products, **kwargs):
-    """ 
+    """
     Create image for products.
-    
+
     This is the tweaked version that creates the pngs for use in the
     animated gif.
     """

@@ -5,7 +5,7 @@ Changelog of openradar
 0.3.8 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add Jabbeke.
 
 
 0.3.7 (2013-08-29)

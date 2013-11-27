@@ -167,10 +167,13 @@ class ScanSignature(object):
 
     def _get_datetime_format(self, radar_dict):
         """
-        Return the datetime format string that corresponds to current scan.
+        Return the filename format with the datetime format string
+        that corresponds to current scan.
+
         """
         radar_code = radar_dict['code']
         radar_id = radar_dict['id']
+        #import pdb; pdb.set_trace()
 
         if radar_code in config.KNMI_RADARS:
             return config.TEMPLATE_KNMI.format(**radar_dict)
@@ -180,6 +183,8 @@ class ScanSignature(object):
             return config.TEMPLATE_DWD_2011.format(**radar_dict)
         if radar_code in config.DWD_RADARS_2011:
             return config.TEMPLATE_DWD_2011.format(**radar_dict)
+        if radar_code in config.JABBEKE_RADARS:
+            return config.TEMPLATE_JABBEKE.format(**radar_dict)
         raise ValueError("There is no format for {}".format(radar_dict))
 
     def get_scanname(self):
@@ -224,6 +229,8 @@ class ScanSignature(object):
             return ScanKNMI(self)
         elif self._code in config.DWD_RADARS_2011:
             return ScanDWD(self)
+        elif self._code in config.JABBEKE_RADARS:
+            return ScanJabbeke(self)
         logging.error(
             "Currently no scan class matching '{}'".format(self._code),
         )
@@ -243,6 +250,13 @@ class GenericScan(object):
     """
     def __init__(self, scansignature):
         self.signature = scansignature
+
+    def data(self):
+        """
+        Dummy placeholder, needs to be implemented in a specific scan object.
+        """
+
+        raise NotImplementedError
 
     def _interpolate(self, points, values, grid):
         """
@@ -287,11 +301,6 @@ class GenericScan(object):
         rain = data['rain']
         latlon = data['latlon']
         anth = data['ant_alt']
-        # vvv For mocking JABBEKE. Can be removed when JABBEKE is really
-        # vvv in production.
-        #if self.signature.get_code() == 'JABBEKE':
-        #    latlon = (51.179558, 3.09363)
-        #    print('adjusted location for JABBEKE')
 
         theta = calc.calculate_theta(
             rang=rang,
@@ -356,7 +365,7 @@ class GenericScan(object):
 
 class ScanKNMI(GenericScan):
 
-    def data(self,):
+    def data(self):
         """ Return data dict for further processing. """
         scanpath = self.signature.get_scanpath()
         with h5py.File(scanpath, 'r') as dataset:
@@ -449,6 +458,54 @@ class ScanDWD(GenericScan):
     def _latlon(self):
         latlon = config.DWD_COORDINATES[self.signature.get_code()]
         return latlon
+
+
+class ScanJabbeke(GenericScan):
+
+    def data(self, path=None):
+        scanpath = self.signature.get_scanpath()
+        with h5py.File(scanpath, 'r') as dataset:
+            d = dict(
+                latlon=self._latlon(dataset),
+                rain=self._rain(dataset),
+                polar=self._polar(dataset),
+                ant_alt=self._ant_alt(dataset)
+            )
+
+        return d
+
+    def _rain(self, dataset):
+        key = 'dataset1'  # XXX: Randomly chosen from all datasets
+        dbZ = dataset[key]['data1']['data'].value
+        return calc.Rain(dbZ).get()
+
+    def _polar(self, dataset):
+        how = dataset['dataset1']['how'].attrs
+        where = dataset['dataset1']['where'].attrs
+
+        bins = where['nbins']
+        if bins == 598:
+            rang = np.arange(0.25, 299, 0.5)
+        elif bins == 300:
+            rang = np.arange(0.5, 300, 1)
+        rang = rang.reshape(1, -1)
+
+        # get the middle of each measured angle.
+        azim = (how['startazA'] + how['stopazA']) / 2
+        azim = azim.reshape(-1, 1)
+
+        elev = where['elangle']
+
+        return rang, azim, elev
+
+    def _latlon(self, dataset):
+        """Return the latlon coordinates of the radar station."""
+        where = dataset['where']
+        return where.attrs['lat'], where.attrs['lon']
+
+    def _ant_alt(self, dataset):
+        """Return the antenea altitude of the radar station."""
+        return dataset['where'].attrs['height']
 
 
 class MultiScan(object):

@@ -27,7 +27,7 @@ def calibrate(**kwargs):
     )
     datetimes = utils.MultiDateRange(kwargs['range']).iterdatetimes()
     combinations = utils.get_product_combinations(
-        datetimes=datetimes, 
+        datetimes=datetimes,
         prodcodes=kwargs['prodcodes'],
         timeframes=kwargs['timeframes'],
     )

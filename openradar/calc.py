@@ -55,7 +55,7 @@ def calculate_theta(rang, elev, anth):
     rang: distance from radar to datapoint in km
     elev: angle between beam and horizontal plane in radians
     anth: the antenna height above the earth surface in km
-    
+
     horizon_height: height relative to horizon plane
     horizon_dist: distance along horizon plane
     """
@@ -63,22 +63,22 @@ def calculate_theta(rang, elev, anth):
     horizon_alt = anth + rang * np.sin(elev)
 
     return np.arctan(horizon_dist / (horizon_alt + RADIUS43))
-    
+
 
 def calculate_cartesian(theta, azim):
-    """ 
+    """
     Return (x,y) in km along earth surface.
-    
+
     All angles must be in radians.
     azim: clockwise from north
     theta: angle <radar, center-of-earth, datapoint>
     """
     dist = theta * RADIUS43
     return dist * np.sin(azim), dist * np.cos(azim)
-    
+
 
 def calculate_height(theta, elev, anth):
-    """ 
+    """
     Return height of datapoint above earth surface.
 
     All angles must be in radians.
@@ -94,7 +94,7 @@ def calculate_height(theta, elev, anth):
     alpha = elev + np.pi / 2
     beta = np.pi - theta - alpha
     b = RADIUS43 + anth
-    a = b * np.sin(alpha) / np.sin(beta) # Law of sines used here.
+    a = b * np.sin(alpha) / np.sin(beta)  # Law of sines used here.
 
     return a - RADIUS43
 
@@ -124,7 +124,7 @@ def declutter_by_area(array, area):
     """
     Remove clusters with area less or equal to area.
     """
-    
+
     # Create array
     if isinstance(array, np.ma.MaskedArray):
         nonzero = np.greater(array.filled(fill_value=0), 0.1)
@@ -142,9 +142,9 @@ def declutter_by_area(array, area):
     logging.debug(
         'Removed {} clusters with area <= {}.'.format(
             count1 - count2, area,
-        ),   
+        ),
     )
-    
+
     if isinstance(array, np.ma.MaskedArray):
         array.data[index] = 0
     else:
