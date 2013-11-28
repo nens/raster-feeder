@@ -56,27 +56,27 @@ def get_image_args():
 
 def product_generator(product, prodcode, timeframe, datetimes):
     """ Return product generator. """
-    for datetime in datetimes:
-        if product == 'a':
+    if product == 'a':
+        for datetime in datetimes:
             yield scans.Aggregate(
                 declutter=None,
                 radars=config.ALL_RADARS,
                 datetime=datetime,
                 timeframe=timeframe,
             )
-        if product == 'b':
-            yield products.CalibratedProduct(datetime=datetime,
-                                             prodcode=prodcode,
-                                             timeframe=timeframe)
-        if product == 'c':
-            yield products.ConsistentProduct(datetime=datetime,
-                                             prodcode=prodcode,
-                                             timeframe=timeframe)
-        
-        if product == 'n':
-            yield products.NowcastProduct(datetime=datetime,
-                                          prodcode=prodcode,
-                                          timeframe=timeframe)
+    else:
+        combinations = utils.get_product_combinations(
+            datetimes=datetimes,
+            prodcodes=prodcode,
+            timeframes=timeframe,
+        )
+        Product = dict(
+            b=products.CalibratedProduct,
+            c=products.ConsistentProduct,
+            n=products.NowcastProduct,
+        )[product]
+        for combination in combinations:
+            yield Product(**combination)
 
 
 def main():
