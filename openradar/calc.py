@@ -131,7 +131,6 @@ def declutter_by_area(array, area):
     else:
         nonzero = np.greater(array, 0.1)
 
-
     logging.debug('Starting size declutter.')
     labels, count1 = measurements.label(nonzero)
     logging.debug('Found {} clusters.'.format(count1))

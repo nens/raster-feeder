@@ -464,24 +464,37 @@ class ScanJabbeke(GenericScan):
 
     def data(self, path=None):
         scanpath = self.signature.get_scanpath()
-        with h5py.File(scanpath, 'r') as dataset:
+        with h5py.File(scanpath, 'r') as h5file:
+            dataset = self._get_dataset_with_minimal_elevation(h5file)
             d = dict(
-                latlon=self._latlon(dataset),
+                latlon=self._latlon(h5file),
                 rain=self._rain(dataset),
                 polar=self._polar(dataset),
-                ant_alt=self._ant_alt(dataset)
+                ant_alt=self._ant_alt(h5file)
             )
 
         return d
 
+    def _get_dataset_with_minimal_elevation(self, h5file):
+        # a generator with (angle, dataset_name) per dataset
+        datasets = ((h5file[dataset_name]['where'].attrs['elangle'],
+                     dataset_name) for dataset_name in h5file
+                    if 'dataset' in dataset_name)
+        # Get the dataset that corrosponds with the minimal elevation angle.
+        dataset_name = min(datasets)[1]
+        return h5file[dataset_name]
+
     def _rain(self, dataset):
-        key = 'dataset1'  # XXX: Randomly chosen from all datasets
-        dbZ = dataset[key]['data1']['data'].value
-        return calc.Rain(dbZ).get()
+        """Calculate rain in mm/hour from the dBZ."""
+        data1 = dataset['data1']
+        PV = data1['data'].value  # Pixel value
+        gain = data1['what'].attrs['gain']
+        offset = data1['what'].attrs['offset']
+        return calc.Rain(PV * gain + offset).get()
 
     def _polar(self, dataset):
-        how = dataset['dataset1']['how'].attrs
-        where = dataset['dataset1']['where'].attrs
+        how = dataset['how'].attrs
+        where = dataset['where'].attrs
 
         bins = where['nbins']
         if bins == 598:
