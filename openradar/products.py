@@ -813,7 +813,17 @@ class NowcastProduct(object):
                 config.NODATAVALUE,
             ),
         )
+        # Utils save dataset checks timestamp_last_composite.
+        # Add the difference between product and baseproduct.
+        datetime_last_composite = utils.timestamp2datetime(
+            meta['timestamp_last_composite'],
+        ) + (self.datetime - base_product.datetime)
+        timestamp_last_composite=datetime_last_composite.strftime(
+            config.TIMESTAMP_FORMAT,
+        )
+
         meta.update(
+            timestamp_last_composite=timestamp_last_composite,
             nowcast_v0=os.path.basename(vector_products[0].path),
             nowcast_v1=os.path.basename(vector_products[1].path),
             nowcast_base=os.path.basename(base_product.path),
