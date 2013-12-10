@@ -153,7 +153,7 @@ def publish(result, datetimes, prodcodes, timeframes, endpoints, cascade):
 
 
 @celery.task
-def nowcast(result, datetime, prodcode, timeframe, minutes):
+def nowcast(result, datetime, timeframe, minutes):
     """
     Create nowcast product.
     """
@@ -161,9 +161,8 @@ def nowcast(result, datetime, prodcode, timeframe, minutes):
     logging.info(20 * '-' + ' nowcast ' + 20 * '-')
     # the result product is called the nowcast product
     nowcast_product = products.NowcastProduct(
-        prodcode=prodcode,
-        timeframe=timeframe,
         datetime=datetime,
+        timeframe=timeframe,
     )
     # the vector products (realtime, five minutes)
     # are used to determine the translation vector.
@@ -177,8 +176,8 @@ def nowcast(result, datetime, prodcode, timeframe, minutes):
     # the base product is the product for which the data
     # is shifted to arrive at a nowcasted product.
     base_product = products.CalibratedProduct(
-        prodcode=prodcode,
-        timeframe=timeframe,
+        prodcode='r',
+        timeframe='f',
         datetime=datetime - timedelta(minutes=minutes)
     )
 

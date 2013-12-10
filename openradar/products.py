@@ -8,6 +8,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import calendar
+import datetime
 import h5py
 import logging
 import numpy as np
@@ -742,10 +743,10 @@ class NowcastProduct(object):
     Represents a nowcasted product. All source products are included in
     the metadata.
     """
-    def __init__(self, datetime, prodcode, timeframe):
+    def __init__(self, datetime, timeframe, **kwargs):
         self.datetime = datetime
-        self.prodcode = prodcode
         self.timeframe = timeframe
+        self.prodcode = 'r'
         self.path = utils.PathHelper(
             basedir=config.NOWCAST_DIR,
             code=config.PRODUCT_CODE[self.timeframe][self.prodcode],
@@ -771,10 +772,12 @@ class NowcastProduct(object):
         correlate_data = []
         for vector_product in vector_products:
             with vector_product.get() as h5:
-                correlate_data.append(np.ma.masked_equal(
+                linear_correlate_data = np.ma.masked_equal(
                     h5['precipitation'],
                     config.NODATAVALUE,
-                ).filled(0))
+                ).filled(0)
+            correlate_data.append(np.log(linear_correlate_data + 1))
+            #correlate_data.append(linear_correlate_data)
 
         # Determine the slices into the data. It is assumed that the data
         # have the same shape and that the extent of the data corresponds
@@ -803,16 +806,41 @@ class NowcastProduct(object):
         factor = base_product_seconds / vector_products_seconds
         shift = [-v * factor for v in vector]
 
-        # Shift the base data
+        # Load the base data
         with base_product.get() as h5:
             original = h5['precipitation'][:]
             meta = dict(h5.attrs)
+        original_filled = np.ma.masked_equal(
+            original, config.NODATAVALUE, copy=False,
+        ).filled(0)
+
+        # Create nowcast data by adding shifted data
+        current_datetime = (self.datetime - 
+                            config.TIMEFRAME_DELTA[self.timeframe])
+        nowcast_precipitation = np.zeros(original.shape, 'f4')
+        count = 0
+        while current_datetime < self.datetime:
+            current_datetime += datetime.timedelta(minutes=5)
+            # De-indent this tot get only shift, but now accumulation
+            seconds = (current_datetime -
+                       base_product.datetime).total_seconds()
+            factor = seconds / vector_products_seconds
+            shift = [-v * factor for v in vector]
+            nowcast_precipitation += calc.calculate_shifted(
+                data=original_filled, 
+                shift=shift,
+            )
+            count += 1
+        logging.debug(count)
+
+        # Wrap
         data = dict(
             precipitation=np.ma.masked_equal(
-                calc.calculate_shifted(data=original, shift=shift),
+                nowcast_precipitation,
                 config.NODATAVALUE,
             ),
         )
+
         # Utils save dataset checks timestamp_last_composite.
         # Add the difference between product and baseproduct.
         datetime_last_composite = utils.timestamp2datetime(

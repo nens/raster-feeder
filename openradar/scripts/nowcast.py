@@ -26,13 +26,15 @@ def nowcast(**kwargs):
     datetimes = utils.MultiDateRange(kwargs['range']).iterdatetimes()
     combinations = utils.get_product_combinations(
         datetimes=datetimes,
-        prodcodes=kwargs['prodcodes'],
-        timeframes=kwargs['timeframes'])
+        prodcodes=['r'],
+        timeframes=kwargs['timeframes'],
+    )
     # Execute or delay task
     for combination in combinations:
         action_kwargs = dict(result=None,
                              minutes=kwargs['minutes'])
-        action_kwargs.update(combination)
+        action_kwargs['datetime'] = combination['datetime']
+        action_kwargs['timeframe'] = combination['timeframe']
         action(**action_kwargs)
 
 
@@ -40,7 +42,6 @@ def main():
     argument = arguments.Argument()
     parser = argument.parser([
         'range',
-        'prodcodes',
         'timeframes',
         'minutes',
         'direct',

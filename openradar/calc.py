@@ -188,4 +188,4 @@ def calculate_slices(size, full_extent, partial_extent):
 
 def calculate_shifted(data, shift):
     """ Shift data. """
-    return ndimage.shift(data, shift, cval=config.NODATAVALUE)
+    return ndimage.shift(data, shift, order=1, cval=0)
