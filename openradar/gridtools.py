@@ -185,7 +185,7 @@ class AbstractLayer(BaseGrid):
         pattern = (np.indices(
             self.get_shape(),
         ) // 8).sum(0) % 2
-        return  Image.fromarray(cm.gray_r(pattern / 2., bytes=True))
+        return Image.fromarray(cm.gray_r(pattern / 2., bytes=True))
 
     def show(self):
         """
@@ -252,7 +252,6 @@ class RasterLayer(AbstractLayer):
 
     def _rgba(self):
         return self.colormap(self.normalize(self.ma), bytes=True)
-
 
 
 class VectorLayer(AbstractLayer):
@@ -330,7 +329,6 @@ class VectorLayer(AbstractLayer):
 
     def add_line(self, shapepath, *plotargs, **plotkwargs):
         """ Plot shape as matplotlib line """
-        axes = self.axes
         dataset = ogr.Open(str(shapepath))
         for layer in dataset:
             for feature in layer:
@@ -339,7 +337,6 @@ class VectorLayer(AbstractLayer):
 
     def add_patch(self, shapepath, *plotargs, **plotkwargs):
         """ Plot shape as matplotlib line """
-        axes = self.axes
         dataset = ogr.Open(shapepath)
         for layer in dataset:
             for feature in layer:
@@ -350,7 +347,6 @@ class VectorLayer(AbstractLayer):
 
     def add_multipolygon(self, shapepath, *plotargs, **plotkwargs):
         """ Plot shape as matplotlib line """
-        axes = self.axes
         dataset = ogr.Open(shapepath)
         for layer in dataset:
             for feature in layer:

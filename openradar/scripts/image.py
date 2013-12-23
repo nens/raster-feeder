@@ -80,16 +80,16 @@ def main():
     # Get products according to args
     args = get_image_args()
 
-    if args['format'] != 'png':
-        raise NotImplementedError('Only png implemented yet.')
-
     multidaterange = utils.MultiDateRange(args['range'])
     products = product_generator(product=args['product'],
                                  prodcode=args['prodcode'],
                                  timeframe=args['timeframe'],
                                  datetimes=multidaterange.iterdatetimes())
 
+    create = dict(png=images.create_png,
+                  tif=images.create_tif)[args['format']]
+
     # Create images with those products
     kwargs = args.copy()
     map(kwargs.pop, ['range', 'product', 'timeframe', 'prodcode'])
-    images.create_png(products, **kwargs)
+    create(products, **kwargs)

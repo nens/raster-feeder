@@ -18,6 +18,7 @@ from osgeo import gdal
 from PIL import Image
 
 import h5py
+import json
 import logging
 import numpy as np
 import os
@@ -155,6 +156,45 @@ def create_geotiff(dt_aggregate, code='5min'):
 
     logging.info('saved {}.'.format(os.path.basename(tifpath_rd)))
     logging.debug('saved {}.'.format(tifpath_rd))
+
+
+def create_tif(products, **kwargs):
+    """ Save a tif with metadata """
+    utils.makedir(config.IMG_DIR)
+    
+    # Loop products
+    for product in products:
+
+        # Get data
+        with product.get() as h5:
+            data = np.ma.masked_equal(h5['precipitation'], h5.attrs['fill_value'])
+            attrs = dict(h5.attrs)
+        
+        # make a dataset
+        raster_layer = gridtools.RasterLayer(
+            array=data,
+            extent=attrs['grid_extent'],                                         
+            projection=attrs['grid_projection'],
+        )
+        mem = raster_layer.create_dataset(datatype=6)
+        band = mem.GetRasterBand(1)
+        band.WriteArray(data.filled(band.GetNoDataValue()))
+        for k, v in attrs.items():
+            if hasattr(v, 'tolist'):
+                v = json.dumps(v.tolist())
+            band.SetMetadataItem(str(k), str(v))
+
+        timestamp = utils.datetime2timestamp(product.datetime)
+        filename = '{}{}.{}'.format(
+            timestamp, kwargs.get('postfix', ''), kwargs.get('format', 'png'),
+        )
+        path = os.path.join(config.IMG_DIR, filename)
+        
+        driver = gdal.GetDriverByName(b'gtiff')
+        driver.CreateCopy(path, mem)
+
+        logging.info('saved {}.'.format(os.path.basename(path)))
+        logging.debug('saved {}.'.format(path))
 
 
 def create_png(products, **kwargs):
