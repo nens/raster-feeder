@@ -12,8 +12,6 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
-from dateutil import parser
-
 import argparse
 import datetime
 import logging
@@ -47,8 +45,7 @@ def command(store, date=None):
         datepart = date
     else:
         datepart = datetime.date.today().strftime('%Y%m%d')
-    #text = datepart + '0000-' + datepart + '2355'
-    text = datepart + '0000-' + datepart + '0055'
+    text = datepart + '0000-' + datepart + '2355'
 
     args = [
         os.path.join(config.BUILDOUT_DIR, 'bin', 'image'),
@@ -58,6 +55,15 @@ def command(store, date=None):
         '--image-dir', tempdir,
     ]
     subprocess.call(args)
+
+    # the loading
+    args = [
+        os.path.join(config.BUILDOUT_DIR, 'bin', 'radar_to_store'),
+        store,
+    ] + [os.path.join(tempdir, name) for name in sorted(os.listdir(tempdir))]
+    subprocess.call(args)
+
+    # cleanup
     shutil.rmtree(tempdir)
 
     'bin/radar_to_store /media/arjan/Elements/stores/radar/ ~/radarimgs/*tif'
