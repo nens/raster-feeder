@@ -7,24 +7,23 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
+from openradar import arguments
 from openradar import config
 from openradar import images
 from openradar import loghelper
-from openradar import utils
-from openradar import scans
 from openradar import products
+from openradar import scans
+from openradar import utils
 
 import argparse
 
 
 def get_image_args():
-    parser = argparse.ArgumentParser(
-        description='Create images from composites.',
+    argument = arguments.Argument()
+    parser = argument.parser(
+        ['image_dir', 'range'],
+        description='Create images from radar data.',
     )
-    parser.add_argument('range',
-                        metavar='RANGE',
-                        type=str,
-                        help='Range for datetimes 20110101-20110103,20110105')
     parser.add_argument('--postfix',
                         type=str,
                         default='',

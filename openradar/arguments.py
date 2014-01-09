@@ -99,6 +99,14 @@ class Argument(object):
             help=('Path from where all the files'
                   ' are stored that need to be organized'),
         )
+    
+    def image_dir(self, parser):
+        parser.add_argument(
+            '-i', '--image-dir',
+            type=str,
+            default=config.IMG_DIR,
+            help=('Path to store images.'),
+        )
 
     def direct(self, parser):
         parser.add_argument(

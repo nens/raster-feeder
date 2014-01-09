@@ -9,12 +9,8 @@ from __future__ import division
 
 from matplotlib import patches
 
-from openradar import config
-from openradar import utils
-from openradar import gridtools
-from openradar import scans
-
 from osgeo import gdal
+from osgeo import osr
 from PIL import Image
 
 import h5py
@@ -25,6 +21,13 @@ import os
 import pytz
 import shlex
 import subprocess
+
+from openradar import config
+from openradar import utils
+from openradar import gridtools
+from openradar import scans
+
+PROJECTION_RD_WKT = osr.GetUserInputAsWKT(b'epsg:28992')
 
 
 def data_image(masked_array, max_rain=20, threshold=0.0):
@@ -86,7 +89,7 @@ def plain_image(color=(255, 255, 255)):
 
 
 def radars_image(h5, label='', offset=(0, 0)):
-    """ 
+    """
     Return radar image with optional label from open h5. Offset refers
     to the label position.
     """
@@ -158,25 +161,37 @@ def create_geotiff(dt_aggregate, code='5min'):
     logging.debug('saved {}.'.format(tifpath_rd))
 
 
-def create_tif(products, **kwargs):
+def create_tif(products, image_dir=None, **kwargs):
     """ Save a tif with metadata """
-    utils.makedir(config.IMG_DIR)
-    
+    if image_dir:
+        target_dir = image_dir
+    else:
+        target_dir = config.IMG_DIR
+    utils.makedir(target_dir)
+
     # Loop products
     for product in products:
 
         # Get data
-        with product.get() as h5:
-            data = np.ma.masked_equal(h5['precipitation'], h5.attrs['fill_value'])
-            attrs = dict(h5.attrs)
-        
+        try:
+            with h5py.File(product.path, 'r') as h5:
+                data = np.ma.masked_equal(h5['precipitation'],
+                                          h5.attrs['fill_value'])
+                attrs = dict(h5.attrs)
+        except IOError:
+            logging.info('Not found: {}, skipping.'.format(product))
+            continue
+
         # make a dataset
         raster_layer = gridtools.RasterLayer(
             array=data,
-            extent=attrs['grid_extent'],                                         
+            extent=attrs['grid_extent'],
             projection=attrs['grid_projection'],
         )
         mem = raster_layer.create_dataset(datatype=6)
+
+        
+        mem.SetProjection(PROJECTION_RD_WKT)
         band = mem.GetRasterBand(1)
         band.WriteArray(data.filled(band.GetNoDataValue()))
         for k, v in attrs.items():
@@ -188,8 +203,8 @@ def create_tif(products, **kwargs):
         filename = '{}{}.{}'.format(
             timestamp, kwargs.get('postfix', ''), kwargs.get('format', 'png'),
         )
-        path = os.path.join(config.IMG_DIR, filename)
-        
+        path = os.path.join(target_dir, filename)
+
         driver = gdal.GetDriverByName(b'gtiff')
         driver.CreateCopy(path, mem)
 
@@ -198,7 +213,7 @@ def create_tif(products, **kwargs):
 
 
 def create_png(products, **kwargs):
-    """ 
+    """
     Create image for products.
 
     This is a kind of sandbox version.
@@ -251,10 +266,11 @@ def create_png(products, **kwargs):
         logging.info('saved {}.'.format(os.path.basename(path)))
         logging.debug('saved {}.'.format(path))
 
+
 def create_png_for_animated_gif(products, **kwargs):
-    """ 
+    """
     Create image for products.
-    
+
     This is the tweaked version that creates the pngs for use in the
     animated gif.
     """
