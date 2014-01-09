@@ -21,6 +21,7 @@ install_requires = [
     'setuptools',
     'SQLAlchemy',
     'supervisor',
+    'raster-store',
     ],
 
 tests_require = [
