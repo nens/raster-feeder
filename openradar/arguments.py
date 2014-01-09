@@ -80,8 +80,8 @@ class Argument(object):
             '-ds', '--declutter-size',
             type=int,
             default=config.DECLUTTER_SIZE,
-            help='Groups of pixels less than this will be removed'
-            )
+            help='Groups of pixels less than this will be removed',
+        )
 
     def declutter_history(self, parser):
         parser.add_argument(
@@ -135,4 +135,12 @@ class Argument(object):
         parser.add_argument(
             '-i', '--indices',
             help='Indices into the product, for example 5,7',
+        )
+
+    def minutes(self, parser):
+        parser.add_argument(
+            '-m', '--minutes',
+            type=int,
+            default=5,
+            help='Integer amount of minutes.',
         )

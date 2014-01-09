@@ -38,9 +38,10 @@ def get_image_args():
                         default='r',
                         help='(r)ealtime, (n)ear-realtime or (a)fterwards')
     parser.add_argument('-c', '--product',
-                        choices=['a', 'b', 'c'],
+                        choices=['a', 'b', 'c', 'n'],
                         default='b',
-                        help='(a)ggregate, cali(b)rated or (c)onsistent')
+                        help=('(a)ggregate, cali(b)rated, '
+                              '(c)onsistent or (n)owcast'))
     parser.add_argument('-t', '--timeframe',
                         choices=['f', 'h', 'd'],
                         default='f',
@@ -55,22 +56,27 @@ def get_image_args():
 
 def product_generator(product, prodcode, timeframe, datetimes):
     """ Return product generator. """
-    for datetime in datetimes:
-        if product == 'a':
+    if product == 'a':
+        for datetime in datetimes:
             yield scans.Aggregate(
                 declutter=None,
                 radars=config.ALL_RADARS,
                 datetime=datetime,
                 timeframe=timeframe,
             )
-        if product == 'b':
-            yield products.CalibratedProduct(datetime=datetime,
-                                             prodcode=prodcode,
-                                             timeframe=timeframe)
-        if product == 'c':
-            yield products.ConsistentProduct(datetime=datetime,
-                                             prodcode=prodcode,
-                                             timeframe=timeframe)
+    else:
+        combinations = utils.get_product_combinations(
+            datetimes=datetimes,
+            prodcodes=prodcode,
+            timeframes=timeframe,
+        )
+        Product = dict(
+            b=products.CalibratedProduct,
+            c=products.ConsistentProduct,
+            n=products.NowcastProduct,
+        )[product]
+        for combination in combinations:
+            yield Product(**combination)
 
 
 def main():

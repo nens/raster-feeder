@@ -222,10 +222,14 @@ def create_png(products, **kwargs):
         offset = 0.1, 0.9
 
         # Get data image
-        with product.get() as h5:
-            array = h5['precipitation'][...] / h5.attrs['composite_count']
-            mask = np.equal(array, h5.attrs['fill_value'])
-            img_radars = radars_image(h5=h5, label=label, offset=offset)
+        try:
+            with product.get() as h5:
+                array = h5['precipitation'][...] / h5.attrs['composite_count']
+                mask = np.equal(array, h5.attrs['fill_value'])
+                img_radars = radars_image(h5=h5, label=label, offset=offset)
+        except IOError:
+            logging.debug('Does not exist: {}'.format(product.path))
+            continue
         masked_array = np.ma.array(array, mask=mask)
         img_rain = data_image(masked_array, max_rain=2, threshold=0.008)
 
