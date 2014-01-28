@@ -190,7 +190,6 @@ def create_tif(products, image_dir=None, **kwargs):
         )
         mem = raster_layer.create_dataset(datatype=6)
 
-        
         mem.SetProjection(PROJECTION_RD_WKT)
         band = mem.GetRasterBand(1)
         band.WriteArray(data.filled(band.GetNoDataValue()))
@@ -234,6 +233,9 @@ def create_png(products, **kwargs):
         utc = tz_utc.localize(product.datetime)
         amsterdam = utc.astimezone(tz_amsterdam)
         label = amsterdam.strftime('%Y-%m-%d %H:%M')
+        label_from_kwargs = kwargs.get('label', '')
+        if label_from_kwargs:
+            label += ' ' + label_from_kwargs
         offset = 0.1, 0.9
 
         # Get data image
