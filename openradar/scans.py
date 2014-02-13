@@ -125,14 +125,10 @@ class ScanSignature(object):
         if scancode and scandatetime and (scanname is None):
             self._datetime = scandatetime
 
-            # Before 2012 DWD radar 'ess' was called 'ase'
-            if self._datetime.year < 2012 and scancode == 'ess':
-                self._code = 'ase'
-            else:
-                self._code = scancode
+            self._code = scancode
 
-            # After 2012 DWD files have an additional id.
-            if self._datetime.year >= 2012:
+            # Operational DWD data has an id in the name
+            if self._datetime.year >= config.START_YEAR:
                 self._id = config.RADAR_ID.get(self._code, '')
             else:
                 self._id = ''
@@ -155,7 +151,7 @@ class ScanSignature(object):
 
     def _radar_dict_from_scanname(self, scanname):
         for pattern in config.RADAR_PATTERNS:
-            match = re.match(pattern, scanname)
+            match = pattern.match(scanname)
             if match:
                 radar_code = match.group('code')
                 try:
@@ -177,9 +173,7 @@ class ScanSignature(object):
         if radar_code in config.DWD_RADARS:
             if radar_id:
                 return config.TEMPLATE_DWD.format(**radar_dict)
-            return config.TEMPLATE_DWD_2011.format(**radar_dict)
-        if radar_code in config.DWD_RADARS_2011:
-            return config.TEMPLATE_DWD_2011.format(**radar_dict)
+            return config.TEMPLATE_DWD_ARCHIVE.format(**radar_dict)
         raise ValueError("There is no format for {}".format(radar_dict))
 
     def get_scanname(self):
