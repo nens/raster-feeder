@@ -185,7 +185,7 @@ class AbstractLayer(BaseGrid):
         pattern = (np.indices(
             self.get_shape(),
         ) // 8).sum(0) % 2
-        return  Image.fromarray(cm.gray_r(pattern / 2., bytes=True))
+        return Image.fromarray(cm.gray_r(pattern / 2., bytes=True))
 
     def show(self):
         """
@@ -252,7 +252,6 @@ class RasterLayer(AbstractLayer):
 
     def _rgba(self):
         return self.colormap(self.normalize(self.ma), bytes=True)
-
 
 
 class VectorLayer(AbstractLayer):

@@ -23,9 +23,13 @@ from __future__ import absolute_import
 from __future__ import division
 
 from scipy.ndimage import measurements
+from scipy import ndimage
 
 import logging
+import math
 import numpy as np
+
+from openradar import config
 
 RADIUS43 = 8495.  # Effective earth radius in km.
 
@@ -148,3 +152,40 @@ def declutter_by_area(array, area):
         array.data[index] = 0
     else:
         array[index] = 0
+
+
+def calculate_vector(data1, data2):
+    """
+    Return translation vector based on correlation.
+    """
+    if data1.shape != data2.shape:
+        raise ValueError('arrays must have equal shape.')
+    data3 = ndimage.correlate(data1, data2, mode='constant')
+    return [i - int(s / 2)
+            for s, i in zip(data3.shape,
+                            np.unravel_index(data3.argmax(), data3.shape))]
+
+
+def calculate_slices(size, full_extent, partial_extent):
+    """
+    Return the slices into an array of size size to access a partial
+    extent where the array covers the full extent.
+    """
+    w, h = size
+    p1, q1, p2, q2 = partial_extent
+    f1, g1, f2, g2 = full_extent
+
+    # slice stops for the first array (y) dimension
+    s01 = int(math.floor(h * (q1 - g1) / (g2 - g1)))
+    s02 = int(math.ceil(h * (q2 - g1) / (g2 - g1)))
+
+    # slice stops for the second array (x) dimension
+    s11 = int(math.floor(w * (p1 - f1) / (f2 - f1)))
+    s12 = int(math.ceil(w * (p2 - f1) / (f2 - f1)))
+
+    return slice(s01, s02), slice(s11, s12)
+
+
+def calculate_shifted(data, shift):
+    """ Shift data. """
+    return ndimage.shift(data, shift, order=1, cval=0)

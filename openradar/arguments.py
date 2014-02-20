@@ -80,8 +80,8 @@ class Argument(object):
             '-ds', '--declutter-size',
             type=int,
             default=config.DECLUTTER_SIZE,
-            help='Groups of pixels less than this will be removed'
-            )
+            help='Groups of pixels less than this will be removed',
+        )
 
     def declutter_history(self, parser):
         parser.add_argument(
@@ -98,6 +98,14 @@ class Argument(object):
             default=config.SOURCE_DIR,
             help=('Path from where all the files'
                   ' are stored that need to be organized'),
+        )
+    
+    def image_dir(self, parser):
+        parser.add_argument(
+            '-i', '--image-dir',
+            type=str,
+            default=config.IMG_DIR,
+            help=('Path to store images.'),
         )
 
     def direct(self, parser):
@@ -135,4 +143,12 @@ class Argument(object):
         parser.add_argument(
             '-i', '--indices',
             help='Indices into the product, for example 5,7',
+        )
+
+    def minutes(self, parser):
+        parser.add_argument(
+            '-m', '--minutes',
+            type=int,
+            default=5,
+            help='Integer amount of minutes.',
         )

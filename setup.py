@@ -21,6 +21,7 @@ install_requires = [
     'setuptools',
     'SQLAlchemy',
     'supervisor',
+    'raster-store >= 0.3.1',
     ],
 
 tests_require = [
@@ -55,9 +56,11 @@ setup(name='openradar',
               'calibrate = openradar.scripts.calibrate:main',
               'rescale = openradar.scripts.rescale:main',
               'publish = openradar.scripts.publish:main',
+              'nowcast = openradar.scripts.nowcast:main',
               # Tools
               'sandbox = openradar.scripts.sandbox:main',
               'organize = openradar.scripts.organize:main',
               'image = openradar.scripts.image:main',
+              'export_to_store = openradar.scripts.export_to_store:main',
           ]},
       )

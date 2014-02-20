@@ -9,21 +9,25 @@ from __future__ import division
 
 from matplotlib import patches
 
-from openradar import config
-from openradar import utils
-from openradar import gridtools
-from openradar import scans
-
 from osgeo import gdal
+from osgeo import osr
 from PIL import Image
 
 import h5py
+import json
 import logging
 import numpy as np
 import os
 import pytz
 import shlex
 import subprocess
+
+from openradar import config
+from openradar import utils
+from openradar import gridtools
+from openradar import scans
+
+PROJECTION_RD_WKT = osr.GetUserInputAsWKT(b'epsg:28992')
 
 
 def data_image(masked_array, max_rain=20, threshold=0.0):
@@ -157,6 +161,56 @@ def create_geotiff(dt_aggregate, code='5min'):
     logging.debug('saved {}.'.format(tifpath_rd))
 
 
+def create_tif(products, image_dir=None, **kwargs):
+    """ Save a tif with metadata """
+    if image_dir:
+        target_dir = image_dir
+    else:
+        target_dir = config.IMG_DIR
+    utils.makedir(target_dir)
+
+    # Loop products
+    for product in products:
+
+        # Get data
+        try:
+            with h5py.File(product.path, 'r') as h5:
+                data = np.ma.masked_equal(h5['precipitation'],
+                                          h5.attrs['fill_value'])
+                attrs = dict(h5.attrs)
+        except IOError:
+            logging.info('Not found: {}, skipping.'.format(product))
+            continue
+
+        # make a dataset
+        raster_layer = gridtools.RasterLayer(
+            array=data,
+            extent=attrs['grid_extent'],
+            projection=attrs['grid_projection'],
+        )
+        mem = raster_layer.create_dataset(datatype=6)
+
+        mem.SetProjection(PROJECTION_RD_WKT)
+        band = mem.GetRasterBand(1)
+        band.WriteArray(data.filled(band.GetNoDataValue()))
+        for k, v in attrs.items():
+            if hasattr(v, 'tolist'):
+                v = json.dumps(v.tolist())
+            band.SetMetadataItem(str(k), str(v))
+
+        timestamp = utils.datetime2timestamp(product.datetime)
+        filename = '{}{}.{}'.format(
+            timestamp, kwargs.get('postfix', ''), kwargs.get('format', 'png'),
+        )
+        path = os.path.join(target_dir, filename)
+
+        driver = gdal.GetDriverByName(b'gtiff')
+        driver.CreateCopy(path, mem)
+
+        logging.info('saved {}.'.format(os.path.basename(path)))
+        logging.debug('saved {}.'.format(path))
+
+
 def create_png(products, **kwargs):
     """
     Create image for products.
@@ -179,13 +233,20 @@ def create_png(products, **kwargs):
         utc = tz_utc.localize(product.datetime)
         amsterdam = utc.astimezone(tz_amsterdam)
         label = amsterdam.strftime('%Y-%m-%d %H:%M')
+        label_from_kwargs = kwargs.get('label', '')
+        if label_from_kwargs:
+            label += ' ' + label_from_kwargs
         offset = 0.1, 0.9
 
         # Get data image
-        with product.get() as h5:
-            array = h5['precipitation'][...] / h5.attrs['composite_count']
-            mask = np.equal(array, h5.attrs['fill_value'])
-            img_radars = radars_image(h5=h5, label=label, offset=offset)
+        try:
+            with product.get() as h5:
+                array = h5['precipitation'][...] / h5.attrs['composite_count']
+                mask = np.equal(array, h5.attrs['fill_value'])
+                img_radars = radars_image(h5=h5, label=label, offset=offset)
+        except IOError:
+            logging.debug('Does not exist: {}'.format(product.path))
+            continue
         masked_array = np.ma.array(array, mask=mask)
         img_rain = data_image(masked_array, max_rain=2, threshold=0.008)
 

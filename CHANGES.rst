@@ -7,6 +7,10 @@ Changelog of openradar
 
 - Add Jabbeke.
 
+- Add basic nowcast product, task and script
+
+- Improve image script product selection
+
 
 0.3.7 (2013-08-29)
 ------------------
