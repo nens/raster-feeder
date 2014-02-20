@@ -32,6 +32,7 @@ def get_rainstations(datetime, timeframe):
         SELECT 
           loc.x, 
           loc.y,
+          loc.id,
           tsv.scalarvalue
         FROM 
           rgrddata00.timeseriesvaluesandflags tsv, 
@@ -56,9 +57,10 @@ def get_rainstations(datetime, timeframe):
     cur = conn.cursor()
     cur.execute(query)
     rows = cur.fetchall()
+    conn.close()
     
     # Reshape to list of dicts
-    rows = [{'coords': (x, y), 'value': v} for x, y, v in rows]
+    rows = [{'coords': (x, y), 'id': q, 'value': v} for x, y, q, v in rows]
     return rows
     
 if __name__ == '__main__':

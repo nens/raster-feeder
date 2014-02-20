@@ -88,50 +88,18 @@ class DataLoader(object):
         Takes apart the csv and creates instances of RainStation that can be
         used for the data analysis.
         '''
-        data = self.stationsdata
-        xcol = data[0].index('X')
-        ycol = data[0].index('Y')
-        klassecol = data[0].index('KWALITEIT')
-        idcol = data[0].index('ID')
+        dbdata = grounddata.get_rainstations(
+            datetime=self.date,
+            timeframe=self.timeframe)
         self.rainstations = []
-        for line in data[1:]:
-            measurement = self.processrain(line[0])
-            if measurement != 'nothere':
-                self.rainstations.append(
-                    RainStation(line[idcol], line[xcol], line[ycol],
-                                measurement, line[klassecol]))
-        
-        # new style
-        #dbdata = grounddata.get_rainstations(datetime=self.date,
-                                             #timeframe=self.timeframe)
-        #self.rainstations2 = []
-        #for d in dbdata:
-            #self.rainstations2.append(RainStation(
-                #station_id=None,
-                #lat=d['coords'][0],
-                #lon=d['coords'][1],
-                #klasse=0,
-                #measurement=d['value'],
-            #))
-        #import ipdb
-        #ipdb.set_trace() 
-
-
-
-    def processrain(self, station_id):
-        '''
-        Masking out NaN values and giving back measurement and timestamp
-        '''
-        timestring = '%Y-%m-%d %H:%M:%S'
-        try:
-            select_id = self.raindata[0].index(station_id)
-            timestamps = numpy.array(self.raindata).T[0].tolist()
-            rownumber = timestamps.index(
-                datetime.datetime.strftime(self.date, timestring))
-            data = float(numpy.array(self.raindata).T[select_id][rownumber])
-        except:
-            data = 'nothere'
-        return data
+        for d in dbdata:
+            self.rainstations.append(RainStation(
+                station_id=d['id'],
+                lat=d['coords'][0],
+                lon=d['coords'][1],
+                klasse=0,
+                measurement=-999. if d['value'] is None else d['value'],
+            ))
 
     def stations_dummies(self):
         data = self.stationsdata
