@@ -1,5 +1,6 @@
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
 # no utf-8 encoding stuff yet. CSV library becomes a nuisance
+
 from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
@@ -13,6 +14,7 @@ import zipfile
 import numpy
 
 from openradar import gridtools
+from openradar import grounddata
 
 
 class RainStation(object):
@@ -35,10 +37,11 @@ class DataLoader(object):
     The input format of the ground station data is in csv. The Dataloader
     serves as a prerequisite for the Interpolator.
     '''
-    def __init__(self, datafile, metafile, aggregate):
+    def __init__(self, datafile, metafile, aggregate, timeframe):
         # Attributes
         self.delta = aggregate.timedelta
         self.date = aggregate.datetime
+        self.timeframe = timeframe
         self.dataset = aggregate.get()
         # Basegrid
         self.basegrid = gridtools.BaseGrid(
@@ -97,6 +100,23 @@ class DataLoader(object):
                 self.rainstations.append(
                     RainStation(line[idcol], line[xcol], line[ycol],
                                 measurement, line[klassecol]))
+        
+        # new style
+        #dbdata = grounddata.get_rainstations(datetime=self.date,
+                                             #timeframe=self.timeframe)
+        #self.rainstations2 = []
+        #for d in dbdata:
+            #self.rainstations2.append(RainStation(
+                #station_id=None,
+                #lat=d['coords'][0],
+                #lon=d['coords'][1],
+                #klasse=0,
+                #measurement=d['value'],
+            #))
+        #import ipdb
+        #ipdb.set_trace() 
+
+
 
     def processrain(self, station_id):
         '''

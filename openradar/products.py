@@ -432,7 +432,8 @@ class CalibratedProduct(object):
         metafile = os.path.join(config.MISC_DIR, 'grondstations.csv')
         dataloader = DataLoader(metafile=metafile,
                                 datafile=groundpath,
-                                aggregate=aggregate)
+                                aggregate=aggregate,
+                                timeframe=self.timeframe)
         try:
             dataloader.processdata()
             stations_count = len(dataloader.rainstations)
