@@ -147,7 +147,8 @@ class ScanSignature(object):
     def _from_scanname(self, scanname):
         radar_dict = self._radar_dict_from_scanname(scanname)
         datetime_format = self._get_datetime_format(radar_dict)
-        scandatetime = datetime.datetime.strptime(scanname, datetime_format)
+        scandatetime = datetime.datetime.strptime(
+            radar_dict['timestamp'], datetime_format)
 
         self._datetime = scandatetime
         self._code = radar_dict['code']
@@ -157,12 +158,18 @@ class ScanSignature(object):
         for pattern in config.RADAR_PATTERNS:
             match = re.match(pattern, scanname)
             if match:
-                radar_code = match.group('code')
+                # Jabbeke is the only one without a code in the file name.
+                if 'group' in match.groupdict().keys():
+                    radar_code = match.group('code')
+                else:
+                    radar_code = 'JAB'
                 try:
                     radar_id = match.group('id')
                 except:
                     radar_id = ''
-                return {'id': radar_id, 'code': radar_code}
+                radar_timestamp = match.group('timestamp')
+                return {'id': radar_id, 'code': radar_code,
+                        'timestamp': radar_timestamp}
         raise ValueError("Currently no pattern matching '{}'".format(scanname))
 
     def _get_datetime_format(self, radar_dict):
@@ -172,8 +179,20 @@ class ScanSignature(object):
 
         """
         radar_code = radar_dict['code']
+
+        if radar_code in config.KNMI_RADARS:
+            return config.TEMPLATE_TIME_KNMI
+        if radar_code in config.DWD_RADARS:
+            return config.TEMPLATE_TIME_DWD
+        if radar_code in config.DWD_RADARS_2011:
+            return config.TEMPLATE_TIME_DWD
+        if radar_code in config.JABBEKE_RADARS:
+            return config.TEMPLATE_TIME_JABBEKE
+        raise ValueError("There is no format for {}".format(radar_dict))
+
+    def _get_datetime_name(self, radar_dict):
+        radar_code = radar_dict['code']
         radar_id = radar_dict['id']
-        #import pdb; pdb.set_trace()
 
         if radar_code in config.KNMI_RADARS:
             return config.TEMPLATE_KNMI.format(**radar_dict)
@@ -189,12 +208,12 @@ class ScanSignature(object):
 
     def get_scanname(self):
         return datetime.datetime.strftime(
-            self._datetime, self._get_datetime_format(
+            self._datetime, self._get_datetime_name(
                 radar_dict={
                     'code': self._code, 'id': self._id,
-                },
-            ),
-        )
+                    },
+                ),
+            )
 
     def get_scanpath(self):
         return os.path.join(
@@ -504,7 +523,9 @@ class ScanJabbeke(GenericScan):
         rang = rang.reshape(1, -1)
 
         # get the middle of each measured angle.
-        azim = (how['startazA'] + how['stopazA']) / 2
+        arr = map(lambda x: x.split(':'), how['azangles'].split(','))
+        startazA, stopazA = np.array(arr, dtype=float).transpose()
+        azim = (startazA + stopazA) / 2
         azim = azim.reshape(-1, 1)
 
         elev = where['elangle']
