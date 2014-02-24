@@ -234,7 +234,11 @@ def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
             logging.info('Fetched {} files from FTP.'.format(len(fetched)))
         set_arrived = set()
         for path, dirs, names in os.walk(config.SOURCE_DIR):
-            set_names = set(names)
+            set_names = set()
+            for n in names:
+                set_names.add(
+                    scans.ScanSignature(scanname=n).get_scanname(),
+                )
             # Add the intersection of names and expected to arrived.
             set_arrived |= (set_names & set_expected)
 
