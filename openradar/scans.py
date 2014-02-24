@@ -143,7 +143,8 @@ class ScanSignature(object):
     def _from_scanname(self, scanname):
         radar_dict = self._radar_dict_from_scanname(scanname)
         datetime_format = self._get_datetime_format(radar_dict)
-        scandatetime = datetime.datetime.strptime(scanname, datetime_format)
+        scandatetime = datetime.datetime.strptime(
+            radar_dict['timestamp'], datetime_format)
 
         self._datetime = scandatetime
         self._code = radar_dict['code']
@@ -153,18 +154,39 @@ class ScanSignature(object):
         for pattern in config.RADAR_PATTERNS:
             match = pattern.match(scanname)
             if match:
-                radar_code = match.group('code')
+                # Jabbeke is the only one without a code in the file name.
+                if 'group' in match.groupdict().keys():
+                    radar_code = match.group('code')
+                else:
+                    radar_code = 'JAB'
                 try:
                     radar_id = match.group('id')
                 except:
                     radar_id = ''
-                return {'id': radar_id, 'code': radar_code}
+                radar_timestamp = match.group('timestamp')
+                return {'id': radar_id, 'code': radar_code,
+                        'timestamp': radar_timestamp}
         raise ValueError("Currently no pattern matching '{}'".format(scanname))
 
     def _get_datetime_format(self, radar_dict):
         """
-        Return the datetime format string that corresponds to current scan.
+        Return the filename format with the datetime format string
+        that corresponds to current scan.
+
         """
+        radar_code = radar_dict['code']
+
+        if radar_code in config.KNMI_RADARS:
+            return config.TEMPLATE_TIME_KNMI
+        if radar_code in config.DWD_RADARS:
+            return config.TEMPLATE_TIME_DWD
+        if radar_code in config.DWD_RADARS_2011:
+            return config.TEMPLATE_TIME_DWD
+        if radar_code in config.JABBEKE_RADARS:
+            return config.TEMPLATE_TIME_JABBEKE
+        raise ValueError("There is no format for {}".format(radar_dict))
+
+    def _get_datetime_name(self, radar_dict):
         radar_code = radar_dict['code']
         radar_id = radar_dict['id']
 
@@ -174,16 +196,18 @@ class ScanSignature(object):
             if radar_id:
                 return config.TEMPLATE_DWD.format(**radar_dict)
             return config.TEMPLATE_DWD_ARCHIVE.format(**radar_dict)
+        if radar_code in config.JABBEKE_RADARS:
+            return config.TEMPLATE_JABBEKE.format(**radar_dict)
         raise ValueError("There is no format for {}".format(radar_dict))
 
     def get_scanname(self):
         return datetime.datetime.strftime(
-            self._datetime, self._get_datetime_format(
+            self._datetime, self._get_datetime_name(
                 radar_dict={
                     'code': self._code, 'id': self._id,
-                },
-            ),
-        )
+                    },
+                ),
+            )
 
     def get_scanpath(self):
         return os.path.join(
@@ -218,6 +242,8 @@ class ScanSignature(object):
             return ScanKNMI(self)
         elif self._code in config.DWD_RADARS_2011:
             return ScanDWD(self)
+        elif self._code in config.JABBEKE_RADARS:
+            return ScanJabbeke(self)
         logging.error(
             "Currently no scan class matching '{}'".format(self._code),
         )
@@ -237,6 +263,13 @@ class GenericScan(object):
     """
     def __init__(self, scansignature):
         self.signature = scansignature
+
+    def data(self):
+        """
+        Dummy placeholder, needs to be implemented in a specific scan object.
+        """
+
+        raise NotImplementedError
 
     def _interpolate(self, points, values, grid):
         """
@@ -281,11 +314,6 @@ class GenericScan(object):
         rain = data['rain']
         latlon = data['latlon']
         anth = data['ant_alt']
-        # vvv For mocking JABBEKE. Can be removed when JABBEKE is really
-        # vvv in production.
-        #if self.signature.get_code() == 'JABBEKE':
-        #    latlon = (51.179558, 3.09363)
-        #    print('adjusted location for JABBEKE')
 
         theta = calc.calculate_theta(
             rang=rang,
@@ -350,7 +378,7 @@ class GenericScan(object):
 
 class ScanKNMI(GenericScan):
 
-    def data(self,):
+    def data(self):
         """ Return data dict for further processing. """
         scanpath = self.signature.get_scanpath()
         with h5py.File(scanpath, 'r') as dataset:
@@ -443,6 +471,69 @@ class ScanDWD(GenericScan):
     def _latlon(self):
         latlon = config.DWD_COORDINATES[self.signature.get_code()]
         return latlon
+
+
+class ScanJabbeke(GenericScan):
+
+    def data(self, path=None):
+        scanpath = self.signature.get_scanpath()
+        with h5py.File(scanpath, 'r') as h5file:
+            dataset = self._get_dataset_with_minimal_elevation(h5file)
+            d = dict(
+                latlon=self._latlon(h5file),
+                rain=self._rain(dataset),
+                polar=self._polar(dataset),
+                ant_alt=self._ant_alt(h5file)
+            )
+
+        return d
+
+    def _get_dataset_with_minimal_elevation(self, h5file):
+        # a generator with (angle, dataset_name) per dataset
+        datasets = ((h5file[dataset_name]['where'].attrs['elangle'],
+                     dataset_name) for dataset_name in h5file
+                    if 'dataset' in dataset_name)
+        # Get the dataset that corrosponds with the minimal elevation angle.
+        dataset_name = min(datasets)[1]
+        return h5file[dataset_name]
+
+    def _rain(self, dataset):
+        """Calculate rain in mm/hour from the dBZ."""
+        data1 = dataset['data1']
+        PV = data1['data'].value  # Pixel value
+        gain = data1['what'].attrs['gain']
+        offset = data1['what'].attrs['offset']
+        return calc.Rain(PV * gain + offset).get()
+
+    def _polar(self, dataset):
+        how = dataset['how'].attrs
+        where = dataset['where'].attrs
+
+        bins = where['nbins']
+        if bins == 598:
+            rang = np.arange(0.25, 299, 0.5)
+        elif bins == 300:
+            rang = np.arange(0.5, 300, 1)
+        rang = rang.reshape(1, -1)
+
+        # get the middle of each measured angle.
+        arr = map(lambda x: x.split(':'), how['azangles'].split(','))
+        startazA, stopazA = np.array(arr, dtype=float).transpose()
+        azim = (startazA + stopazA) / 2
+        azim = azim.reshape(-1, 1)
+
+        elev = where['elangle']
+
+        return rang, azim, elev
+
+    def _latlon(self, dataset):
+        """Return the latlon coordinates of the radar station."""
+        where = dataset['where']
+        return where.attrs['lat'], where.attrs['lon']
+
+    def _ant_alt(self, dataset):
+        """Return the antenea altitude of the radar station."""
+        return dataset['where'].attrs['height']
 
 
 class MultiScan(object):

@@ -19,6 +19,7 @@ from openradar import products
 
 
 class FtpPublisher(object):
+    """Context manager for FTP publishing."""
 
     def __enter__(self):
         """
@@ -36,7 +37,7 @@ class FtpPublisher(object):
                      for path in d.values()]:
             if not path in ftp_paths:
                 self.ftp.mkd(path)
-        
+
         # Set empty dictionary for nlst caching
         self._nlst = {}
         return self
@@ -52,7 +53,7 @@ class FtpPublisher(object):
             os.path.basename(product.path),
         )
         logging.debug(ftp_file)
-        
+
         if not overwrite:
             if not os.path.exists(product.path):
                 logging.debug('Local file does not exist, skipping.')
@@ -154,7 +155,7 @@ class Publisher(object):
         if hasattr(config, 'FTP_HOST') and config.FTP_HOST != '':
             with FtpPublisher() as ftp_publisher:
                 for publication in self.publications(cascade=cascade):
-                    ftp_publisher.publish(product=publication, 
+                    ftp_publisher.publish(product=publication,
                                           overwrite=overwrite)
             logging.info('FTP publishing complete.')
         else:

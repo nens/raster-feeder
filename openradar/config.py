@@ -48,7 +48,8 @@ DECLUTTER_SIZE = 4
 START_YEAR = 2013  # expect an id in dwd filenames starting from here
 DWD_RADARS = ('ess', 'nhb', 'emd', 'ase')  # ess is sometimes called ase
 KNMI_RADARS = ('NL60', 'NL61')
-ALL_RADARS = DWD_RADARS + KNMI_RADARS
+JABBEKE_RADARS = ('JAB',)
+ALL_RADARS = DWD_RADARS + KNMI_RADARS + JABBEKE_RADARS
 
 # New DWD files have an id that corresponds to the radar code
 RADAR_ID = {
@@ -71,6 +72,11 @@ RADAR_PATTERNS = [
     re.compile(
         'raa00-dx_(?P<id>.*)-(?P<timestamp>[0-9]{10})-(?P<code>.*)---bin',
     ),
+    # Jabbeke on FTP
+    re.compile(
+        '(?P<timestamp>[0-9]{12})[0-9]{4}dBZ\.vol\.h5',
+    ),
+
 ]
 GROUND_PATTERN = re.compile(
     '(?P<timestamp>[0-9]{14})_Grondstations_(?P<code>.*)\.csv',
@@ -79,10 +85,16 @@ CALIBRATION_PATTERN = re.compile(
     'GEO *= *(?P<a>[-.0-9]+) *\* *PV *\+ *(?P<b>[-.0-9]+)',
 )
 
+# Timestamp Templates
+TEMPLATE_TIME_KNMI = '%Y%m%d%H%M'
+TEMPLATE_TIME_DWD = '%y%m%d%H%M'
+TEMPLATE_TIME_JABBEKE = '%Y%m%d%H%M'
+
 # Templates that reveal datetime format when code and id are substituted
 TEMPLATE_KNMI = 'RAD_{code}_VOL_NA_%Y%m%d%H%M.h5'
 TEMPLATE_DWD_ARCHIVE = 'raa00-dx_{code}-%y%m%d%H%M-dwd---bin'
 TEMPLATE_DWD = 'raa00-dx_{id}-%y%m%d%H%M-{code}---bin'
+TEMPLATE_JABBEKE = '{code}-%Y%m%d%H%M.dBZ.vol.h5'
 TEMPLATE_GROUND = '%Y%m%d%H%M%S_Grondstations_{code}.csv'
 
 # Format for all-digit timestamp

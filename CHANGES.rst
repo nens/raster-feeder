@@ -5,6 +5,8 @@ Changelog of openradar
 0.3.8 (unreleased)
 ------------------
 
+- Add Jabbeke.
+
 - Add basic nowcast product, task and script
 
 - Improve image script product selection
