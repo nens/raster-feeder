@@ -15,8 +15,6 @@ from openradar import products
 from openradar import scans
 from openradar import utils
 
-import argparse
-
 
 def get_image_args():
     argument = arguments.Argument()
@@ -56,12 +54,15 @@ def get_image_args():
 def product_generator(product, prodcode, timeframe, datetimes):
     """ Return product generator. """
     if product == 'a':
-        for datetime in datetimes:
+        combinations = utils.get_aggregate_combinations(
+            datetimes=datetimes,
+            timeframes=timeframe,
+        )
+        for combination in combinations:
             yield scans.Aggregate(
                 declutter=None,
                 radars=config.ALL_RADARS,
-                datetime=datetime,
-                timeframe=timeframe,
+                **combination
             )
     else:
         combinations = utils.get_product_combinations(
