@@ -155,7 +155,7 @@ class ScanSignature(object):
             match = pattern.match(scanname)
             if match:
                 # Jabbeke is the only one without a code in the file name.
-                if 'group' in match.groupdict().keys():
+                if 'code' in match.groupdict().keys():
                     radar_code = match.group('code')
                 else:
                     radar_code = 'JAB'
@@ -179,8 +179,6 @@ class ScanSignature(object):
         if radar_code in config.KNMI_RADARS:
             return config.TEMPLATE_TIME_KNMI
         if radar_code in config.DWD_RADARS:
-            return config.TEMPLATE_TIME_DWD
-        if radar_code in config.DWD_RADARS_2011:
             return config.TEMPLATE_TIME_DWD
         if radar_code in config.JABBEKE_RADARS:
             return config.TEMPLATE_TIME_JABBEKE
@@ -240,8 +238,6 @@ class ScanSignature(object):
             return ScanDWD(self)
         elif self._code in config.KNMI_RADARS:
             return ScanKNMI(self)
-        elif self._code in config.DWD_RADARS_2011:
-            return ScanDWD(self)
         elif self._code in config.JABBEKE_RADARS:
             return ScanJabbeke(self)
         logging.error(
