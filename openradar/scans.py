@@ -683,6 +683,11 @@ class Composite(object):
             for i in map(stations.index, ['NL60', 'NL61']):
                 rain.mask[i][np.less(rang[i], 15)] = True
 
+        # Extend mask around JAB
+        if 'JAB' in stations and 'NL60' in stations:
+            i = stations.index('JAB')
+            rain.mask[i][np.less(rang[i], 15)] = True
+
         # Do history declutter
         if self.declutter['history']:  # None or 0 disables history declutter
             if 'NL60' in stations and 'NL61' in stations:
