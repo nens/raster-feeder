@@ -12,19 +12,22 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
+import datetime as dt
 import glob
 import logging
 import os
 import sys
 
+import psycopg2
 import pandas as pd
 
 from openradar import arguments
 from openradar import config
 from openradar import scans
+from openradar import utils
 
 
-def expected_files(radarcode, datetimes):
+def expected_files_volumetric(radarcode, datetimes):
     """ Generate list of expected files based on radar code and datetimes. """
     # generate expected path from scan signature
     files = []
@@ -35,7 +38,7 @@ def expected_files(radarcode, datetimes):
     return files
 
 
-def available_files(radar_dir, start):
+def available_files_volumetric(radar_dir, start):
     """ Generate list of available files for given date. """
     # Get radar_dir names from start datetime
     year = str(start.year)
@@ -47,17 +50,17 @@ def available_files(radar_dir, start):
     return files
 
 
-def check_availability(radar_dir, radars, (start, end)):
+def check_availability_volumetric(radar_dir, radars, (start, end)):
     """ Check data availability for given timestep. """
     # Generate expected date range
     end = end - pd.DateOffset(minutes=5)
     datetimes = pd.date_range(start=start, end=end, freq='5Min')
 
     # Generate expected files
-    expected = expected_files(radars, datetimes)
+    expected = expected_files_volumetric(radars, datetimes)
 
     # Locate available files
-    found = available_files(radar_dir, start)
+    found = available_files_volumetric(radar_dir, start)
 
     # Set difference and fraction    
     missing = set(expected) - set(found)
@@ -65,7 +68,7 @@ def check_availability(radar_dir, radars, (start, end)):
     return frac, missing
 
 
-def period_availability(radar_dir, radars, (start, end), identities):
+def period_availability_volumetric(radar_dir, radars, (start, end), identities):
     """ Calculate data availability per radar for defined period. """
     # Generate date range within period in daily timestep
     period = pd.date_range(start=start, end=end, freq='D')
@@ -76,7 +79,7 @@ def period_availability(radar_dir, radars, (start, end), identities):
     for radar in radars:
         radar_availability = {}
         for start, end in zip(period, period + offset):
-            frac, missing = check_availability(radar_dir,
+            frac, missing = check_availability_volumetric(radar_dir,
                 radar, (start, end))
             radar_availability[start] = frac
         availability[radar] = radar_availability
@@ -89,27 +92,10 @@ def period_availability(radar_dir, radars, (start, end), identities):
         availability[primary] = availability[[primary, secondary]].sum(axis=1)
         availability = availability.drop(secondary, axis=1)
     
-    # Mean for all radars
-    availability['radars'] = availability.mean(axis=1)
-
     return availability, missing
-
-
-def export_csv(report, report_dir, report_type):
-    """ Export report as comma separated values. """
-    # Get start and end datetime as string
-    start = report.index[0].strftime('%Y%m%d%H%M%S')
-    end = report.index[-1].strftime('%Y%m%d%H%M%S')
-
-    # Build filepath
-    csvpath = '_'.join([report_type, start, end]) + '.csv'
-    csvpath = os.path.join(report_dir, csvpath)
-
-    # Export to csv
-    report.to_csv(csvpath, na_rep=-999, float_format='%.3f')
-
-
-def availability_volumetric():
+  
+  
+def availability_volumetric(start, end):
     """ Availability report for volumetric data. """
 
     # Get data dir
@@ -125,17 +111,142 @@ def availability_volumetric():
     identities = [('ess', 'ase')]
     
     # Availability as timeseries in daily timestep
-    availability, missing = period_availability(radar_dir,
-    radars, ('2014/1/1', '2014/1/31'), identities)
-    export_csv(availability, report_dir, 'availability_volumetric')
+    availability, missing = period_availability_volumetric(radar_dir,
+    radars, (start, end), identities)
+    export_csv(availability, report_dir, 'volumetric')
+        
+        
+def available_grounddata(start, end, timeframe):  
+    """ Connect and query database for location, datetime and timeframe. """    
+    
+    # Define connection string and query template
+    connstr_template = ('host={host} dbname={dbname} '
+                        'user={user} password={password}')
+    connstr = connstr_template.format(**config.GROUND_DATABASE)
 
+    query = '''
+        SELECT 
+           loc.name,
+           tsv.datetime,
+           tsv.scalarvalue
+        FROM 
+          rgrddata00.timeseriesvaluesandflags tsv, 
+          rgrddata00.locations loc, 
+          rgrddata00.timeserieskeys tsk, 
+          rgrddata00.parameterstable prt
+        WHERE  
+          prt.id = '{parameter}' AND
+          tsv.serieskey = tsk.serieskey AND
+          tsk.locationkey = loc.locationkey AND
+          tsk.parameterkey = prt.parameterkey AND
+          tsv.datetime BETWEEN '{start}' AND '{end}';
+          '''  
+          
+    # Fill query template with unit and datetime
+    parameters = {'f': 'WNS1400.5m' , 'h' : 'WNS1400.1h', 'd':'WNS1400.1d'}
+    
+    start = dt.datetime.strftime(start, '%Y-%m-%d %H:%M:%S')
+    end = dt.datetime.strftime(end, '%Y-%m-%d %H:%M:%S')
+    
+    query_dict = {'parameter': parameters[timeframe], \
+    'start': start, 'end':end}
+    query = query.format(**query_dict)
+    
+    # Connect to database, query and retrieve rows
+    conn = psycopg2.connect(connstr)
+    cur = conn.cursor()
+    cur.execute(query)
+    rows = cur.fetchall() 
+    return rows
+    
+    
+def check_availability_grounddata(rows, full_index):
+    """ Check availability (not null) for rows from grounddata database. """
+    
+    try:
+        # Rows to timeseries with multiindex (location, datetime)
+        locations, datetimes, values = zip(*rows)
+        index = pd.MultiIndex.from_tuples(zip(locations, datetimes))     
+        timeseries = pd.Series(values, index=index)
+        
+        # Reindex with full index (to cover for timesteps missing in all series)
+        timeseries = timeseries.reindex(full_index, level=1)
+            
+        return timeseries.notnull()
+    except:
+        print('No grounddata data in defined period')
+   
+   
+def availability_timeframe(start, end, timeframe):
+    """ Availability of groundstation data for given timeframe. """
+    
+    # Define full index for period between (start, end)
+    freqs = {'f': '5Min', 'h':'h', 'd':'d'}
+    full_index = pd.date_range(start=start, end=end, freq=freqs[timeframe])
+    
+    # Account for readout at UTC+8 if timeframe is day
+    if timeframe == 'd':
+        full_index = full_index + pd.DateOffset(hours=8)
+        
+    # Retrieve series as rows from database for period and timeframe
+    rows = available_grounddata(start, end, timeframe)
+    
+    # Check availability per station for full index
+    availability = check_availability_grounddata(rows, full_index)
+    return availability    
+    
+    
+def availability_grounddata(start, end):
+    """ Check availability for all ground data within start, end inclusive. """    
+    
+    # Get report dir
+    report_dir = config.REPORT_DIR
+    
+    # Check availability for all timeframes (5 minutes, hourly, daily)
+    timeframes = ['f', 'h', 'd'] 
+    for timeframe in timeframes:
+        availability = availability_timeframe(start, end, timeframe)
+        
+        # Map boolean values to 1, 0
+        availability = availability.map({True: 1, False:0})
+        
+        # Locations to column names, missing values to 0
+        availability = availability.unstack(0)        
+        availability = availability.fillna(0)
+        
+        # Resample to daily series
+        availability = availability.resample('d', how='mean')
+        
+        # Export using generic csv export for reports
+        export_csv(availability, report_dir, 'grounddata_' + timeframe)
+
+
+def export_csv(report, report_dir, report_type, export_sum=True):
+    """ Export report as comma separated values. """
+    # Get start and end datetime as string
+    start = report.index[0].strftime('%Y%m%d')
+    end = report.index[-1].strftime('%Y%m%d')
+
+    # Build filepath
+    csvpath = '_'.join([report_type, start, end]) + '.csv'
+    csvpath = os.path.join(report_dir, csvpath)
+
+    # Export to csv
+    report.to_csv(csvpath, na_rep=-999, float_format='%.3f')
+    
+    if export_sum == True:
+        csvpath = '_'.join([report_type, 'sum', start, end]) + '.csv'
+        csvpath = os.path.join(report_dir, csvpath)
+        report.sum(axis=1).to_csv(csvpath, na_rep=-999, float_format='%.3f')
+        
+        
 
 def main():
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     argument = arguments.Argument()
     parser = argument.parser(['range'])
-    files.organize_from_path(**vars(parser.parse_args()))
+    args = vars(parser.parse_args())
+    dates = utils.DateRange(args['range'])
     
-
-if __name__ == '__main__':
-    availability_volumetric()
+    availability_volumetric(dates.start, dates.stop)
+    availability_grounddata(dates.start, dates.stop)

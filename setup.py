@@ -61,7 +61,7 @@ setup(name='openradar',
               # Tools
               'sandbox = openradar.scripts.sandbox:main',
               'organize = openradar.scripts.organize:main',
-              'report = openradar.scripts.image:main',
+              'report = openradar.scripts.report:main',
               'image = openradar.scripts.image:main',
               'export_to_store = openradar.scripts.export_to_store:main',
           ]},

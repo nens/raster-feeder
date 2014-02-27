@@ -115,6 +115,11 @@ def datetime_range(start, stop, step):
         datetime += step
 
 
+def variabletimestamp2datetime(ts, fmt='%Y%m%d%H%M%S'):
+    """ Trying to match and increasingly detailed timestamp. """
+    return datetime.datetime.strptime(ts, fmt[:len(ts) - 2])
+
+
 def timestamp2datetime(ts, fmt='%Y%m%d%H%M%S'):
     return datetime.datetime.strptime(ts, fmt)
 
@@ -125,19 +130,11 @@ def datetime2timestamp(dt, fmt='%Y%m%d%H%M%S'):
 
 class DateRange(object):
 
-    FORMAT = {
-        4: '%Y',
-        6: '%Y%m',
-        8: '%Y%m%d',
-        10: '%Y%m%d%H',
-        12: '%Y%m%d%H%M',
-        14: '%Y%m%d%H%M%S',
-    }
     STEP = datetime.timedelta(minutes=5)
 
     def __init__(self, text, step=STEP):
-        self._step = step
-        self._start, self._stop = self._start_stop_from_text(text)
+        self.step = step
+        self.start, self.stop = self._start_stop_from_text(text)
 
     def _start_stop_from_text(self, text):
         """
@@ -158,10 +155,7 @@ class DateRange(object):
 
         If last, return the last possible step for text.
         """
-        first = datetime.datetime.strptime(
-            text,
-            self.FORMAT[len(text)],
-        )
+        first = variabletimestamp2datetime(text)
         if not last:
             return first
 
@@ -172,13 +166,13 @@ class DateRange(object):
             10: {'hours': 1},
             12: {'minutes': 5},  # Makes a range of minutes possible.
         }[len(text)]
-        return first - self._step + datetime.timedelta(**td_kwargs)
+        return first - self.step + datetime.timedelta(**td_kwargs)
 
     def iterdatetimes(self):
-        dt = self._start
-        while dt <= self._stop:
+        dt = self.start
+        while dt <= self.stop:
             yield dt
-            dt += self._step
+            dt += self.step
 
 
 class MultiDateRange(object):
