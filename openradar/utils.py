@@ -160,8 +160,6 @@ class DateRange(object):
             return first
 
         td_kwargs = {
-            4: {'years': 1},
-            6: {'months': 1},
             8: {'days': 1},
             10: {'hours': 1},
             12: {'minutes': 5},  # Makes a range of minutes possible.

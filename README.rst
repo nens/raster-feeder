@@ -32,6 +32,7 @@ Install using system repositories (e.g. apt-get, brew, pacman):
     * scipy
     * python-gdal
     * python-rpy2
+    * libhdf5-serial-dev
 
 Then, to install the 'gstat' package, in the R interpreter::
     
