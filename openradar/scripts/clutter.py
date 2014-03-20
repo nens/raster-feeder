@@ -23,7 +23,7 @@ from openradar import utils
 gdal.UseExceptions()
 logger = logging.getLogger(__name__)
 
-RAIN_THRESHOLD = 10000
+RAIN_THRESHOLD = 1000
 FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
@@ -104,5 +104,5 @@ def command(target_path, range_text):
 
 def main():
     """ Call command with args from parser. """
-    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+    logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     return command(**vars(get_parser().parse_args()))
