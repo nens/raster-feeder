@@ -835,7 +835,7 @@ class Composite(object):
 
         multiscan_dataset.close()
 
-        if self.declutter['size']:  # None or 0 disables history declutter
+        if self.declutter['size']:  # None or 0 disables size declutter
             calc.declutter_by_area(array=ma, area=self.declutter['size'])
 
         dataset = self._dataset(ma=ma, md=md)

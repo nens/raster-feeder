@@ -59,6 +59,7 @@ setup(name='openradar',
               'publish = openradar.scripts.publish:main',
               'nowcast = openradar.scripts.nowcast:main',
               # Tools
+              'clutter = openradar.scripts.clutter:main',
               'sandbox = openradar.scripts.sandbox:main',
               'organize = openradar.scripts.organize:main',
               'report = openradar.scripts.report:main',
