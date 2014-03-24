@@ -48,9 +48,8 @@ def get_parser():
 
 def command(target_path, range_text):
     """ Newstyle clutter gathering. """
-    logfile = open(os.path.join(
-        os.path.dirname(target_path),
-        'clutter.log'),
+    logfile = open(
+        os.path.join(os.path.dirname(target_path), 'clutter.log'), 'w',
     )
     # collect
     daterange = utils.DateRange(range_text)
