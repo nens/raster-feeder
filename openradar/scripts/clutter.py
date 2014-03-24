@@ -48,6 +48,10 @@ def get_parser():
 
 def command(target_path, range_text):
     """ Newstyle clutter gathering. """
+    logfile = open(os.path.join(
+        os.path.dirname(target_path),
+        'clutter.log'),
+    )
     # collect
     daterange = utils.DateRange(range_text)
     pathhelper = utils.PathHelper(
@@ -67,6 +71,7 @@ def command(target_path, range_text):
                 a = d[:]
                 r = np.where(a == -9999, 0, a)
                 s = r.sum()
+                logfile.write('{}, {}, {}\n'.format(dt, k, s))
                 logger.debug('Sum: {}'.format(s))
                 if s > RAIN_THRESHOLD:
                     logger.debug('Skipping.')
@@ -80,6 +85,7 @@ def command(target_path, range_text):
                 count[k] = 1
                 logger.debug('Creating.')
         logger.info('Counts: {}'.format(count))
+    logfile.close()
 
     # save
     logger.info('Saving {}'.format(target_path))
