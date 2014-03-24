@@ -23,8 +23,14 @@ from openradar import utils
 gdal.UseExceptions()
 logger = logging.getLogger(__name__)
 
-RAIN_THRESHOLD = 1000
-FORMAT = '%Y-%m-%d %H:%M:%S'
+RAIN_THRESHOLD = dict(
+    nhb=500,
+    ess=500,
+    ase=500,
+    emd=500,
+    NL60=1000,
+    NL61=2000,
+)
 
 
 def get_parser():
@@ -44,6 +50,10 @@ def get_parser():
         help='Ouput filename',
     )
     return parser
+
+
+def get_threshold(code):
+    return RAIN_THRESHOLD.get(code, 1000)
 
 
 def command(target_path, range_text):
@@ -72,7 +82,7 @@ def command(target_path, range_text):
                 s = r.sum()
                 logfile.write('{}, {}, {}\n'.format(dt, k, s))
                 logger.debug('Sum: {}'.format(s))
-                if s > RAIN_THRESHOLD:
+                if s > get_threshold(k):
                     logger.debug('Skipping.')
                     continue
                 if k in result:
@@ -99,7 +109,7 @@ def command(target_path, range_text):
                 shuffle=True,
             )
             d.attrs['cluttercount'] = count[k]
-            d.attrs['threshold'] = RAIN_THRESHOLD
+            d.attrs['threshold'] = get_threshold(k)
         h5.attrs['cluttercount'] = int(sum(count.values()) / len(count))
         h5.attrs['range'] = b'{} - {}'.format(
             daterange.start, daterange.stop
