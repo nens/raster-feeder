@@ -203,9 +203,9 @@ class ScanSignature(object):
             self._datetime, self._get_datetime_name(
                 radar_dict={
                     'code': self._code, 'id': self._id,
-                    },
-                ),
-            )
+                },
+            ),
+        )
 
     def get_scanpath(self):
         return os.path.join(
@@ -714,7 +714,6 @@ class Composite(object):
                     # the maximum clutter must me masked
                     np.equal(clutter, clutter.max(0)),
                 ])
-
                 # Extend rain mask with cluttermask.
                 count = extra.sum()
                 if not count:
