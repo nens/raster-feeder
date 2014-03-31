@@ -690,43 +690,39 @@ class Composite(object):
 
         # Do history declutter
         if self.declutter['history']:  # None or 0 disables history declutter
-            if 'NL60' in stations and 'NL61' in stations:
-                logging.debug('Starting history declutter.')
-                h5 = h5py.File(
-                    os.path.join(config.MISC_DIR, 'clutter.h5'), 'r',
-                )
+            logging.debug('Starting history declutter, threshold {}'.format(
+                self.declutter['history']
+            ))
 
-                logging.debug('Using clutter threshold of {}'.format(
-                    self.declutter['history'],
-                ))
-                logging.debug('Clutterstats:')
-                logging.debug(
-                    '   count: {}'.format(h5.attrs['cluttercount']),
-                )
-                logging.debug('   range: {}'.format(h5.attrs['range']))
+            # Initialize clutter array of same dimensions as rain array
+            clutter = np.zeros(rain.shape, rain.dtype)
+            h5 = h5py.File(
+                os.path.join(config.MISC_DIR, config.DECLUTTER_FILEPATH), 'r',
+            )
+            for i, radar in enumerate(stations):
+                if radar in h5:
+                    clutter[i] = h5[radar]
+            h5.close()
 
-                # Initialize clutter array of same dimensions as rain array
-                clutter = np.zeros(rain.shape, rain.dtype)
-                for i, radar in enumerate(stations):
-                    if radar in h5:
-                        clutter[i] = h5[radar]
-
-                # Determine the mask:
-                cluttermask = np.logical_and(
-                    np.equal(clutter, clutter.max(0)),
+            while True:
+                clutter[rain.mask] = 0
+                extra = reduce(np.logical_and, [
+                    # clutter above threshold for that pixel
                     np.greater(clutter, self.declutter['history']),
-                )
-
-                for i, radar in enumerate(stations):
-                    logging.debug('Masking {} pixels for {}'.format(
-                        cluttermask[i].sum(), radar,
-                    ))
+                    # at least two unmasked pixels left
+                    np.greater((~rain.mask).sum(0), 1),
+                    # the maximum clutter must me masked
+                    np.equal(clutter, clutter.max(0)),
+                ])
 
                 # Extend rain mask with cluttermask.
-                rain.mask[cluttermask] = True
-                h5.close()
-            else:
-                logging.debug('Need both NL60 and NL61 for history declutter.')
+                count = extra.sum()
+                if not count:
+                    break
+                logging.debug(
+                    'Masking {} historically suspicious pixels'.format(count),
+                )
+                rain.mask[extra] = True
 
         rang.mask = rain.mask
         elev.mask = rain.mask
