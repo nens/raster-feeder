@@ -41,7 +41,8 @@ CELERY_DB = os.path.join(CELERY_DIR, 'celerydb.sqlite')
 NODATAVALUE = -9999
 
 # Declutter defaults
-DECLUTTER_HISTORY = 50
+DECLUTTER_FILEPATH = 'clutter-20130101-20131231.h5'
+DECLUTTER_HISTORY = 0.1
 DECLUTTER_SIZE = 4
 
 # Radar codes
