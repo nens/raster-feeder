@@ -502,7 +502,6 @@ class ScanJabbeke(GenericScan):
         return calc.Rain(PV * gain + offset).get()
 
     def _polar(self, dataset):
-        how = dataset['how'].attrs
         where = dataset['where'].attrs
 
         bins = where['nbins']
@@ -513,10 +512,19 @@ class ScanJabbeke(GenericScan):
         rang = rang.reshape(1, -1)
 
         # get the middle of each measured angle.
-        arr = map(lambda x: x.split(':'), how['azangles'].split(','))
-        startazA, stopazA = np.array(arr, dtype=float).transpose()
-        azim = (startazA + stopazA) / 2
-        azim = azim.reshape(-1, 1)
+        try:
+            # older files
+            how = dataset['how'].attrs
+            arr = map(lambda x: x.split(':'), how['azangles'].split(','))
+        except KeyError:
+            # recent files
+            arr = None
+        if arr is not None:
+            startazA, stopazA = np.array(arr, dtype=float).transpose()
+            azim = (startazA + stopazA) / 2
+            azim = azim.reshape(-1, 1)
+        else:
+            azim = np.arange(0.5, 360.5)[:, np.newaxis]
 
         elev = where['elangle']
 
