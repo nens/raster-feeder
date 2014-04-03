@@ -497,6 +497,8 @@ class ScanJabbeke(GenericScan):
         """Calculate rain in mm/hour from the dBZ."""
         data1 = dataset['data1']
         PV = data1['data'].value  # Pixel value
+        # Set nodata pixels to a low value
+        PV[PV == dataset['data1/what'].attrs['nodata']] = 0
         gain = data1['what'].attrs['gain']
         offset = data1['what'].attrs['offset']
         return calc.Rain(PV * gain + offset).get()
