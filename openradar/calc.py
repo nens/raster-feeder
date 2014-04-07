@@ -29,8 +29,6 @@ import logging
 import math
 import numpy as np
 
-from openradar import config
-
 RADIUS43 = 8495.  # Effective earth radius in km.
 
 
@@ -189,3 +187,35 @@ def calculate_slices(size, full_extent, partial_extent):
 def calculate_shifted(data, shift):
     """ Shift data. """
     return ndimage.shift(data, shift, order=1, cval=0)
+
+
+def declutter_experimental(data, ratio):
+    """
+    For regions with size less or equal than size, set to zero if ratio
+    of of egde sum to region sum exceeds ratio.
+    """
+    # label
+    data_nonzero = data > 0
+    lbl, nlbl = ndimage.label(data_nonzero)
+
+    # data
+    data_size = ndimage.measurements.sum(data_nonzero, lbl, lbl)
+    data_sum = ndimage.measurements.sum(data, lbl, lbl)
+
+    # edge
+    edge = np.where(
+        np.logical_and(ndimage.binary_erosion(data_nonzero), data_nonzero),
+        0,
+        data,
+    )
+    edge_nonzero = edge > 0
+    edge_size = ndimage.measurements.sum(edge_nonzero, lbl, lbl)
+    edge_sum = ndimage.measurements.sum(edge, lbl, lbl)
+
+    # ratio
+    data_mean = data_sum[data_nonzero] / data_size[data_nonzero]
+    edge_mean = edge_sum[data_nonzero] / edge_size[data_nonzero]
+    data_ratio = np.zeros(data.shape, data.dtype)
+    data_ratio[data_nonzero] = edge_mean / data_mean
+
+    return np.where(data_ratio > ratio, 0, data)
