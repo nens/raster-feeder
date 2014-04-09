@@ -52,16 +52,8 @@ def organize_from_path(source_dir):
             except ValueError:
                 scan_signature = None
 
-            # Is it ground?
-            try:
-                ground_data = scans.GroundData(dataname=name)
-            except ValueError:
-                ground_data = None
-
             if scan_signature:
                 target_path = scan_signature.get_scanpath()
-            elif ground_data:
-                target_path = ground_data.get_datapath()
             else:
                 logging.debug(
                     'Could not determine target path for {}'.format(name),
@@ -174,7 +166,7 @@ def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
     """
     Return if files are present or utcnow > dt_files + td_wait
 
-    Waiting for config.ALL_RADARS and ground 5min file.
+    Waiting for config.ALL_RADARS.
     """
     if td_wait is None:
         td_wait = config.WAIT_EXPIRE_DELTA
@@ -184,12 +176,6 @@ def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
     ))
 
     dt_radar = dt_calculation - datetime.timedelta(minutes=5)
-    # Fews exports data currently 1 minute after dt_calculation.
-    dt_ground_5min = dt_calculation + datetime.timedelta(minutes=1)
-    if 'h' in utils.get_valid_timeframes(dt_calculation):
-        dt_ground_hour = dt_calculation
-    else:
-        dt_ground_hour = None
 
     set_expected = set()
 
@@ -200,28 +186,6 @@ def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
         )
         if not os.path.exists(scan_signature.get_scanpath()):
             set_expected.add(scan_signature.get_scanname())
-
-    # Add ground to expected files (5min)
-    ground_data_5min = scans.GroundData(
-        datacode='5min', datadatetime=dt_ground_5min,
-    )
-    if not os.path.exists(ground_data_5min.get_datapath()):
-        set_expected.add(ground_data_5min.get_dataname())
-
-    # Add ground to expected files (hour and day)
-    if dt_ground_hour is not None:
-        # Hour
-        ground_data_hour = scans.GroundData(
-            datacode='uur', datadatetime=dt_ground_hour,
-        )
-        if not os.path.exists(ground_data_hour.get_datapath()):
-            set_expected.add(ground_data_hour.get_dataname())
-        # Day
-        ground_data_day = scans.GroundData(
-            datacode='24uur', datadatetime=dt_ground_hour,
-        )
-        if not os.path.exists(ground_data_day.get_datapath()):
-            set_expected.add(ground_data_day.get_dataname())
 
     logging.debug('looking for {}'.format(', '.join(set_expected)))
 

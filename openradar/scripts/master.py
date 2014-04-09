@@ -64,7 +64,7 @@ def master(**kwargs):
         for combination in combinations:
             # Add a separator between groups of tasks
             logging.info(40 * '-')
-            
+
             # Append aggregate subtask
             aggregate_kwargs = dict(declutter=declutter, radars=radars)
             aggregate_kwargs.update(combination)
