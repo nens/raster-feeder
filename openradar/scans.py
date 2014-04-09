@@ -52,66 +52,6 @@ def create_basegrid():
 BASEGRID = create_basegrid()
 
 
-class GroundData(object):
-    """
-    Hold datetime and code for groundstationfile
-
-    Import from filename or from code and datetime.
-    Get filepath.
-
-    TODO:
-        - Unify interface with that of scansignature
-        - Better name... This is not data.
-    """
-    def __init__(self, dataname=None, datacode=None, datadatetime=None):
-        if datacode and datadatetime and (dataname is None):
-            self._code = datacode
-            self._datetime = datadatetime
-        elif dataname and (datacode is None) and (datadatetime is None):
-            self._from_dataname(dataname)
-        else:
-            raise ValueError(
-                'Specify either dataname or datadatetime and datacode.'
-            )
-
-    def _from_dataname(self, dataname):
-        datacode = self._code_from_dataname(dataname)
-        datetime_format = config.TEMPLATE_GROUND.format(code=datacode)
-        datadatetime = datetime.datetime.strptime(dataname, datetime_format)
-
-        self._code = datacode
-        self._datetime = datadatetime
-
-    def _code_from_dataname(self, dataname):
-        match = re.match(config.GROUND_PATTERN, dataname)
-        if match:
-            return match.group('code')
-        raise ValueError(
-            "Currently no ground pattern matching '{}'".format(dataname),
-        )
-
-    def _format_for_code(self, code):
-        return config.TEMPLATE_GROUND.format(code=code)
-        raise ValueError(
-            "Currently no ground format matching '{}'".format(code),
-        )
-
-    def get_dataname(self):
-        return datetime.datetime.strftime(
-            self._datetime, config.TEMPLATE_GROUND.format(code=self._code),
-        )
-
-    def get_datapath(self):
-        return os.path.join(
-            config.GROUND_DIR,
-            self._code,
-            self._datetime.strftime('%Y'),
-            self._datetime.strftime('%m'),
-            self._datetime.strftime('%d'),
-            self.get_dataname(),
-        )
-
-
 class ScanSignature(object):
     """
     Hold datetime and code for a scan.

@@ -385,35 +385,12 @@ class CalibratedProduct(object):
         else:
             self.declutter = declutter
 
-        # Determine the groundpath and groundfile datetime
-        self.grounddata = self._get_grounddata()
-        self.groundpath = self.grounddata.get_datapath()
-        self.groundfile_datetime = self.grounddata._datetime
-
+        # determine product path
         self.path = utils.PathHelper(
             basedir=config.CALIBRATE_DIR,
             code=config.PRODUCT_CODE[self.timeframe][self.prodcode],
             template=config.PRODUCT_TEMPLATE,
         ).path(datetime)
-
-    def _get_grounddata(self):
-        """ Return the best existing GroundData instance. """
-        datacode = config.GROUND_CODE[self.timeframe]
-        datetimes = utils.get_groundfile_datetimes(date=self.datetime,
-                                                   prodcode=self.prodcode,
-                                                   timeframe=self.timeframe)
-        for datetime in datetimes:
-            grounddata = scans.GroundData(datacode=datacode,
-                                          datadatetime=datetime)
-            root, ext = os.path.splitext(grounddata.get_datapath())
-            for extension in ['.zip', '.csv']:
-                path = root + extension
-                if os.path.exists(path):
-                    logging.debug('Groundfile selected: {}'.format(path))
-                    return grounddata
-        # Always return a grounddata object
-        logging.warning('Groundfile not found, returning: {}'.format(path))
-        return grounddata
 
     def _get_aggregate(self):
         """ Return Aggregate object. """
@@ -425,13 +402,8 @@ class CalibratedProduct(object):
     def make(self):
         aggregate = self._get_aggregate()
         aggregate.make()
-        if self.groundfile_datetime.year < 2012:
-            groundpath = os.path.join(config.MISC_DIR, 'tests/2011.csv')
-        else:
-            groundpath = self.groundpath
         metafile = os.path.join(config.MISC_DIR, 'grondstations.csv')
         dataloader = DataLoader(metafile=metafile,
-                                datafile=groundpath,
                                 aggregate=aggregate,
                                 timeframe=self.timeframe)
         try:

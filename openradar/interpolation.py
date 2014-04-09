@@ -6,7 +6,6 @@ from __future__ import absolute_import
 from __future__ import division
 
 import csv
-import datetime
 import logging
 import os
 import zipfile
@@ -37,7 +36,7 @@ class DataLoader(object):
     The input format of the ground station data is in csv. The Dataloader
     serves as a prerequisite for the Interpolator.
     '''
-    def __init__(self, datafile, metafile, aggregate, timeframe):
+    def __init__(self, metafile, aggregate, timeframe):
         # Attributes
         self.delta = aggregate.timedelta
         self.date = aggregate.datetime
@@ -49,11 +48,7 @@ class DataLoader(object):
             projection=self.dataset.attrs['grid_projection'],
             size=self.dataset.attrs['grid_size']
         )
-        # Read csv files
-        try:
-            self.raindata = self.read_csv(datafile.encode('utf-8'))
-        except:
-            logging.warn('Problem reading ground datafile!')
+        # Read csv file
         self.stationsdata = self.read_csv(metafile.encode('utf-8'))
 
     @classmethod
@@ -330,7 +325,7 @@ class Interpolator(object):
             'model_type': 'Exp',
             'sill': sill_,
             'range': range_,
-            }
+        }
         v = robj.r.vgm(vgm_args['sill'], vgm_args['model_type'],
                        vgm_args['range'], vgm_args['nugget'])
         krige = robj.r('NULL')
@@ -381,7 +376,7 @@ class Interpolator(object):
             'model_type': 'Exp',
             'sill': sill_,
             'range': range_,
-            }
+        }
         v = robj.r.vgm(vgm_args['sill'], vgm_args['model_type'],
                        vgm_args['range'], vgm_args['nugget'])
         correlation_radar_rain = numpy.abs(robj.r.cor(z, radar))

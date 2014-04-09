@@ -11,6 +11,8 @@ Changelog of openradar
 
 - Improve image script product selection
 
+- Remove groundfile code, add grounddata from database code
+
 
 0.3.7 (2013-08-29)
 ------------------

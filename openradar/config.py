@@ -20,7 +20,6 @@ BUILDOUT_DIR = os.path.join(
 AGGREGATE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'aggregate')
 CALIBRATE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'calibrate')
 CONSISTENT_DIR = os.path.join(BUILDOUT_DIR, 'var', 'consistent')
-GROUND_DIR = os.path.join(BUILDOUT_DIR, 'var', 'ground')
 IMG_DIR = os.path.join(BUILDOUT_DIR, 'var', 'img')
 MISC_DIR = os.path.join(BUILDOUT_DIR, 'var', 'misc')
 MULTISCAN_DIR = os.path.join(BUILDOUT_DIR, 'var', 'multiscan')
@@ -79,9 +78,6 @@ RADAR_PATTERNS = [
     ),
 
 ]
-GROUND_PATTERN = re.compile(
-    '(?P<timestamp>[0-9]{14})_Grondstations_(?P<code>.*)\.csv',
-)
 CALIBRATION_PATTERN = re.compile(
     'GEO *= *(?P<a>[-.0-9]+) *\* *PV *\+ *(?P<b>[-.0-9]+)',
 )
@@ -96,7 +92,6 @@ TEMPLATE_KNMI = 'RAD_{code}_VOL_NA_%Y%m%d%H%M.h5'
 TEMPLATE_DWD_ARCHIVE = 'raa00-dx_{code}-%y%m%d%H%M-dwd---bin'
 TEMPLATE_DWD = 'raa00-dx_{id}-%y%m%d%H%M-{code}---bin'
 TEMPLATE_JABBEKE = '{code}-%Y%m%d%H%M.dBZ.vol.h5'
-TEMPLATE_GROUND = '%Y%m%d%H%M%S_Grondstations_{code}.csv'
 
 # Format for all-digit timestamp
 TIMESTAMP_FORMAT = '%Y%m%d%H%M%S'
@@ -130,7 +125,6 @@ KNMI_SCAN_TYPE = 'Z'
 
 # Naming of products and files
 MULTISCAN_CODE = 'multiscan'
-GROUND_CODE = {'f': '5min', 'h': 'uur', 'd': '24uur'}
 TIMEFRAME_DELTA = {
     'f': datetime.timedelta(minutes=5),
     'h': datetime.timedelta(hours=1),
