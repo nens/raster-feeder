@@ -39,12 +39,22 @@ def get_parser():
 
 def command(paths):
     """ Show a lowest elevation image. """
+    # order
+    index = dict(
+        NL60=0,
+        NL61=1,
+        nhb=2,
+        ess=3,
+        emd=4,
+        JAB=5,
+    )
+
     # load
     d_rang, d_elev, d_anth = {}, {}, {}
     for p in paths:
         with h5py.File(p, 'r') as h5:
             for r in h5:
-                if r in d_rang:
+                if r in d_rang or r == 'ase':
                     continue
                 d_rang[r] = h5[r]['range'][:]
                 d_elev[r] = h5[r]['elevation'][:]
@@ -53,10 +63,10 @@ def command(paths):
     elev = np.ma.empty((len(radars),) + d_rang[radars[0]].shape)
     rang = np.ma.empty((len(radars),) + d_rang[radars[0]].shape)
     anth = np.empty((len(radars), 1, 1))
-    for i, r in enumerate(radars):
-        elev[i] = np.ma.masked_equal(d_elev[r], config.NODATAVALUE)
-        rang[i] = np.ma.masked_equal(d_rang[r], config.NODATAVALUE)
-        anth[i] = float(d_anth[r]) / 1000
+    for r in radars:
+        elev[index[r]] = np.ma.masked_equal(d_elev[r], config.NODATAVALUE)
+        rang[index[r]] = np.ma.masked_equal(d_rang[r], config.NODATAVALUE)
+        anth[index[r]] = float(d_anth[r]) / 1000
 
     # calculate
     theta = calc.calculate_theta(
@@ -72,12 +82,13 @@ def command(paths):
     ).max(0)
     what = alt.min(0)
 
-    # colors?
+    # colors
     hue = cm.hsv(colors.Normalize(vmax=len(radars))(which), bytes=True)
-    sat = 1 - colors.LogNorm()(what)[..., np.newaxis]
+    sat = 1 - colors.Normalize(vmax=5, clip=True)(what)[..., np.newaxis]
 
     hue[..., :3] *= sat
-    Image.fromarray(hue).show()
+    hue[sat.mask[..., 0]] = 255
+    Image.fromarray(hue).save('elevation_image.png')
     return 0
 
 
