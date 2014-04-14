@@ -65,5 +65,6 @@ setup(name='openradar',
               'report = openradar.scripts.report:main',
               'image = openradar.scripts.image:main',
               'export_to_store = openradar.scripts.export_to_store:main',
+              'elevation_image = openradar.scripts.elevation_image:main',
           ]},
       )
