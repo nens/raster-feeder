@@ -60,6 +60,7 @@ setup(name='openradar',
               'nowcast = openradar.scripts.nowcast:main',
               # Tools
               'clutter = openradar.scripts.clutter:main',
+              'histogram = openradar.scripts.histogram:main',
               'sandbox = openradar.scripts.sandbox:main',
               'organize = openradar.scripts.organize:main',
               'report = openradar.scripts.report:main',
