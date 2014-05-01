@@ -99,10 +99,10 @@ def command(target_path, range_text):
             for k, v in h5.iteritems():
                 logger.debug('Radar: {}'.format(k))
                 r = v['rain'][:]
-            r[r == -9999] = 0
-            if k not in result:
-                result[k] = Histogram(edges=EDGES, shape=r.shape)
-            result[k].add(r)
+                r[r == -9999] = 0
+                if k not in result:
+                    result[k] = Histogram(edges=EDGES, shape=r.shape)
+                result[k].add(r)
 
     # save
     logger.info('Saving: {}'.format(target_path))
@@ -125,5 +125,5 @@ def command(target_path, range_text):
 
 def main():
     """ Call command with args from parser. """
-    logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
     return command(**vars(get_parser().parse_args()))
