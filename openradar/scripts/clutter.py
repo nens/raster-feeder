@@ -1,4 +1,3 @@
-
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
@@ -14,13 +13,11 @@ import logging
 import os
 import sys
 
-from osgeo import gdal
 import numpy as np
 
 from openradar import config
 from openradar import utils
 
-gdal.UseExceptions()
 logger = logging.getLogger(__name__)
 
 RAIN_THRESHOLD = dict(
