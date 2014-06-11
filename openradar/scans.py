@@ -854,6 +854,7 @@ class Aggregate(object):
                                             microsecond=0,
                                             minute=(datetime.minute // 5) * 5):
                 raise ValueError
+        self.path = self.get_path()
 
     def _sub_datetimes(self):
         """
