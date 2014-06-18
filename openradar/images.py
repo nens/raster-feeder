@@ -78,6 +78,17 @@ def osm_image():
     return Image.fromarray(osm_rgba)
 
 
+def mapbox_image():
+    """ Return rgba image with mapbox background. """
+    ds_mapbox_rd = gdal.Open(os.path.join(config.MISC_DIR, 'mapbox-rd.tif'))
+    mapbox_rgba = np.ones(
+        (ds_mapbox_rd.RasterYSize, ds_mapbox_rd.RasterXSize, 4),
+        dtype=np.uint8,
+    ) * 255
+    mapbox_rgba[:, :, 0:3] = ds_mapbox_rd.ReadAsArray().transpose(1, 2, 0)
+    return Image.fromarray(mapbox_rgba)
+
+
 def plain_image(color=(255, 255, 255)):
     """ Return opaque rgba image with color color. """
     basegrid = scans.BASEGRID
@@ -120,7 +131,7 @@ def radars_image(h5, label='', offset=(0, 0)):
         label_layer.axes.annotate(
             label, offset, xycoords='axes fraction',
             ha='left', va='top', size='x-large', weight='bold',
-            color='w',
+            color='0.3',
         )
 
     return label_layer.image()
@@ -279,9 +290,11 @@ def create_png_for_animated_gif(products, **kwargs):
     utils.makedir(config.IMG_DIR)
 
     # Load some images
-    img_shape = shape_image()
-    img_blue = plain_image(color=(0, 0, 127))
-    img_shape_filled = shape_image_filled()
+    img_mapbox = mapbox_image()
+    #img_osm = osm_image()
+    #img_shape = shape_image()
+    #img_blue = plain_image(color=(0, 0, 127))
+    #img_shape_filled = shape_image_filled()
 
     # Get dutch time label
     tz_amsterdam = pytz.timezone('Europe/Amsterdam')
@@ -291,7 +304,8 @@ def create_png_for_animated_gif(products, **kwargs):
     for product in products:
         utc = tz_utc.localize(product.datetime)
         amsterdam = utc.astimezone(tz_amsterdam)
-        label = amsterdam.strftime('%Y-%m-%d %H:%M')
+        #label = amsterdam.strftime('%Y-%m-%d %H:%M')
+        label = amsterdam.strftime('%H:%M')
         offset = 0.25, 0.82
 
         # Get data image
@@ -312,9 +326,10 @@ def create_png_for_animated_gif(products, **kwargs):
         utils.merge([
             img_radars,
             img_rain,
-            img_shape,
-            img_shape_filled,
-            img_blue,
+            img_mapbox,
+            #img_shape,
+            #img_shape_filled,
+            #img_blue,
         ]).save(path)
 
         logging.info('saved {}.'.format(os.path.basename(path)))
