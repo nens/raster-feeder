@@ -63,6 +63,8 @@ Tasks have an argument --cascade. For most scripts this means creating
 tasks for logical next steps. For the publish task, it means 'publish
 any rescaled products as well.'
 
+TODO: cover sync* scripts and partial scripts here, too.
+
 Timezone
 --------
 Timezones:
