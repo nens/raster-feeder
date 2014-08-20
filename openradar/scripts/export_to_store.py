@@ -51,7 +51,7 @@ def command(store, date=None):
         os.path.join(config.BUILDOUT_DIR, 'bin', 'image'),
         text,
         '--product', 'b',
-        '--prodcode', 'a',
+        '--prodcode', 'r',
         '--format', 'tif',
         '--image-dir', tempdir,
     ]
