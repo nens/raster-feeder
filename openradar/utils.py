@@ -497,9 +497,10 @@ def save_dataset(data, meta, path):
     '''
     logging.debug('Saving hdf5 dataset: {}'.format(os.path.basename(path)))
     logging.debug(path)
+    tmp_path = path + '.in'
 
     makedir(os.path.dirname(path))
-    h5 = h5py.File(path, 'w')
+    h5 = h5py.File(tmp_path, 'w')
 
     # Geographic group
     geographic = dict(
@@ -597,6 +598,7 @@ def save_dataset(data, meta, path):
         h5.attrs[name] = value
 
     h5.close()
+    os.rename(tmp_path, path)
 
     return path
 
@@ -612,3 +614,13 @@ def get_countrymask():
     mask = h5['mask'][...]
     h5.close()
     return mask
+
+
+# copied from raster-store
+def parse_datetime(text):
+    """ Return a datetime instance. """
+    date_or_datetime = np.array([text], np.datetime64).item()
+    if 'T' in text:
+        # datetime
+        return date_or_datetime
+    return datetime.datetime.combine(date_or_datetime, datetime.time())
