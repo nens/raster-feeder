@@ -418,6 +418,10 @@ class Interpolator(object):
         dataset = self.precipitation.flatten()
         rxi = robj.FloatVector(dataset.tolist())
         radar = self.get_radar_for_locations()
+
+        # Modification to prevent singular matrix (Tom)
+        radar += (1e-9 * numpy.random.rand(len(radar)))
+
         radar = robj.FloatVector(radar)
         x, y, z = robj.FloatVector(x), robj.FloatVector(y), robj.FloatVector(z)
         rain_radar_frame = robj.DataFrame({'x': x, 'y': y, 'z': z,
