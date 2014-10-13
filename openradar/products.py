@@ -418,6 +418,7 @@ class CalibratedProduct(object):
         except:
             logging.exception('Exception during calibration preprocessing:')
             stations_count = 0
+            data_count = 0
         interpolator = Interpolator(dataloader)
 
         # Calibrate, method depending on prodcode and timeframe
@@ -623,8 +624,8 @@ class Consistifier(object):
     def _subproducts(cls, product):
         """ Return the CalibratedProducts to be consistified with product """
         sub_timeframe = cls.SUB_TIMEFRAME[product.timeframe]
-        for datetime in cls._subproduct_datetimes(product):
-            yield CalibratedProduct(datetime=datetime,
+        for pdatetime in cls._subproduct_datetimes(product):
+            yield CalibratedProduct(datetime=pdatetime,
                                     prodcode=product.prodcode,
                                     timeframe=sub_timeframe)
 
@@ -788,7 +789,7 @@ class NowcastProduct(object):
         ).filled(0)
 
         # Create nowcast data by adding shifted data
-        current_datetime = (self.datetime - 
+        current_datetime = (self.datetime -
                             config.TIMEFRAME_DELTA[self.timeframe])
         nowcast_precipitation = np.zeros(original.shape, 'f4')
         count = 0
@@ -800,7 +801,7 @@ class NowcastProduct(object):
             factor = seconds / vector_products_seconds
             shift = [-v * factor for v in vector]
             nowcast_precipitation += calc.calculate_shifted(
-                data=original_filled, 
+                data=original_filled,
                 shift=shift,
             )
             count += 1
@@ -819,7 +820,7 @@ class NowcastProduct(object):
         datetime_last_composite = utils.timestamp2datetime(
             meta['timestamp_last_composite'],
         ) + (self.datetime - base_product.datetime)
-        timestamp_last_composite=datetime_last_composite.strftime(
+        timestamp_last_composite = datetime_last_composite.strftime(
             config.TIMESTAMP_FORMAT,
         )
 
