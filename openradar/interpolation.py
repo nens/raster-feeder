@@ -440,11 +440,25 @@ class Interpolator(object):
                                model=residual, nmax=40)
             result = robj.r.predict(ked, radar_frame, nsim=0)
             rain_est = numpy.array(result[2])
-            #self.crossval_ked = robj.r('gstat.cv')(ked)
+            # self.crossval_ked = robj.r('gstat.cv')(ked)
         except:
             logging.exception('Exception during kriging:')
             rain_est = dataset
         rain_est = rain_est.reshape((self.ny, self.nx))
+
+        # handle extreme outcomes of kriging
+        zero_or_no_data = numpy.logical_or(
+            self.precipitation == 0, self.precipitation == -9999
+        )
+        correction_factor = numpy.ones(self.precipitation.shape)
+        correction_factor[~zero_or_no_data] = (
+            rain_est[~zero_or_no_data] / self.precipitation[~zero_or_no_data]
+        )
+        leave_uncalibrated = numpy.logical_or(
+            correction_factor < 0, correction_factor > 10
+        )
+        rain_est[leave_uncalibrated] = self.precipitation
+
         return rain_est
 
     def distance_matrix(self, x0, y0, x1, y1):
