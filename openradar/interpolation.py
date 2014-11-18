@@ -457,7 +457,7 @@ class Interpolator(object):
         leave_uncalibrated = numpy.logical_or(
             correction_factor < 0, correction_factor > 10
         )
-        rain_est[leave_uncalibrated] = self.precipitation
+        rain_est[leave_uncalibrated] = self.precipitation[leave_uncalibrated]
 
         return rain_est
 
