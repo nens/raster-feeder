@@ -447,7 +447,7 @@ class CalibratedProduct(object):
                 calibrated_radar = None
         else:
             logging.info('Calibrating using idw.')
-            calibration_method = 'Inverse Distance Weigting'
+            calibration_method = 'Inverse Distance Weighting'
             try:
                 factor = interpolator.get_correction_factor()
                 calibrated_radar = np.ma.where(
