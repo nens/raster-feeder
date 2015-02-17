@@ -70,3 +70,12 @@ Timezone
 Timezones:
 - The time zones for all of the data is in UTC time.
 
+Clutter filter
+--------------
+To update the clutter filter, execute this command::
+    
+    bin/clutter YYYYMMDD-YYYYMMDD -t ./my-clutter-file.h5
+
+Put this file in the misc directory and update DECLUTTER_FILEPATH to
+point to this file. The basename is enough, but an absolute path will
+probably work, too.
