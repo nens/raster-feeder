@@ -27,11 +27,13 @@ calibrate the 5 minute data.
 Installation
 ------------
 Install using system repositories (e.g. apt-get, brew, pacman):
-    * matplotlib
-    * numpy
-    * scipy
     * python-gdal
+    * python-matplotlib
+    * python-pandas
+    * python-psycopg2
     * python-rpy2
+    * python-scipy
+
     * libhdf5-serial-dev
     * libgeos-dev
 
@@ -50,8 +52,7 @@ package and symlink the necessary configuration files::
     
     $ bin/develop checkout radar
     $ bin/buildout  # Again, yes.
-    $ cd var
-    $ ln -s ../src/radar/misc misc
+    $ ln -s src/radar/misc var/misc
     $ ln -s src/radar/radar/productionconfig.py openradar/localconfig.py
 
 Scripts
