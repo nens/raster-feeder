@@ -721,10 +721,9 @@ class NowcastProduct(object):
         self.datetime = datetime
         self.timeframe = timeframe
         self.prodcode = 'r'
-        self.path = utils.PathHelper(
-            basedir=config.NOWCAST_DIR,
-            code=config.PRODUCT_CODE[self.timeframe][self.prodcode],
-            template=config.PRODUCT_TEMPLATE,
+        self.path = utils.PathHelper(basedir=config.NOWCAST_AGGREGATE_DIR,
+            code='5min',
+            template='{code}_{timestamp}.h5'
         ).path(datetime)
 
     def get(self):
@@ -734,7 +733,7 @@ class NowcastProduct(object):
         Crashes when the file does not exist. This should be catched by caller.
         """
         return h5py.File(self.path, 'r')
-
+    
     def make(self, base_product, vector_products, vector_extent=None):
         """
         :param baseproduct: the product whose preciptation to shift
@@ -844,7 +843,7 @@ class NowcastProduct(object):
         logging.debug('v0 {}'.format(vector_products[0]))
         logging.debug('v1 {}'.format(vector_products[1]))
         logging.debug('base {}'.format(base_product))
-        logging.debug('Created NowcastProduct {}'.format(filepath))
+        logging.debug('Created NowcastProduct {}'.format(filepath))        
 
     def __str__(self):
         return unicode(self).encode('utf-8')

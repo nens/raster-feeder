@@ -52,10 +52,17 @@ def aggregate(result, datetime, timeframe, radars,
     logging.info(20 * '-' + ' aggregate ' + 20 * '-')
     try:
         # Create aggregates
-        aggregate = scans.Aggregate(radars=radars,
-                                    declutter=declutter,
-                                    datetime=datetime,
-                                    timeframe=timeframe)
+        # Create aggregates
+        aggregate_kwargs = dict(
+            radars=radars,
+            declutter=declutter,
+            datetime=datetime,
+            timeframe=timeframe,
+            basedir = config.AGGREGATE_DIR,
+            multiscandir = config.MULTISCAN_DIR,
+            grid = scans.BASEGRID
+            )
+        aggregate = scans.Aggregate(**aggregate_kwargs)
 
         aggregate.make()
         # Cascade when requested
@@ -80,21 +87,26 @@ def aggregate(result, datetime, timeframe, radars,
 
 @celery.task
 def nowcast_aggregate(result, datetime, timeframe, radars,
-              declutter, direct=False, cascade=False):
+              declutter, **kwargs):
     """ Create aggregates for nowcast extent. """
     loghelper.setup_logging(logfile_name='radar_nowcast_aggregate.log')
-    logging.info(20 * '-' + 'nowcast aggregate ' + 20 * '-')
+    logging.info(20 * '-' + ' nowcast aggregate ' + 20 * '-')
     try:
         # Create aggregates
-        aggregate = scans.Aggregate(radars=radars,
-                                    declutter=declutter,
-                                    datetime=datetime,
-                                    timeframe=timeframe,
-                                    nowcast=True)
+        aggregate_kwargs = dict(
+            radars=radars,
+            declutter=declutter,
+            datetime=datetime,
+            timeframe=timeframe,
+            basedir = config.NOWCAST_AGGREGATE_DIR,
+            multiscandir = config.NOWCAST_MULTISCAN_DIR,
+            grid = scans.NOWCASTGRID
+            )
+        aggregate = scans.Aggregate(**aggregate_kwargs)
         aggregate.make()
     except Exception as e:
         logging.exception(e)
-    logging.info(20 * '-' + 'nowcast aggregate complete ' + 20 * '-')
+    logging.info(20 * '-' + ' nowcast aggregate complete ' + 20 * '-')
 
 @celery.task
 def calibrate(result, datetime, prodcode, timeframe,

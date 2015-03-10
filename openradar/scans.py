@@ -32,7 +32,6 @@ BAND_META = {
     BAND_RANG: dict(name='range'),
     BAND_ELEV: dict(name='elevation'),
 }
-import pdb
 
 def create_basegrid(extent, cellsize):
     left, right, top, bottom = extent
@@ -676,11 +675,11 @@ class Composite(object):
             left, right, upper, lower = self._get_window(self.grid)
             for i, radar in enumerate(stations):
                 if radar in declutter_mask:            
-                    clutter[i, upper:lower, left:right] = declutter_mask[radar]
+                    clutter[i, upper:lower, left:right] = declutter_mask[radar]                    
             declutter_mask.close()
 
             while True:
-                clutter[rain.mask] = 0
+                clutter[rain.mask] = 0                
                 extra = reduce(np.logical_and, [
                     # clutter above threshold for that pixel
                     np.greater(clutter, self.declutter['history']),
@@ -851,21 +850,17 @@ class Aggregate(object):
     SUB_TIMEFRAME = {'d': 'h',
                      'h': 'f'}
 
-    def __init__(self, datetime, timeframe, radars, declutter, nowcast=False):
+    def __init__(self, datetime, timeframe, radars, declutter,
+            basedir, multiscandir, grid):
         """ Do some argument checking. """
         # Attributes
         self.datetime = datetime
         self.timeframe = timeframe
         self.radars = radars
         self.declutter = declutter
-        if nowcast:
-            self.basedir = config.NOWCAST_AGGREGATE_DIR
-            self.multiscandir = config.NOWCAST_MULTISCAN_DIR
-            self.grid = NOWCASTGRID
-        else:
-            self.basedir = config.AGGREGATE_DIR
-            self.multiscandir = config.MULTISCAN_DIR
-            self.grid = BASEGRID
+        self.basedir = basedir
+        self.multiscandir = multiscandir
+        self.grid = grid
 
         # Derived attributes
         self.timedelta = config.TIMEFRAME_DELTA[timeframe]
@@ -1072,7 +1067,6 @@ class Aggregate(object):
         ))
 
     def make(self):
-
         """ Creates the hdf5 file corresponding to this objects. """
         logging.debug('Creating aggregate {} ({})'.format(
             self.datetime, self.code,

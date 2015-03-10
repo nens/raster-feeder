@@ -31,7 +31,6 @@ import numpy as np
 
 RADIUS43 = 8495.  # Effective earth radius in km.
 
-
 def R(Z):
     return np.power(Z / 200., 0.625)
 
@@ -63,7 +62,7 @@ def calculate_theta(rang, elev, anth):
     """
     horizon_dist = rang * np.cos(elev)
     horizon_alt = anth + rang * np.sin(elev)
-
+    
     return np.arctan(horizon_dist / (horizon_alt + RADIUS43))
 
 

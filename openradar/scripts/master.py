@@ -72,6 +72,11 @@ def master(**kwargs):
             tpl = 'Agg. task: {datetime} {timeframe}'
             logging.info(tpl.format(**aggregate_kwargs))
 
+            # Append nowcast aggregate subtask
+            subtasks.append(tasks.aggregate.s(**aggregate_kwargs))
+            tpl = 'Nowcast agg. task: {datetime} {timeframe}'
+            logging.info(tpl.format(**aggregate_kwargs))
+
             # Append calibrate subtask
             calibrate_kwargs = dict(prodcode=prodcode)
             calibrate_kwargs.update(aggregate_kwargs)
