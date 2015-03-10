@@ -100,6 +100,10 @@ TIMESTAMP_FORMAT = '%Y%m%d%H%M%S'
 COMPOSITE_EXTENT = (-110000, 390000, 700000, 210000)
 COMPOSITE_CELLSIZE = (1000, 1000)
 
+# Gridproperties for Infoplaza (left, right, top, bottom)
+NOWCAST_EXTENT = (-300000, 400000, 800000, 50000)
+NOWCAST_CELLSIZE = (1000, 1000)
+
 # DWD coordinates using standard transformation from EPSG:4314 to EPSG:4326
 DWD_COORDINATES = dict(
     ase=(51.405659776445475, 6.967144448033989),

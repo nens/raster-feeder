@@ -121,6 +121,11 @@ class Argument(object):
             action='store_true',
             help='Automatically create depending tasks',
         )
+    def nowcast(self, parser):
+        parser.add_argument(
+            '-n', '--nowcast',
+            action='store_true',
+            help='Use nowcast extent')
 
     def endpoints(self, parser):
         parser.add_argument(

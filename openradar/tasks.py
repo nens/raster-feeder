@@ -55,7 +55,9 @@ def aggregate(result, datetime, timeframe, radars,
         aggregate = scans.Aggregate(radars=radars,
                                     declutter=declutter,
                                     datetime=datetime,
-                                    timeframe=timeframe)
+                                    timeframe=timeframe,
+                                    grid=scans.BASEGRID)
+
         aggregate.make()
         # Cascade when requested
         if cascade:
@@ -77,6 +79,23 @@ def aggregate(result, datetime, timeframe, radars,
         logging.exception(e)
     logging.info(20 * '-' + ' aggregate complete ' + 20 * '-')
 
+@celery.task
+def nowcast_aggregate(result, datetime, timeframe, radars,
+              declutter, direct=False, cascade=False):
+    """ Create aggregates for nowcast extent. """
+    loghelper.setup_logging(logfile_name='radar_nowcast_aggregate.log')
+    logging.info(20 * '-' + 'nowcast aggregate ' + 20 * '-')
+    try:
+        # Create aggregates
+        aggregate = scans.Aggregate(radars=radars,
+                                    declutter=declutter,
+                                    datetime=datetime,
+                                    timeframe=timeframe,
+                                    grid=scans.NOWCASTGRID)
+        aggregate.make()
+    except Exception as e:
+        logging.exception(e)
+    logging.info(20 * '-' + 'nowcast aggregate complete ' + 20 * '-')
 
 @celery.task
 def calibrate(result, datetime, prodcode, timeframe,

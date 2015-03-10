@@ -34,9 +34,9 @@ BAND_META = {
 }
 
 
-def create_basegrid():
-    left, right, top, bottom = config.COMPOSITE_EXTENT
-    cellwidth, cellheight = config.COMPOSITE_CELLSIZE
+def create_basegrid(extent, cellsize):
+    left, right, top, bottom = extent
+    cellwidth, cellheight = cellsize
     width, height = right - left, top - bottom
 
     extent = [left, right, top, bottom]
@@ -49,8 +49,8 @@ def create_basegrid():
         projection=projection,
     )
 
-BASEGRID = create_basegrid()
-
+BASEGRID = create_basegrid(config.COMPOSITE_EXTENT, config.COMPOSITE_CELLSIZE)
+NOWCASTGRID = create_basegrid(config.NOWCAST_EXTENT, config.NOWCAST_CELLSIZE)
 
 class ScanSignature(object):
     """
@@ -483,7 +483,7 @@ class ScanJabbeke(GenericScan):
 
 
 class MultiScan(object):
-    """ Container for aligned recangular precipitationdata. """
+    """ Container for aligned rectangular precipitation data. """
 
     def __init__(self, multiscandatetime, scancodes):
         self.scancodes = scancodes
@@ -579,10 +579,11 @@ class MultiScan(object):
 
 class Composite(object):
 
-    def __init__(self, compositedatetime, scancodes, declutter):
+    def __init__(self, compositedatetime, scancodes, declutter, grid):
 
         self.scancodes = scancodes
         self.declutter = declutter
+        self.grid = grid
 
         if None in declutter.values():
             raise ValueError('Declutter may not contain None values.')
@@ -661,7 +662,7 @@ class Composite(object):
                     np.greater(clutter, self.declutter['history']),
                     # at least two unmasked pixels left
                     np.greater((~rain.mask).sum(0), 1),
-                    # the maximum clutter must me masked
+                    # the maximum clutter must be masked
                     np.equal(clutter, clutter.max(0)),
                 ])
                 # Extend rain mask with cluttermask.
@@ -740,7 +741,7 @@ class Composite(object):
 
     def _dataset(self, ma, md):
         """ Return dataset with composite. """
-        dataset = BASEGRID.create_dataset()
+        dataset = self.grid.create_dataset()
         dataset.SetMetadata(md)
         band = dataset.GetRasterBand(1)
         band.WriteArray(ma.filled())
@@ -826,13 +827,15 @@ class Aggregate(object):
     SUB_TIMEFRAME = {'d': 'h',
                      'h': 'f'}
 
-    def __init__(self, datetime, timeframe, radars, declutter):
+    def __init__(self, datetime, timeframe, radars, declutter, grid):
         """ Do some argument checking. """
         # Attributes
         self.datetime = datetime
         self.timeframe = timeframe
         self.radars = radars
         self.declutter = declutter
+        self.grid = grid
+
         # Derived attributes
         self.timedelta = config.TIMEFRAME_DELTA[timeframe]
         self.code = self.CODE[self.timedelta]
@@ -916,7 +919,8 @@ class Aggregate(object):
 
         composite = Composite(compositedatetime=dt_composite,
                               scancodes=self.radars,
-                              declutter=self.declutter).get()
+                              declutter=self.declutter,
+                              grid=self.grid).get()
 
         # Composite unit is mm/hr and covers 5 minutes. It must be in mm.
         fill_value = config.NODATAVALUE
@@ -945,9 +949,9 @@ class Aggregate(object):
                               for radar in radars])
 
         h5_meta = dict(
-            grid_projection=BASEGRID.projection,
-            grid_extent=BASEGRID.extent,
-            grid_size=BASEGRID.size,
+            grid_projection=self.grid.projection,
+            grid_extent=self.grid.extent,
+            grid_size=self.grid.size,
             radars=radars,
             ranges=ranges,
             locations=locations,

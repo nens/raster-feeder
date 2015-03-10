@@ -15,7 +15,10 @@ from openradar import utils
 def aggregate(**kwargs):
     """ Create aggregates given some commandline arguments. """
     # Determine action
-    task = tasks.aggregate
+    if kwargs['nowcast']:
+        task = tasks.nowcast_aggregate
+    else:
+        task = tasks.aggregate    
     if kwargs['direct']:
         action = task
     else:
@@ -50,5 +53,6 @@ def main():
         'declutter_history',
         'direct',
         'cascade',
+        'nowcast'
     ])
     aggregate(**vars(parser.parse_args()))
