@@ -23,11 +23,12 @@ CONSISTENT_DIR = os.path.join(BUILDOUT_DIR, 'var', 'consistent')
 IMG_DIR = os.path.join(BUILDOUT_DIR, 'var', 'img')
 MISC_DIR = os.path.join(BUILDOUT_DIR, 'var', 'misc')
 MULTISCAN_DIR = os.path.join(BUILDOUT_DIR, 'var', 'multiscan')
-NOWCAST_DIR = os.path.join(BUILDOUT_DIR, 'var', 'nowcast')
 RADAR_DIR = os.path.join(BUILDOUT_DIR, 'var', 'radar')
 REPORT_DIR = os.path.join(BUILDOUT_DIR, 'var', 'report')
 SOURCE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'source')
 THREDDS_DIR = os.path.join(BUILDOUT_DIR, 'var', 'thredds')
+NOWCAST_MULTISCAN_DIR = os.path.join(BUILDOUT_DIR, 'var', 'nowcast_multiscan')
+NOWCAST_AGGREGATE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'nowcast_aggregate')
 
 # Unlikely to be overwritten
 CELERY_DIR = os.path.join(BUILDOUT_DIR, 'var', 'celery')

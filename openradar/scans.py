@@ -32,7 +32,7 @@ BAND_META = {
     BAND_RANG: dict(name='range'),
     BAND_ELEV: dict(name='elevation'),
 }
-
+import pdb
 
 def create_basegrid(extent, cellsize):
     left, right, top, bottom = extent
@@ -168,18 +168,18 @@ class ScanSignature(object):
             return 'ess'
         return self._code
 
-    def get_scan(self):
+    def get_scan(self, grid):
         if not os.path.exists(self.get_scanpath()):
             logging.warn(
                 '{} not found.'.format(os.path.basename(self.get_scanpath())),
             )
             return None
         elif self._code in config.DWD_RADARS:
-            return ScanDWD(self)
+            return ScanDWD(self, grid)
         elif self._code in config.KNMI_RADARS:
-            return ScanKNMI(self)
+            return ScanKNMI(self, grid)
         elif self._code in config.JABBEKE_RADARS:
-            return ScanJabbeke(self)
+            return ScanJabbeke(self, grid)
         logging.error(
             "Currently no scan class matching '{}'".format(self._code),
         )
@@ -197,8 +197,9 @@ class GenericScan(object):
     """
     Procedures for manipulating scan data.
     """
-    def __init__(self, scansignature):
+    def __init__(self, scansignature, grid):
         self.signature = scansignature
+        self.grid = grid
 
     def data(self):
         """
@@ -280,12 +281,12 @@ class GenericScan(object):
                 rang * np.ones(rain.shape),
                 elev * np.ones(rain.shape),
             ),
-            grid=BASEGRID.get_grid(),
+            grid=self.grid.get_grid(),
         )
 
         location = utils.transform((0, 0), projections)
 
-        ds_rd = BASEGRID.create_dataset(bands=3)
+        ds_rd = self.grid.create_dataset(bands=3)
         ds_rd.SetMetadata(dict(
             source=self.signature.get_scanname(),
             timestamp=self.signature.get_timestamp(),
@@ -485,12 +486,13 @@ class ScanJabbeke(GenericScan):
 class MultiScan(object):
     """ Container for aligned rectangular precipitation data. """
 
-    def __init__(self, multiscandatetime, scancodes):
-        self.scancodes = scancodes
+    def __init__(self, multiscandatetime, scancodes, grid, basedir):
         self.multiscandatetime = multiscandatetime
+        self.scancodes = scancodes
+        self.grid = grid
 
         self.path = self.pathhelper = utils.PathHelper(
-            basedir=config.MULTISCAN_DIR,
+            basedir=basedir,
             code=config.MULTISCAN_CODE,
             template='{code}_{timestamp}.h5'
         ).path(multiscandatetime)
@@ -557,7 +559,7 @@ class MultiScan(object):
         for scancode in self.scancodes:
             scan = ScanSignature(
                 scandatetime=self.multiscandatetime, scancode=scancode,
-            ).get_scan()
+            ).get_scan(self.grid)
             if scan is None or scancode in dataset:
                 continue
             if scan.is_readable():
@@ -579,7 +581,7 @@ class MultiScan(object):
 
 class Composite(object):
 
-    def __init__(self, compositedatetime, scancodes, declutter, grid):
+    def __init__(self, compositedatetime, scancodes, declutter, grid, basedir):
 
         self.scancodes = scancodes
         self.declutter = declutter
@@ -591,7 +593,28 @@ class Composite(object):
         self.multiscan = MultiScan(
             multiscandatetime=compositedatetime,
             scancodes=scancodes,
+            grid = self.grid,
+            basedir = basedir
         )
+
+    def _get_window(self, rain):
+        """
+        Get 2-dimensional slice of rain grid for declutter extent
+        assuming equal cell size
+        """
+        # rainfall grid transform
+        x, a, b, y, c, d = rain.get_geotransform()
+
+        # declutter grid extent and shape
+        left, right, upper, lower = BASEGRID.extent
+        height, width = BASEGRID.get_shape()
+
+        # get window indices 
+        window_left = int((left - x) / a)
+        window_upper = int((upper - y) / d)        
+        window_right = int(window_left + width)
+        window_lower = int(window_upper + height)
+        return window_left, window_right, window_upper, window_lower    
 
     def _calculate(self, datasets):
         """
@@ -600,7 +623,7 @@ class Composite(object):
         """
         if not datasets:
             return np.ma.array(
-                np.zeros(BASEGRID.get_shape()),
+                np.zeros(self.grid.get_shape()),
                 mask=True,
                 fill_value=config.NODATAVALUE,
             )
@@ -647,13 +670,14 @@ class Composite(object):
 
             # Initialize clutter array of same dimensions as rain array
             clutter = np.zeros(rain.shape, rain.dtype)
-            h5 = h5py.File(
+            declutter_mask = h5py.File(
                 os.path.join(config.MISC_DIR, config.DECLUTTER_FILEPATH), 'r',
             )
+            left, right, upper, lower = self._get_window(self.grid)
             for i, radar in enumerate(stations):
-                if radar in h5:
-                    clutter[i] = h5[radar]
-            h5.close()
+                if radar in declutter_mask:                    
+                    clutter[upper:lower, left:right, i] = declutter_mask[radar]
+            declutter_mask.close()
 
             while True:
                 clutter[rain.mask] = 0
@@ -827,14 +851,21 @@ class Aggregate(object):
     SUB_TIMEFRAME = {'d': 'h',
                      'h': 'f'}
 
-    def __init__(self, datetime, timeframe, radars, declutter, grid):
+    def __init__(self, datetime, timeframe, radars, declutter, nowcast=False):
         """ Do some argument checking. """
         # Attributes
         self.datetime = datetime
         self.timeframe = timeframe
         self.radars = radars
         self.declutter = declutter
-        self.grid = grid
+        if nowcast:
+            self.basedir = config.NOWCAST_AGGREGATE_DIR
+            self.multiscandir = config.NOWCAST_MULTISCAN_DIR
+            self.grid = NOWCASTGRID
+        else:
+            self.basedir = config.AGGREGATE_DIR
+            self.multiscandir = config.MULTISCAN_DIR
+            self.grid = BASEGRID
 
         # Derived attributes
         self.timedelta = config.TIMEFRAME_DELTA[timeframe]
@@ -877,7 +908,7 @@ class Aggregate(object):
 
     def get_path(self):
         """ Return the file path where this aggregate should be stored. """
-        path_helper = utils.PathHelper(basedir=config.AGGREGATE_DIR,
+        path_helper = utils.PathHelper(basedir=self.basedir,
                                        code=self.code,
                                        template='{code}_{timestamp}.h5')
         return path_helper.path(self.datetime)
@@ -920,7 +951,8 @@ class Aggregate(object):
         composite = Composite(compositedatetime=dt_composite,
                               scancodes=self.radars,
                               declutter=self.declutter,
-                              grid=self.grid).get()
+                              grid=self.grid,
+                              basedir=self.multiscandir).get()
 
         # Composite unit is mm/hr and covers 5 minutes. It must be in mm.
         fill_value = config.NODATAVALUE

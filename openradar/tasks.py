@@ -55,8 +55,7 @@ def aggregate(result, datetime, timeframe, radars,
         aggregate = scans.Aggregate(radars=radars,
                                     declutter=declutter,
                                     datetime=datetime,
-                                    timeframe=timeframe,
-                                    grid=scans.BASEGRID)
+                                    timeframe=timeframe)
 
         aggregate.make()
         # Cascade when requested
@@ -91,7 +90,7 @@ def nowcast_aggregate(result, datetime, timeframe, radars,
                                     declutter=declutter,
                                     datetime=datetime,
                                     timeframe=timeframe,
-                                    grid=scans.NOWCASTGRID)
+                                    nowcast=True)
         aggregate.make()
     except Exception as e:
         logging.exception(e)
