@@ -675,8 +675,8 @@ class Composite(object):
             )
             left, right, upper, lower = self._get_window(self.grid)
             for i, radar in enumerate(stations):
-                if radar in declutter_mask:                    
-                    clutter[upper:lower, left:right, i] = declutter_mask[radar]
+                if radar in declutter_mask:            
+                    clutter[i, upper:lower, left:right] = declutter_mask[radar]
             declutter_mask.close()
 
             while True:
