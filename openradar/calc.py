@@ -62,7 +62,7 @@ def calculate_theta(rang, elev, anth):
     """
     horizon_dist = rang * np.cos(elev)
     horizon_alt = anth + rang * np.sin(elev)
-    
+
     return np.arctan(horizon_dist / (horizon_alt + RADIUS43))
 
 

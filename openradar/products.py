@@ -514,7 +514,7 @@ class CalibratedProduct(object):
 
 
 class ConsistentProduct(object):
-    """ Conisitified products are usually created by the consisitier. """
+    """ Conisitified products are usually created by the consistifier. """
 
     def __init__(self, datetime, prodcode, timeframe):
         self.datetime = datetime
@@ -733,7 +733,7 @@ class NowcastProduct(object):
         Crashes when the file does not exist. This should be catched by caller.
         """
         return h5py.File(self.path, 'r')
-    
+
     def make(self, base_product, vector_products, vector_extent=None):
         """
         :param baseproduct: the product whose preciptation to shift
@@ -843,7 +843,7 @@ class NowcastProduct(object):
         logging.debug('v0 {}'.format(vector_products[0]))
         logging.debug('v1 {}'.format(vector_products[1]))
         logging.debug('base {}'.format(base_product))
-        logging.debug('Created NowcastProduct {}'.format(filepath))        
+        logging.debug('Created NowcastProduct {}'.format(filepath))
 
     def __str__(self):
         return unicode(self).encode('utf-8')

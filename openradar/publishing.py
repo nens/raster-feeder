@@ -83,11 +83,12 @@ class Publisher(object):
 
     Datetimes can be a sequence of datetimes or a rangetext string.
     """
-    def __init__(self, datetimes, prodcodes, timeframes):
+    def __init__(self, datetimes, prodcodes, timeframes, nowcast):
         """ If cascade . """
         self.datetimes = datetimes
         self.prodcodes = prodcodes
         self.timeframes = timeframes
+        self.nowcast = nowcast
 
     def publications(self, cascade=False):
         """ Return product generator. """
@@ -100,8 +101,11 @@ class Publisher(object):
             datetimes=datetimes,
             prodcodes=self.prodcodes,
             timeframes=self.timeframes,
+            nowcast=self.nowcast
         )
         for combination in combinations:
+            if self.nowcast:
+                yield products.NowcastProduct(**combination)
             consistent = utils.consistent_product_expected(
                 prodcode=combination['prodcode'],
                 timeframe=combination['timeframe'],
@@ -152,12 +156,13 @@ class Publisher(object):
 
     def publish_ftp(self, cascade=False, overwrite=True):
         """ Publish to FTP configured in config. """
-        if hasattr(config, 'FTP_HOST') and config.FTP_HOST != '':
-            with FtpPublisher() as ftp_publisher:
-                for publication in self.publications(cascade=cascade):
-                    ftp_publisher.publish(product=publication,
-                                          overwrite=overwrite)
-            logging.info('FTP publishing complete.')
+        if hasattr(config, 'FTP_HOST'):
+            if config.FTP_HOST != '':
+                with FtpPublisher() as ftp_publisher:
+                    for publication in self.publications(cascade=cascade):
+                        ftp_publisher.publish(product=publication,
+                                              overwrite=overwrite)
+                logging.info('FTP publishing complete.')
         else:
             logging.warning('FTP not configured, FTP publishing not possible.')
 

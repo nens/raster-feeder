@@ -608,12 +608,12 @@ class Composite(object):
         left, right, upper, lower = BASEGRID.extent
         height, width = BASEGRID.get_shape()
 
-        # get window indices 
+        # get window indices
         window_left = int((left - x) / a)
-        window_upper = int((upper - y) / d)        
+        window_upper = int((upper - y) / d)
         window_right = int(window_left + width)
         window_lower = int(window_upper + height)
-        return window_left, window_right, window_upper, window_lower    
+        return window_left, window_right, window_upper, window_lower
 
     def _calculate(self, datasets):
         """
@@ -674,12 +674,12 @@ class Composite(object):
             )
             left, right, upper, lower = self._get_window(self.grid)
             for i, radar in enumerate(stations):
-                if radar in declutter_mask:            
-                    clutter[i, upper:lower, left:right] = declutter_mask[radar]                    
+                if radar in declutter_mask:
+                    clutter[i, upper:lower, left:right] = declutter_mask[radar]
             declutter_mask.close()
 
             while True:
-                clutter[rain.mask] = 0                
+                clutter[rain.mask] = 0
                 extra = reduce(np.logical_and, [
                     # clutter above threshold for that pixel
                     np.greater(clutter, self.declutter['history']),

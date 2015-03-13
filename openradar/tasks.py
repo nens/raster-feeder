@@ -46,22 +46,29 @@ def do_nothing():
 
 @celery.task
 def aggregate(result, datetime, timeframe, radars,
-              declutter, direct=False, cascade=False):
+              declutter, direct=False, cascade=False, nowcast=False):
     """ Create aggregates and optionally cascade to depending products. """
     loghelper.setup_logging(logfile_name='radar_aggregate.log')
     logging.info(20 * '-' + ' aggregate ' + 20 * '-')
     try:
         # Create aggregates
-        # Create aggregates
         aggregate_kwargs = dict(
             radars=radars,
             declutter=declutter,
             datetime=datetime,
-            timeframe=timeframe,
-            basedir = config.AGGREGATE_DIR,
-            multiscandir = config.MULTISCAN_DIR,
-            grid = scans.BASEGRID
+            timeframe=timeframe
             )
+        if kwargs['nowcast']:
+            aggregate_kwargs.update(dict(
+                basedir=config.AGGREGATE_DIR,
+                multiscandir=config.MULTISCAN_DIR,
+                grid=scans.BASEGRID))
+        else:
+            aggregate_kwargs.update(dict(
+                basedir=config.NOWCAST_AGGREGATE_DIR,
+                multiscandir=config.NOWCAST_MULTISCAN_DIR,
+                grid=scans.NOWCASTGRID))
+
         aggregate = scans.Aggregate(**aggregate_kwargs)
 
         aggregate.make()
@@ -84,29 +91,6 @@ def aggregate(result, datetime, timeframe, radars,
     except Exception as e:
         logging.exception(e)
     logging.info(20 * '-' + ' aggregate complete ' + 20 * '-')
-
-@celery.task
-def nowcast_aggregate(result, datetime, timeframe, radars,
-              declutter, **kwargs):
-    """ Create aggregates for nowcast extent. """
-    loghelper.setup_logging(logfile_name='radar_nowcast_aggregate.log')
-    logging.info(20 * '-' + ' nowcast aggregate ' + 20 * '-')
-    try:
-        # Create aggregates
-        aggregate_kwargs = dict(
-            radars=radars,
-            declutter=declutter,
-            datetime=datetime,
-            timeframe=timeframe,
-            basedir = config.NOWCAST_AGGREGATE_DIR,
-            multiscandir = config.NOWCAST_MULTISCAN_DIR,
-            grid = scans.NOWCASTGRID
-            )
-        aggregate = scans.Aggregate(**aggregate_kwargs)
-        aggregate.make()
-    except Exception as e:
-        logging.exception(e)
-    logging.info(20 * '-' + ' nowcast aggregate complete ' + 20 * '-')
 
 @celery.task
 def calibrate(result, datetime, prodcode, timeframe,
@@ -161,7 +145,8 @@ def rescale(result, datetime, prodcode, timeframe, direct=False, cascade=False):
 
 
 @celery.task
-def publish(result, datetimes, prodcodes, timeframes, endpoints, cascade):
+def publish(result, datetimes, prodcodes, timeframes, endpoints, cascade, 
+        nowcast):
     """
     Publish products.
 
@@ -173,7 +158,8 @@ def publish(result, datetimes, prodcodes, timeframes, endpoints, cascade):
     logging.info(20 * '-' + ' publish ' + 20 * '-')
     publisher = publishing.Publisher(datetimes=datetimes,
                                      prodcodes=prodcodes,
-                                     timeframes=timeframes)
+                                     timeframes=timeframes
+                                     nowcast=nowcast)
     for endpoint in endpoints:
         try:
             getattr(publisher, 'publish_' + endpoint)(cascade=cascade)

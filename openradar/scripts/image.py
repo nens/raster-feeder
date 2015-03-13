@@ -62,6 +62,9 @@ def product_generator(product, prodcode, timeframe, datetimes):
             yield scans.Aggregate(
                 declutter=None,
                 radars=config.ALL_RADARS,
+                basedir=config.AGGREGATE_DIR,
+                multiscandir=config.MULTISCAN_DIR,
+                grid = scans.BASEGRID,
                 **combination
             )
     else:
