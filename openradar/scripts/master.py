@@ -76,11 +76,12 @@ def master(**kwargs):
             aggregate_kwargs.update(dict(nowcast=True))
             subtasks.append(tasks.aggregate.s(**aggregate_kwargs))
             tpl = 'Nowcast agg. task: {datetime} {timeframe}'
-            logging.info(tpl.format(**aggregate_kwargs))
+            logging.info(tpl.format(**aggregate_kwargs))            
 
             # Append calibrate subtask
-            calibrate_kwargs = dict(prodcode=prodcode)
-            calibrate_kwargs.update(aggregate_kwargs)
+            calibrate_kwargs = dict(prodcode=prodcode)            
+            calibrate_kwargs.update({k:v for k, v in aggregate_kwargs.items() 
+                if not k == 'nowcast'})
             subtasks.append(tasks.calibrate.s(**calibrate_kwargs))
             tpl = 'Cal. task: {datetime} {timeframe} {prodcode}'
             logging.info(tpl.format(**calibrate_kwargs))
@@ -100,6 +101,7 @@ def master(**kwargs):
                 timeframes=[calibrate_kwargs['timeframe']],
                 endpoints=['ftp', 'h5', 'local', 'image', 'h5m'],
                 cascade=True,
+                nowcast=False
             ))
             tpl = 'Pub. task: {datetime} {timeframe} {prodcode}'
             logging.info(tpl.format(**calibrate_kwargs))

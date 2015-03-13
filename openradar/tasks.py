@@ -58,7 +58,7 @@ def aggregate(result, datetime, timeframe, radars,
             datetime=datetime,
             timeframe=timeframe
             )
-        if kwargs['nowcast']:
+        if nowcast:
             aggregate_kwargs.update(dict(
                 basedir=config.AGGREGATE_DIR,
                 multiscandir=config.MULTISCAN_DIR,
@@ -158,7 +158,7 @@ def publish(result, datetimes, prodcodes, timeframes, endpoints, cascade,
     logging.info(20 * '-' + ' publish ' + 20 * '-')
     publisher = publishing.Publisher(datetimes=datetimes,
                                      prodcodes=prodcodes,
-                                     timeframes=timeframes
+                                     timeframes=timeframes,
                                      nowcast=nowcast)
     for endpoint in endpoints:
         try:

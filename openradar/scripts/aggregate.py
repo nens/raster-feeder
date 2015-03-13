@@ -35,7 +35,7 @@ def aggregate(**kwargs):
                              declutter=declutter,
                              radars=kwargs['radars'],
                              direct=kwargs['direct'],
-                             cascade=kwargs['cascade']
+                             cascade=kwargs['cascade'],
                              nowcast=kwargs['nowcast'])
         action_kwargs.update(combination)
         action(**action_kwargs)

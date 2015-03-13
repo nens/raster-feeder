@@ -17,7 +17,6 @@ from openradar import images
 from openradar import utils
 from openradar import products
 
-
 class FtpPublisher(object):
     """Context manager for FTP publishing."""
 
@@ -100,8 +99,7 @@ class Publisher(object):
         combinations = utils.get_product_combinations(
             datetimes=datetimes,
             prodcodes=self.prodcodes,
-            timeframes=self.timeframes,
-            nowcast=self.nowcast
+            timeframes=self.timeframes
         )
         for combination in combinations:
             if self.nowcast:

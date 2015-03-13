@@ -64,7 +64,7 @@ def product_generator(product, prodcode, timeframe, datetimes):
                 radars=config.ALL_RADARS,
                 basedir=config.AGGREGATE_DIR,
                 multiscandir=config.MULTISCAN_DIR,
-                grid = scans.BASEGRID,
+                grid=scans.BASEGRID,
                 **combination
             )
     else:

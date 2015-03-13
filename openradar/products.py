@@ -397,7 +397,10 @@ class CalibratedProduct(object):
         return scans.Aggregate(radars=self.radars,
                                datetime=self.datetime,
                                timeframe=self.timeframe,
-                               declutter=self.declutter)
+                               declutter=self.declutter,
+                               basedir=config.AGGREGATE_DIR, 
+                               multiscandir=config.MULTISCAN_DIR, 
+                               grid=scans.BASEGRID)
 
     def make(self):
         aggregate = self._get_aggregate()
