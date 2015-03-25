@@ -69,53 +69,35 @@ def master(**kwargs):
             aggregate_kwargs = dict(declutter=declutter, radars=radars)
             aggregate_kwargs.update(combination)
             subtasks.append(tasks.aggregate.s(**aggregate_kwargs))
-            tpl = 'Agg. task: {datetime} {timeframe}'
+            tpl = 'Agg. task: {datetime} {timeframe}   {nowcast}'
             logging.info(tpl.format(**aggregate_kwargs))
 
-            # Append nowcast aggregate subtask
-            aggregate_kwargs.update(dict(nowcast=True))
-            subtasks.append(tasks.aggregate.s(**aggregate_kwargs))
-            tpl = 'Nowcast agg. task: {datetime} {timeframe}'
-            logging.info(tpl.format(**aggregate_kwargs))            
+            # Only 'f' combined with nowcast continues
+            if combination['nowcast'] and not prodcode == 'r':
+                continue
 
             # Append calibrate subtask
-            calibrate_kwargs = dict(prodcode=prodcode)            
-            calibrate_kwargs.update({k:v for k, v in aggregate_kwargs.items() 
-                if not k == 'nowcast'})
+            calibrate_kwargs = dict(prodcode=prodcode)
+            calibrate_kwargs.update(combination)
             subtasks.append(tasks.calibrate.s(**calibrate_kwargs))
-            tpl = 'Cal. task: {datetime} {timeframe} {prodcode}'
+            tpl = 'Cal. task: {datetime} {timeframe} {prodcode} {nowcast}'
             logging.info(tpl.format(**calibrate_kwargs))
 
             # Append rescale subtask
-            rescale_kwargs = {k: v
-                              for k, v in calibrate_kwargs.items()
-                              if k in ['datetime', 'prodcode', 'timeframe']}
-            subtasks.append(tasks.rescale.s(**rescale_kwargs))
-            tpl = 'Res. task: {datetime} {timeframe} {prodcode}'
-            logging.info(tpl.format(**rescale_kwargs))
+            subtasks.append(tasks.rescale.s(**calibrate_kwargs))
+            tpl = 'Res. task: {datetime} {timeframe} {prodcode} {nowcast}'
+            logging.info(tpl.format(**calibrate_kwargs))
 
             # Append publication subtask
             subtasks.append(tasks.publish.s(
                 datetimes=[calibrate_kwargs['datetime']],
                 prodcodes=[calibrate_kwargs['prodcode']],
                 timeframes=[calibrate_kwargs['timeframe']],
+                nowcasts=[calibrate_kwargs['nowcast']],
                 endpoints=['ftp', 'h5', 'local', 'image', 'h5m'],
                 cascade=True,
-                nowcast=False
             ))
-            tpl = 'Pub. task: {datetime} {timeframe} {prodcode}'
-            logging.info(tpl.format(**calibrate_kwargs))
-
-            # Append nowcast publication subtask
-            subtasks.append(tasks.publish.s(
-                datetimes=[calibrate_kwargs['datetime']],
-                prodcodes=[calibrate_kwargs['prodcode']],
-                timeframes=[calibrate_kwargs['timeframe']],
-                endpoints=['local'],
-                cascade=True,
-                nowcast=True
-            ))
-            tpl = 'Pub. task: {datetime} {timeframe} {prodcode}'
+            tpl = 'Pub. task: {datetime} {timeframe} {prodcode} {nowcast}'
             logging.info(tpl.format(**calibrate_kwargs))
 
     # Append subtask to create animated gif

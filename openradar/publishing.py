@@ -17,6 +17,7 @@ from openradar import images
 from openradar import utils
 from openradar import products
 
+
 class FtpPublisher(object):
     """Context manager for FTP publishing."""
 
@@ -33,8 +34,8 @@ class FtpPublisher(object):
         ftp_paths = self.ftp.nlst()
         for path in [path
                      for d in config.PRODUCT_CODE.values()
-                     for path in d.values()]:
-            if not path in ftp_paths:
+                     for path in d.values()] + [config.NOWCAST_PRODUCT_CODE]:
+            if path not in ftp_paths:
                 self.ftp.mkd(path)
 
         # Set empty dictionary for nlst caching
@@ -47,10 +48,7 @@ class FtpPublisher(object):
 
     def publish(self, product, overwrite=True):
         """ Publish the product in the correct folder. """
-        ftp_file = os.path.join(
-            config.PRODUCT_CODE[product.timeframe][product.prodcode],
-            os.path.basename(product.path),
-        )
+        ftp_file = product.ftp_path
         logging.debug(ftp_file)
 
         if not overwrite:
@@ -89,7 +87,7 @@ class Publisher(object):
         self.timeframes = timeframes
         self.nowcast = nowcast
 
-    def publications(self, cascade=False):
+    def ftp_publications(self, cascade=False):
         """ Return product generator. """
         if isinstance(self.datetimes, (list, tuple)):
             datetimes = self.datetimes
@@ -99,11 +97,17 @@ class Publisher(object):
         combinations = utils.get_product_combinations(
             datetimes=datetimes,
             prodcodes=self.prodcodes,
-            timeframes=self.timeframes
+            timeframes=self.timeframes,
         )
         for combination in combinations:
-            if self.nowcast:
-                yield products.NowcastProduct(**combination)
+            nowcast = combination.pop('nowcast')
+            if nowcast != self.nowcast:
+                continue
+
+            if nowcast:
+                yield products.Copied(datetime=combination['datetime'])
+                continue
+
             consistent = utils.consistent_product_expected(
                 prodcode=combination['prodcode'],
                 timeframe=combination['timeframe'],
@@ -121,6 +125,11 @@ class Publisher(object):
         return (p
                 for p in self.publications()
                 if p.timeframe == 'f' and p.prodcode == 'r')
+
+    def publications(self):
+        for publication in self.ftp_publications:
+            if not isinstance(publication, products.CopiedProduct):
+                yield publication
 
     def publish_local(self, cascade=False):
         """ Publish to target dirs as configured in config. """

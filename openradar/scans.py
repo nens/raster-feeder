@@ -33,6 +33,7 @@ BAND_META = {
     BAND_ELEV: dict(name='elevation'),
 }
 
+
 def create_basegrid(extent, cellsize):
     left, right, top, bottom = extent
     cellwidth, cellheight = cellsize
@@ -50,6 +51,7 @@ def create_basegrid(extent, cellsize):
 
 BASEGRID = create_basegrid(config.COMPOSITE_EXTENT, config.COMPOSITE_CELLSIZE)
 NOWCASTGRID = create_basegrid(config.NOWCAST_EXTENT, config.NOWCAST_CELLSIZE)
+
 
 class ScanSignature(object):
     """
@@ -589,12 +591,10 @@ class Composite(object):
         if None in declutter.values():
             raise ValueError('Declutter may not contain None values.')
 
-        self.multiscan = MultiScan(
-            multiscandatetime=compositedatetime,
-            scancodes=scancodes,
-            grid = self.grid,
-            basedir = basedir
-        )
+        self.multiscan = MultiScan(grid=self.grid,
+                                   basedir=basedir,
+                                   scancodes=scancodes,
+                                   multiscandatetime=compositedatetime)
 
     def _get_window(self, rain):
         """
@@ -850,8 +850,8 @@ class Aggregate(object):
     SUB_TIMEFRAME = {'d': 'h',
                      'h': 'f'}
 
-    def __init__(self, datetime, timeframe, radars, declutter,
-            basedir, multiscandir, grid):
+    def __init__(self, datetime, timeframe, radars,
+                 declutter, basedir, multiscandir, grid):
         """ Do some argument checking. """
         # Attributes
         self.datetime = datetime

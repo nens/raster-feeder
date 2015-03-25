@@ -29,6 +29,7 @@ SOURCE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'source')
 THREDDS_DIR = os.path.join(BUILDOUT_DIR, 'var', 'thredds')
 NOWCAST_MULTISCAN_DIR = os.path.join(BUILDOUT_DIR, 'var', 'nowcast_multiscan')
 NOWCAST_AGGREGATE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'nowcast_aggregate')
+NOWCAST_CALIBRATE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'nowcast_calibrate')
 
 # Unlikely to be overwritten
 CELERY_DIR = os.path.join(BUILDOUT_DIR, 'var', 'celery')
@@ -140,6 +141,7 @@ PRODUCT_CODE = {t: {p: 'TF{}_{}'.format(FRAMESTAMP[t], p.upper())
                     for p in 'rna'}
                 for t in 'fhd'}
 PRODUCT_TEMPLATE = 'RAD_{code}_{timestamp}.h5'
+NOWCAST_PRODUCT_CODE = 'TF0005_X'
 
 # Delays for waiting-for-files
 WAIT_SLEEP_TIME = 10  # Seconds

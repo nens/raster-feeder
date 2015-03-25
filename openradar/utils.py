@@ -275,26 +275,37 @@ def get_valid_timeframes(datetime):
 def get_aggregate_combinations(datetimes,
                                timeframes=['f', 'h', 'd']):
     """ Return generator of dictionaries. """
-    for datetime in datetimes:
-        valid_timeframes = get_valid_timeframes(datetime=datetime)
+    for _datetime in datetimes:
+        valid_timeframes = get_valid_timeframes(datetime=_datetime)
         for timeframe in timeframes:
             if timeframe in valid_timeframes:
-                yield dict(datetime=datetime,
+                yield dict(nowcast=False,
+                           datetime=_datetime,
                            timeframe=timeframe)
+                if timeframe == 'f':
+                    yield dict(nowcast=True,
+                               datetime=_datetime,
+                               timeframe=timeframe)
 
 
 def get_product_combinations(datetimes,
                              prodcodes=['r', 'n', 'a'],
                              timeframes=['f', 'h', 'd']):
     """ Return generator of dictionaries. """
-    for datetime in datetimes:
-        valid_timeframes = get_valid_timeframes(datetime=datetime)
+    for _datetime in datetimes:
+        valid_timeframes = get_valid_timeframes(datetime=_datetime)
         for prodcode in prodcodes:
             for timeframe in timeframes:
                 if timeframe in valid_timeframes:
-                    yield dict(datetime=datetime,
+                    yield dict(nowcast=False,
+                               datetime=_datetime,
                                prodcode=prodcode,
                                timeframe=timeframe)
+                    if timeframe == 'f' and prodcode == 'r':
+                        yield dict(nowcast=True,
+                                   datetime=_datetime,
+                                   prodcode=prodcode,
+                                   timeframe=timeframe)
 
 
 def consistent_product_expected(prodcode, timeframe):
@@ -545,8 +556,6 @@ def save_dataset(data, meta, path):
         product_datetime_start=product_datetime_start,
         product_group_name=str(os.path.splitext(os.path.basename(path))[0]),
         products_missing=products_missing,
-        #product_group_doc=b'http://nationaleregenradar.nl',
-        #dataset_raster_type=b'Composited interpolated rectangular radar data',
     )
 
     # Image group
