@@ -65,6 +65,10 @@ def master(**kwargs):
             # Add a separator between groups of tasks
             logging.info(40 * '-')
 
+            # Nowcast combinations only proceed for prodcode r
+            if combination['nowcast'] and not prodcode == 'r':
+                continue
+
             # Append aggregate subtask
             aggregate_kwargs = dict(declutter=declutter, radars=radars)
             aggregate_kwargs.update(combination)
@@ -72,28 +76,26 @@ def master(**kwargs):
             tpl = 'Agg. task: {datetime} {timeframe}   {nowcast}'
             logging.info(tpl.format(**aggregate_kwargs))
 
-            # Only 'f' combined with nowcast continues
-            if combination['nowcast'] and not prodcode == 'r':
-                continue
-
             # Append calibrate subtask
             calibrate_kwargs = dict(prodcode=prodcode)
-            calibrate_kwargs.update(combination)
+            calibrate_kwargs.update(aggregate_kwargs)
             subtasks.append(tasks.calibrate.s(**calibrate_kwargs))
             tpl = 'Cal. task: {datetime} {timeframe} {prodcode} {nowcast}'
             logging.info(tpl.format(**calibrate_kwargs))
 
             # Append rescale subtask
-            subtasks.append(tasks.rescale.s(**calibrate_kwargs))
-            tpl = 'Res. task: {datetime} {timeframe} {prodcode} {nowcast}'
-            logging.info(tpl.format(**calibrate_kwargs))
+            rescale_kwargs = {k: v
+                              for k, v in calibrate_kwargs.items()
+                              if k in ['datetime', 'prodcode', 'timeframe']}
+            tpl = 'Res. task: {datetime} {timeframe} {prodcode}'
+            logging.info(tpl.format(**rescale_kwargs))
 
             # Append publication subtask
             subtasks.append(tasks.publish.s(
                 datetimes=[calibrate_kwargs['datetime']],
                 prodcodes=[calibrate_kwargs['prodcode']],
                 timeframes=[calibrate_kwargs['timeframe']],
-                nowcasts=[calibrate_kwargs['nowcast']],
+                nowcast=calibrate_kwargs['nowcast'],
                 endpoints=['ftp', 'h5', 'local', 'image', 'h5m'],
                 cascade=True,
             ))

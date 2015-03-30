@@ -105,7 +105,7 @@ class Publisher(object):
                 continue
 
             if nowcast:
-                yield products.Copied(datetime=combination['datetime'])
+                yield products.CopiedProduct(datetime=combination['datetime'])
                 continue
 
             consistent = utils.consistent_product_expected(
@@ -120,16 +120,16 @@ class Publisher(object):
                 for rescaled_product in rps:
                     yield rescaled_product
 
+    def publications(self, cascade=False):
+        for publication in self.ftp_publications(cascade=cascade):
+            if not isinstance(publication, products.CopiedProduct):
+                yield publication
+
     def image_publications(self):
         """ Return product generator of real-time, five-minute products. """
         return (p
                 for p in self.publications()
                 if p.timeframe == 'f' and p.prodcode == 'r')
-
-    def publications(self):
-        for publication in self.ftp_publications:
-            if not isinstance(publication, products.CopiedProduct):
-                yield publication
 
     def publish_local(self, cascade=False):
         """ Publish to target dirs as configured in config. """
@@ -166,7 +166,7 @@ class Publisher(object):
         if hasattr(config, 'FTP_HOST'):
             if config.FTP_HOST != '':
                 with FtpPublisher() as ftp_publisher:
-                    for publication in self.publications(cascade=cascade):
+                    for publication in self.ftp_publications(cascade=cascade):
                         ftp_publisher.publish(product=publication,
                                               overwrite=overwrite)
                 logging.info('FTP publishing complete.')
