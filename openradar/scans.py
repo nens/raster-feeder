@@ -431,7 +431,7 @@ class ScanJabbeke(GenericScan):
         datasets = ((h5file[dataset_name]['where'].attrs['elangle'],
                      dataset_name) for dataset_name in h5file
                     if 'dataset' in dataset_name)
-        # Get the dataset that corrosponds with the minimal elevation angle.
+        # Get the dataset that corresponds with the minimal elevation angle.
         dataset_name = min(datasets)[1]
         return h5file[dataset_name]
 
@@ -1099,7 +1099,10 @@ class Aggregate(object):
         sub_aggrs = (Aggregate(datetime=datetime,
                                radars=self.radars,
                                declutter=self.declutter,
-                               timeframe=self.SUB_TIMEFRAME[self.timeframe])
+                               timeframe=self.SUB_TIMEFRAME[self.timeframe],
+                               basedir=self.basedir,
+                               multiscandir=self.multiscandir,
+                               grid=self.grid)
                      for datetime in self._sub_datetimes())
 
         return self._merge(aggregates=sub_aggrs)

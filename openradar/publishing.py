@@ -105,7 +105,7 @@ class Publisher(object):
                 continue
 
             if nowcast:
-                yield products.Copied(datetime=combination['datetime'])
+                yield products.CopiedProduct(datetime=combination['datetime'])
                 continue
 
             consistent = utils.consistent_product_expected(
@@ -126,8 +126,8 @@ class Publisher(object):
                 for p in self.publications()
                 if p.timeframe == 'f' and p.prodcode == 'r')
 
-    def publications(self):
-        for publication in self.ftp_publications:
+    def publications(self, cascade=False):
+        for publication in self.ftp_publications():
             if not isinstance(publication, products.CopiedProduct):
                 yield publication
 

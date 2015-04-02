@@ -72,7 +72,7 @@ def master(**kwargs):
             tpl = 'Agg. task: {datetime} {timeframe}   {nowcast}'
             logging.info(tpl.format(**aggregate_kwargs))
 
-            # Only 'f' combined with nowcast continues
+            # Only realtime product combined with nowcast continues
             if combination['nowcast'] and not prodcode == 'r':
                 continue
 
