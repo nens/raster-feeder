@@ -611,8 +611,8 @@ class Composite(object):
         # get window indices
         window_left = int((left - x) / a)
         window_upper = int((upper - y) / d)
-        window_right = int(window_left + width)
-        window_lower = int(window_upper + height)
+        window_right = window_left + width
+        window_lower = window_upper + height
         return window_left, window_right, window_upper, window_lower
 
     def _calculate(self, datasets):
