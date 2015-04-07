@@ -83,19 +83,19 @@ def product_generator(product, prodcode, timeframe, datetimes, nowcast):
 
             yield scans.Aggregate(**aggregate_kwargs)
     else:
-        combinations = utils.get_product_combinations(
-            datetimes=datetimes,
-            prodcodes=prodcode,
-            timeframes=timeframe,
-        )
-        Product = dict(
-            b=products.CalibratedProduct,
-            c=products.ConsistentProduct,
-        )[product]
+        combinations = utils.get_product_combinations(prodcodes=prodcode,
+                                                      datetimes=datetimes,
+                                                      timeframes=timeframe)
         for combination in combinations:
-            if nowcast:
+            if nowcast != combination.pop('nowcast'):
                 continue
-            yield Product(**combination)
+            if nowcast:
+                yield products.CopiedProduct(datetime=combination['datetime'])
+            else:
+                if product == 'b':
+                    yield products.CalibratedProduct(**combination)
+                else:
+                    yield products.ConsistentProduct(**combination)
 
 
 def main():

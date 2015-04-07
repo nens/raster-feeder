@@ -134,11 +134,9 @@ def calibrate(result, datetime, prodcode, timeframe, nowcast,
 
 
 @celery.task
-def rescale(result, datetime, prodcode, nowcast,
+def rescale(result, datetime, prodcode,
             timeframe, direct=False, cascade=False):
     """ Create rescaled products wherever possible. """
-    if nowcast:
-        return
     loghelper.setup_logging(logfile_name='radar_rescale.log')
     logging.info(20 * '-' + ' rescale ' + 20 * '-')
     try:

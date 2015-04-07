@@ -87,6 +87,7 @@ def master(**kwargs):
             rescale_kwargs = {k: v
                               for k, v in calibrate_kwargs.items()
                               if k in ['datetime', 'prodcode', 'timeframe']}
+            subtasks.append(tasks.rescale.s(**rescale_kwargs))
             tpl = 'Res. task: {datetime} {timeframe} {prodcode}'
             logging.info(tpl.format(**rescale_kwargs))
 
