@@ -76,10 +76,6 @@ def master(**kwargs):
             tpl = 'Agg. task: {datetime} {timeframe}   {nowcast}'
             logging.info(tpl.format(**aggregate_kwargs))
 
-            # Only realtime product combined with nowcast continues
-            if combination['nowcast'] and not prodcode == 'r':
-                continue
-
             # Append calibrate subtask
             calibrate_kwargs = dict(prodcode=prodcode)
             calibrate_kwargs.update(aggregate_kwargs)
