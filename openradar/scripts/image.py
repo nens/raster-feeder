@@ -15,6 +15,8 @@ from openradar import products
 from openradar import scans
 from openradar import utils
 
+import pdb
+
 
 def get_image_args():
     argument = arguments.Argument()
@@ -35,14 +37,17 @@ def get_image_args():
                         default='r',
                         help='(r)ealtime, (n)ear-realtime or (a)fterwards')
     parser.add_argument('-c', '--product',
-                        choices=['a', 'b', 'c', 'n'],
+                        choices=['a', 'b', 'c'],
                         default='b',
-                        help=('(a)ggregate, cali(b)rated, '
-                              '(c)onsistent or (n)owcast'))
+                        help=('(a)ggregate, cali(b)rated, or (c)onsistent'))
     parser.add_argument('-t', '--timeframe',
                         choices=['f', 'h', 'd'],
                         default='f',
                         help='(f)ive minute, (h)our or (d)ay')
+    parser.add_argument('-n', '--nowcast',
+                        action='store_true',
+                        default=False,
+                        help='Use nowcast extent')
     parser.add_argument('-f', '--format',
                         type=str,
                         default='png',
@@ -51,22 +56,34 @@ def get_image_args():
     return vars(parser.parse_args())
 
 
-def product_generator(product, prodcode, timeframe, datetimes):
+def product_generator(product, prodcode, timeframe, datetimes, nowcast):
     """ Return product generator. """
     if product == 'a':
+        aggregate_kwargs = dict(declutter=None, 
+            radars=config.ALL_RADARS)
         combinations = utils.get_aggregate_combinations(
             datetimes=datetimes,
             timeframes=timeframe,
         )
         for combination in combinations:
-            yield scans.Aggregate(
-                declutter=None,
-                radars=config.ALL_RADARS,
-                basedir=config.AGGREGATE_DIR,
-                multiscandir=config.MULTISCAN_DIR,
-                grid=scans.BASEGRID,
-                **combination
-            )
+            if nowcast != combination['nowcast']:
+                continue
+            if nowcast:
+                aggregate_kwargs.update(dict(
+                    basedir=config.NOWCAST_AGGREGATE_DIR,
+                    multiscandir=config.NOWCAST_MULTISCAN_DIR,
+                    grid=scans.NOWCASTGRID,
+                    datetime=combination['datetime'],
+                    timeframe=combination['timeframe']))
+            else:
+                aggregate_kwargs.update(dict(
+                    basedir=config.AGGREGATE_DIR,
+                    multiscandir=config.MULTISCAN_DIR,
+                    grid=scans.BASEGRID,
+                    datetime=combination['datetime'],
+                    timeframe=combination['timeframe']))
+
+            yield scans.Aggregate(**aggregate_kwargs)
     else:
         combinations = utils.get_product_combinations(
             datetimes=datetimes,
@@ -76,9 +93,10 @@ def product_generator(product, prodcode, timeframe, datetimes):
         Product = dict(
             b=products.CalibratedProduct,
             c=products.ConsistentProduct,
-            n=products.NowcastProduct,
         )[product]
         for combination in combinations:
+            if nowcast:
+                continue
             yield Product(**combination)
 
 
@@ -93,7 +111,8 @@ def main():
     products = product_generator(product=args['product'],
                                  prodcode=args['prodcode'],
                                  timeframe=args['timeframe'],
-                                 datetimes=multidaterange.iterdatetimes())
+                                 datetimes=multidaterange.iterdatetimes(),
+                                 nowcast=args['nowcast'])
 
     create = dict(png=images.create_png,
                   tif=images.create_tif)[args['format']]
