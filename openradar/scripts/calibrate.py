@@ -33,6 +33,8 @@ def calibrate(**kwargs):
     )
     # Execute or delay task
     for combination in combinations:
+        if kwargs['nowcast'] != combination['nowcast']:
+            continue
         action_kwargs = dict(result=None,
                              declutter=declutter,
                              radars=kwargs['radars'],
@@ -53,5 +55,6 @@ def main():
         'declutter_history',
         'direct',
         'cascade',
+        'nowcast'
     ])
     calibrate(**vars(parser.parse_args()))

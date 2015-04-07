@@ -8,16 +8,15 @@ from __future__ import absolute_import
 from __future__ import division
 
 import calendar
-import datetime
 import h5py
 import logging
 import numpy as np
 import os
+import shutil
 
 from pydap import client
 from pydap.exceptions import ServerError
 
-from openradar import calc
 from openradar import config
 from openradar import utils
 from openradar import scans
@@ -283,7 +282,7 @@ class ThreddsFile(object):
         """ Raise ValueError if check fails. """
 
         with h5py.File(self.path) as h5:
-            if not 'time' in h5:
+            if 'time' not in h5:
                 raise ValueError("No 'time' dataset.")
             if not h5['time'].size == self.timesteps:
                 raise ValueError('Expected size {}, found {}.'.format(
@@ -361,6 +360,58 @@ class ThreddsFile(object):
             return self.url
 
 
+class CopiedProduct(object):
+    """ Represents a copy of an aggregate. """
+
+    def __init__(self, datetime):
+        self.datetime = datetime
+
+        # determine product paths
+        code = config.NOWCAST_PRODUCT_CODE
+        self.path = utils.PathHelper(
+            basedir=config.NOWCAST_CALIBRATE_DIR,
+            code=code,
+            template=config.PRODUCT_TEMPLATE,
+        ).path(datetime)
+        self.ftp_path = os.path.join(code, os.path.basename(self.path))
+
+    def get(self):
+        """
+        Return h5 dataset opened in read mode.
+
+        Crashes when the file does not exist. This should be catched by caller.
+        """
+        return h5py.File(self.path, 'r')
+
+    def make(self):
+        """ Copy aggregate. """
+        source_path = utils.PathHelper(
+            basedir=config.NOWCAST_AGGREGATE_DIR,
+            code='5min',
+            template='{code}_{timestamp}.h5',
+        ).path(self.datetime)
+
+        if not os.path.exists(source_path):
+            return
+
+        try:
+            os.makedirs(os.path.dirname(self.path))
+        except:
+            pass
+
+        shutil.copy(source_path, self.path)
+        logging.info('Create CopiedProduct {}'.format(
+            os.path.basename(self.path)
+        ))
+        logging.debug(self.path)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    def __unicode__(self):
+        return self.path
+
+
 class CalibratedProduct(object):
     '''
     Depending on the product requested the produce method will create:
@@ -385,19 +436,24 @@ class CalibratedProduct(object):
         else:
             self.declutter = declutter
 
-        # determine product path
+        # determine product paths
+        code = config.PRODUCT_CODE[self.timeframe][self.prodcode]
         self.path = utils.PathHelper(
             basedir=config.CALIBRATE_DIR,
-            code=config.PRODUCT_CODE[self.timeframe][self.prodcode],
+            code=code,
             template=config.PRODUCT_TEMPLATE,
         ).path(datetime)
+        self.ftp_path = os.path.join(code, os.path.basename(self.path))
 
     def _get_aggregate(self):
         """ Return Aggregate object. """
         return scans.Aggregate(radars=self.radars,
                                datetime=self.datetime,
                                timeframe=self.timeframe,
-                               declutter=self.declutter)
+                               declutter=self.declutter,
+                               basedir=config.AGGREGATE_DIR,
+                               multiscandir=config.MULTISCAN_DIR,
+                               grid=scans.BASEGRID)
 
     def make(self):
         aggregate = self._get_aggregate()
@@ -514,7 +570,7 @@ class CalibratedProduct(object):
 
 
 class ConsistentProduct(object):
-    """ Conisitified products are usually created by the consisitier. """
+    """ Conisitified products are usually created by the consistifier. """
 
     def __init__(self, datetime, prodcode, timeframe):
         self.datetime = datetime
@@ -522,11 +578,15 @@ class ConsistentProduct(object):
         self.prodcode = prodcode
         self.product = prodcode  # Backwards compatible
         self.timeframe = timeframe
+
+        # determine product paths
+        code = config.PRODUCT_CODE[self.timeframe][self.prodcode]
         self.path = utils.PathHelper(
             basedir=config.CONSISTENT_DIR,
-            code=config.PRODUCT_CODE[self.timeframe][self.prodcode],
+            code=code,
             template=config.PRODUCT_TEMPLATE,
         ).path(datetime)
+        self.ftp_path = os.path.join(code, os.path.basename(self.path))
 
     def get(self):
         """
@@ -710,144 +770,3 @@ def get_values_from_opendap(x, y, start_date, end_date):
         if current == end:
             return result
         current = current.next()
-
-
-class NowcastProduct(object):
-    """
-    Represents a nowcasted product. All source products are included in
-    the metadata.
-    """
-    def __init__(self, datetime, timeframe, **kwargs):
-        self.datetime = datetime
-        self.timeframe = timeframe
-        self.prodcode = 'r'
-        self.path = utils.PathHelper(
-            basedir=config.NOWCAST_DIR,
-            code=config.PRODUCT_CODE[self.timeframe][self.prodcode],
-            template=config.PRODUCT_TEMPLATE,
-        ).path(datetime)
-
-    def get(self):
-        """
-        Return h5 dataset opened in read mode.
-
-        Crashes when the file does not exist. This should be catched by caller.
-        """
-        return h5py.File(self.path, 'r')
-
-    def make(self, base_product, vector_products, vector_extent=None):
-        """
-        :param baseproduct: the product whose preciptation to shift
-        :param vectorproducts:
-            two-tuple of products to derive the shift vector from
-        :param vectorextent:
-            extent to limit the data region from which the vector is derived
-        """
-        correlate_data = []
-        for vector_product in vector_products:
-            with vector_product.get() as h5:
-                linear_correlate_data = np.ma.masked_equal(
-                    h5['precipitation'],
-                    config.NODATAVALUE,
-                ).filled(0)
-            correlate_data.append(np.log(linear_correlate_data + 1))
-            #correlate_data.append(linear_correlate_data)
-
-        # Determine the slices into the data. It is assumed that the data
-        # have the same shape and that the extent of the data corresponds
-        # to the configured composite extent.
-        if vector_extent is None:
-            #vector_extent = 58000, 431000, 116000, 471000
-            vector_extent = 46126, 416638, 140226, 480951
-            # mpl style extent to gdal style extent
-            full_extent = np.array(
-                config.COMPOSITE_EXTENT,
-            )[[0, 3, 1, 2]].tolist()
-        slices = calc.calculate_slices(
-            size=correlate_data[0].shape[::-1],
-            full_extent=full_extent,
-            partial_extent=vector_extent,
-        )
-
-        # get the vector
-        vector = calc.calculate_vector(*map(lambda x: x[slices],
-                                       correlate_data))
-        logging.debug(vector)
-        vector_products_seconds = (vector_products[1].datetime -
-                                   vector_products[0].datetime).total_seconds()
-        base_product_seconds = (self.datetime -
-                                base_product.datetime).total_seconds()
-        factor = base_product_seconds / vector_products_seconds
-        shift = [-v * factor for v in vector]
-
-        # Load the base data
-        with base_product.get() as h5:
-            original = h5['precipitation'][:]
-            meta = dict(h5.attrs)
-        original_filled = np.ma.masked_equal(
-            original, config.NODATAVALUE, copy=False,
-        ).filled(0)
-
-        # Create nowcast data by adding shifted data
-        current_datetime = (self.datetime -
-                            config.TIMEFRAME_DELTA[self.timeframe])
-        nowcast_precipitation = np.zeros(original.shape, 'f4')
-        count = 0
-        while current_datetime < self.datetime:
-            current_datetime += datetime.timedelta(minutes=5)
-            # De-indent this tot get only shift, but now accumulation
-            seconds = (current_datetime -
-                       base_product.datetime).total_seconds()
-            factor = seconds / vector_products_seconds
-            shift = [-v * factor for v in vector]
-            nowcast_precipitation += calc.calculate_shifted(
-                data=original_filled,
-                shift=shift,
-            )
-            count += 1
-        logging.debug(count)
-
-        # Wrap
-        data = dict(
-            precipitation=np.ma.masked_equal(
-                nowcast_precipitation,
-                config.NODATAVALUE,
-            ),
-        )
-
-        # Utils save dataset checks timestamp_last_composite.
-        # Add the difference between product and baseproduct.
-        datetime_last_composite = utils.timestamp2datetime(
-            meta['timestamp_last_composite'],
-        ) + (self.datetime - base_product.datetime)
-        timestamp_last_composite = datetime_last_composite.strftime(
-            config.TIMESTAMP_FORMAT,
-        )
-
-        meta.update(
-            timestamp_last_composite=timestamp_last_composite,
-            nowcast_v0=os.path.basename(vector_products[0].path),
-            nowcast_v1=os.path.basename(vector_products[1].path),
-            nowcast_base=os.path.basename(base_product.path),
-            nowcast_seconds=int(base_product_seconds),
-        )
-
-        # Save and log
-        utils.save_dataset(
-            data=data,
-            meta=meta,
-            path=self.path
-        )
-        filepath = self.path
-        filename = os.path.basename(self.path)
-        logging.info('Created NowcastProduct {}'.format(filename))
-        logging.debug('v0 {}'.format(vector_products[0]))
-        logging.debug('v1 {}'.format(vector_products[1]))
-        logging.debug('base {}'.format(base_product))
-        logging.debug('Created NowcastProduct {}'.format(filepath))
-
-    def __str__(self):
-        return unicode(self).encode('utf-8')
-
-    def __unicode__(self):
-        return self.path

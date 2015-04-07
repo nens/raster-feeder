@@ -16,8 +16,8 @@ import ftplib
 import os
 import re
 
-DIR_PATTERN = re.compile('TF[0-9]{4}_[RNA]')
-FILE_PATTERN = re.compile('RAD_TF[0-9]{4}_[RNA]_(?P<timestamp>[0-9]{14}).h5')
+DIR_PATTERN = re.compile('TF[0-9]{4}_[XRNA]')
+FILE_PATTERN = re.compile('RAD_TF[0-9]{4}_[XRNA]_(?P<timestamp>[0-9]{14}).h5')
 AGE_MAX_DAYS = 10
 
 
@@ -40,7 +40,13 @@ def cleanup_ftp_dir(ftp, dirname):
     """ Remove old files in dir. """
     count = 0
     ftp.cwd(dirname)
-    for filename in ftp.nlst():
+    try:
+        names = ftp.nlst()
+    except ftplib.error_perm as ftp_error:
+        logging.debug(ftp_error)
+        ftp.cwd('..')
+        return 0
+    for filename in names:
         if has_expired(filename):
             ftp.delete(filename)
             count += 1

@@ -45,17 +45,32 @@ def do_nothing():
 
 
 @celery.task
-def aggregate(result, datetime, timeframe, radars,
-              declutter, direct=False, cascade=False):
+def aggregate(result, datetime, timeframe, nowcast,
+              radars, declutter, direct=False, cascade=False):
     """ Create aggregates and optionally cascade to depending products. """
     loghelper.setup_logging(logfile_name='radar_aggregate.log')
     logging.info(20 * '-' + ' aggregate ' + 20 * '-')
     try:
         # Create aggregates
-        aggregate = scans.Aggregate(radars=radars,
-                                    declutter=declutter,
-                                    datetime=datetime,
-                                    timeframe=timeframe)
+        aggregate_kwargs = dict(
+            radars=radars,
+            declutter=declutter,
+            datetime=datetime,
+            timeframe=timeframe
+            )
+        if nowcast:
+            aggregate_kwargs.update(dict(
+                basedir=config.NOWCAST_AGGREGATE_DIR,
+                multiscandir=config.NOWCAST_MULTISCAN_DIR,
+                grid=scans.NOWCASTGRID))
+        else:
+            aggregate_kwargs.update(dict(
+                basedir=config.AGGREGATE_DIR,
+                multiscandir=config.MULTISCAN_DIR,
+                grid=scans.BASEGRID))
+
+        aggregate = scans.Aggregate(**aggregate_kwargs)
+
         aggregate.make()
         # Cascade when requested
         if cascade:
@@ -79,18 +94,23 @@ def aggregate(result, datetime, timeframe, radars,
 
 
 @celery.task
-def calibrate(result, datetime, prodcode, timeframe,
+def calibrate(result, datetime, prodcode, timeframe, nowcast,
               radars, declutter, direct=False, cascade=False):
     """ Created calibrated aggregated composites. """
     loghelper.setup_logging(logfile_name='radar_calibrate.log')
     logging.info(20 * '-' + ' calibrate ' + 20 * '-')
     try:
         # Create products
-        product = products.CalibratedProduct(radars=radars,
-                                             prodcode=prodcode,
-                                             datetime=datetime,
-                                             timeframe=timeframe,
-                                             declutter=declutter)
+        if nowcast:
+            product = products.CopiedProduct(datetime)
+        else:
+            product = products.CalibratedProduct(
+                radars=radars,
+                prodcode=prodcode,
+                datetime=datetime,
+                timeframe=timeframe,
+                declutter=declutter,
+            )
         product.make()
         # Cascade when requested
         if cascade:
@@ -114,7 +134,8 @@ def calibrate(result, datetime, prodcode, timeframe,
 
 
 @celery.task
-def rescale(result, datetime, prodcode, timeframe, direct=False, cascade=False):
+def rescale(result, datetime, prodcode,
+            timeframe, direct=False, cascade=False):
     """ Create rescaled products wherever possible. """
     loghelper.setup_logging(logfile_name='radar_rescale.log')
     logging.info(20 * '-' + ' rescale ' + 20 * '-')
@@ -131,7 +152,8 @@ def rescale(result, datetime, prodcode, timeframe, direct=False, cascade=False):
 
 
 @celery.task
-def publish(result, datetimes, prodcodes, timeframes, endpoints, cascade):
+def publish(result, datetimes, prodcodes, timeframes, endpoints, cascade,
+            nowcast):
     """
     Publish products.
 
@@ -143,7 +165,8 @@ def publish(result, datetimes, prodcodes, timeframes, endpoints, cascade):
     logging.info(20 * '-' + ' publish ' + 20 * '-')
     publisher = publishing.Publisher(datetimes=datetimes,
                                      prodcodes=prodcodes,
-                                     timeframes=timeframes)
+                                     timeframes=timeframes,
+                                     nowcast=nowcast)
     for endpoint in endpoints:
         try:
             getattr(publisher, 'publish_' + endpoint)(cascade=cascade)

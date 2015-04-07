@@ -23,11 +23,13 @@ CONSISTENT_DIR = os.path.join(BUILDOUT_DIR, 'var', 'consistent')
 IMG_DIR = os.path.join(BUILDOUT_DIR, 'var', 'img')
 MISC_DIR = os.path.join(BUILDOUT_DIR, 'var', 'misc')
 MULTISCAN_DIR = os.path.join(BUILDOUT_DIR, 'var', 'multiscan')
-NOWCAST_DIR = os.path.join(BUILDOUT_DIR, 'var', 'nowcast')
 RADAR_DIR = os.path.join(BUILDOUT_DIR, 'var', 'radar')
 REPORT_DIR = os.path.join(BUILDOUT_DIR, 'var', 'report')
 SOURCE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'source')
 THREDDS_DIR = os.path.join(BUILDOUT_DIR, 'var', 'thredds')
+NOWCAST_MULTISCAN_DIR = os.path.join(BUILDOUT_DIR, 'var', 'nowcast_multiscan')
+NOWCAST_AGGREGATE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'nowcast_aggregate')
+NOWCAST_CALIBRATE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'nowcast_calibrate')
 
 # Unlikely to be overwritten
 CELERY_DIR = os.path.join(BUILDOUT_DIR, 'var', 'celery')
@@ -100,6 +102,10 @@ TIMESTAMP_FORMAT = '%Y%m%d%H%M%S'
 COMPOSITE_EXTENT = (-110000, 390000, 700000, 210000)
 COMPOSITE_CELLSIZE = (1000, 1000)
 
+# Gridproperties for Infoplaza (left, right, top, bottom)
+NOWCAST_EXTENT = (-310000, 400000, 800000, 50000)
+NOWCAST_CELLSIZE = (1000, 1000)
+
 # DWD coordinates using standard transformation from EPSG:4314 to EPSG:4326
 DWD_COORDINATES = dict(
     ase=(51.405659776445475, 6.967144448033989),
@@ -135,6 +141,7 @@ PRODUCT_CODE = {t: {p: 'TF{}_{}'.format(FRAMESTAMP[t], p.upper())
                     for p in 'rna'}
                 for t in 'fhd'}
 PRODUCT_TEMPLATE = 'RAD_{code}_{timestamp}.h5'
+NOWCAST_PRODUCT_CODE = 'TF0005_X'
 
 # Delays for waiting-for-files
 WAIT_SLEEP_TIME = 10  # Seconds

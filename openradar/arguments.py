@@ -99,7 +99,7 @@ class Argument(object):
             help=('Path from where all the files'
                   ' are stored that need to be organized'),
         )
-    
+
     def image_dir(self, parser):
         parser.add_argument(
             '-i', '--image-dir',
@@ -121,6 +121,11 @@ class Argument(object):
             action='store_true',
             help='Automatically create depending tasks',
         )
+    def nowcast(self, parser):
+        parser.add_argument(
+            '-n', '--nowcast',
+            action='store_true',
+            help='Use nowcast extent')
 
     def endpoints(self, parser):
         parser.add_argument(

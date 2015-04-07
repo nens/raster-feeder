@@ -41,7 +41,8 @@ def sync_radar():
 
     publisher = publishing.Publisher(datetimes=datetimes,
                                      prodcodes=prodcodes,
-                                     timeframes=timeframes)
+                                     timeframes=timeframes,
+                                     nowcast=False)
     publisher.publish_ftp(overwrite=False, cascade=True)
 
 
