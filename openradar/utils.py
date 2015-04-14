@@ -514,18 +514,19 @@ def save_dataset(data, meta, path):
     h5 = h5py.File(tmp_path, 'w')
 
     # Geographic group
+    left, right, top, bottom = meta['grid_extent']
+    width, height = meta['grid_size']
+
     geographic = dict(
         geo_par_pixel=b'X,Y',
         geo_dim_pixel=b'KM,KM',
         geo_pixel_def=b'CENTRE',
-        geo_number_columns=500,
-        geo_number_rows=490,
+        geo_number_columns=width,
+        geo_number_rows=height,
         geo_pixel_size_x=1.000,
         geo_pixel_size_y=-1.000,
-        geo_product_corners=[-110000, 210000,
-                             -110000, 700000,
-                             390000, 700000,
-                             390000, 210000],
+        geo_product_corners=[left, bottom, left, top,
+                             right, top, right, bottom],
         map_projection=dict(
             projection_indication=b'Y',
             projection_name=b'STEREOGRAPHIC',
