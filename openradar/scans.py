@@ -17,7 +17,6 @@ import datetime
 import h5py
 import json
 import logging
-import multiprocessing
 import numpy as np
 import os
 import re
@@ -1006,14 +1005,7 @@ class Aggregate(object):
         """
         Return h5_dataset by merging iterable of aggregate objects.
         """
-        if self.code == 'uur':
-            # Make the iterables in parallel
-            pool = multiprocessing.Pool()
-            iterable = iter(pool.map(make_aggregate, aggregates))
-            pool.close()
-        else:
-            # Make the iterables the usual way
-            iterable = iter(map(make_aggregate, aggregates))
+        iterable = iter(map(make_aggregate, aggregates))
 
         aggregate = iterable.next()
         h5 = aggregate.get()
