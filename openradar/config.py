@@ -32,11 +32,7 @@ NOWCAST_AGGREGATE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'nowcast_aggregate')
 NOWCAST_CALIBRATE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'nowcast_calibrate')
 
 # Unlikely to be overwritten
-CELERY_DIR = os.path.join(BUILDOUT_DIR, 'var', 'celery')
 LOG_DIR = os.path.join(BUILDOUT_DIR, 'var', 'log')
-
-# Celery
-CELERY_DB = os.path.join(CELERY_DIR, 'celerydb.sqlite')
 
 # Default nodatavalue
 NODATAVALUE = -9999

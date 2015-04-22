@@ -10,6 +10,7 @@ long_description = '\n\n'.join([
 
 install_requires = [
     'celery',
+    'celery[redis]',
     'h5py',
     'matplotlib',
     'numpy',
@@ -20,7 +21,6 @@ install_requires = [
     'rpy2',
     'scipy',
     'setuptools',
-    'SQLAlchemy',
     'supervisor',
     ],
 

@@ -34,9 +34,7 @@ except OSError:
 
 # Configure celery
 app = celery.Celery()
-app.conf.update(
-    BROKER_URL='sqla+sqlite:///{}'.format(config.CELERY_DB),
-)
+app.conf.update(BROKER_URL='redis://localhost')
 
 
 @celery.task
