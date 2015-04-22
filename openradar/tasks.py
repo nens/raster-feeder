@@ -25,13 +25,6 @@ from openradar import utils
 # vvv Fix for celery forking problem
 os.environ['PYTHONPATH'] = ':'.join(sys.path)
 
-# Autocreate celery db dir
-try:
-    os.makedirs(os.path.dirname(config.CELERY_DB))
-except OSError:
-    pass  # No problem.
-
-
 # Configure celery
 app = celery.Celery()
 app.conf.update(BROKER_URL='redis://localhost')

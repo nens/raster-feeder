@@ -15,7 +15,7 @@ from openradar import config
 
 def _get_logging_dict(logfile_path):
     return {
-        'disable_existing_loggers': False,
+        'disable_existing_loggers': True,
         'version': 1,
         'formatters': {
             'verbose': {
