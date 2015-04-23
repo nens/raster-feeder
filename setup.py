@@ -60,11 +60,10 @@ setup(name='openradar',
               # Tools
               'clutter = openradar.scripts.clutter:main',
               'histogram = openradar.scripts.histogram:main',
-              'sandbox = openradar.scripts.sandbox:main',
               'organize = openradar.scripts.organize:main',
               'report = openradar.scripts.report:main',
+              'repair = openradar.scripts.repair:main',
               'image = openradar.scripts.image:main',
-              'export_to_store = openradar.scripts.export_to_store:main',
               'elevation_image = openradar.scripts.elevation_image:main',
           ]},
       )

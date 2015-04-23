@@ -80,3 +80,18 @@ To update the clutter filter, execute this command::
 Put this file in the misc directory and update DECLUTTER_FILEPATH to
 point to this file. The basename is enough, but an absolute path will
 probably work, too.
+
+Troubleshooting
+---------------
+If there is a hickup in the production and the task queue gets congested,
+try purging it::
+
+    $ bin/celery --app=openradar.tasks.app purge
+
+Now, the realtime products are a good indication for the times at which
+master execution has not succesfully completed. To get a list of missing
+products in the past 7 days run::
+
+    $ bin/repair 7d
+
+To get a hint about which masters to re-run.
