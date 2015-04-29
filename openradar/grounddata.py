@@ -23,11 +23,7 @@ from openradar import config
 def get_rainstations(datetime, timeframe):  
     """ Connect and query database for datetime and timeframe. """    
     
-    # Define connection string and query template
-    connstr_template = ('host={host} dbname={dbname} '
-                        'user={user} password={password}')
-    connstr = connstr_template.format(**config.GROUND_DATABASE)
-        
+    # Define query template
     query = '''
         SELECT 
           loc.x, 
@@ -53,7 +49,10 @@ def get_rainstations(datetime, timeframe):
     query = dt.datetime.strftime(datetime, query)
     
     # Connect to database, query and retrieve rows
-    conn = psycopg2.connect(connstr)
+    kwargs = {'connect_timeout': '10', 
+              'options': '-c statement_timeout=10000'}
+    kwargs.update(config.GROUND_DATABASE)
+    conn = psycopg2.connect(**kwargs)
     cur = conn.cursor()
     cur.execute(query)
     rows = cur.fetchall()
