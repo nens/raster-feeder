@@ -77,12 +77,14 @@ class Checker(object):
     template1 = 'Need {exp} or better, found {act}.'
     names = {'r': 'realtime', 'n': 'near-realtime', 'a': 'after'}
 
-    def __init__(self):
+    def __init__(self, quality):
         # determine zones
         u = datetime.datetime.utcnow() - TOLERANCE
         self.r = utils.closest_time(timeframe='f', dt_close=u)
         self.n = utils.closest_time(timeframe='h', dt_close=u) - HOUR
         self.a = utils.closest_time(timeframe='d', dt_close=u) - HOUR * 48
+
+        self.quality = quality
 
     def check(self, meta, date):
         # what do we have
@@ -92,7 +94,12 @@ class Checker(object):
         # what do we expect
         if date < self.a:
             expected_prodcode = 'a'
-            if meta['composite_count'] == 1:
+            try:
+                composite_count = meta['composite_count']
+            except KeyError:
+                logger.debug('{}: no product or no meta.'.format(date))
+                return
+            if composite_count == 1:
                 expected_calibration = IDW,
             else:
                 expected_calibration = KED,
@@ -112,13 +119,13 @@ class Checker(object):
         if actual_prodcode not in expected_prodcode:
             act = self.names[actual_prodcode]
             return self.template1.format(exp=exp, act=act)
-        if actual_calibration not in expected_calibration:
+        if self.quality and actual_calibration not in expected_calibration:
             act = actual_calibration
             exp = expected_calibration[0]
             return self.template1.format(exp=exp, act=act)
 
 
-def command(text, verbose):
+def command(text, verbose, quality):
     """
     """
     # logging
@@ -134,7 +141,7 @@ def command(text, verbose):
     # period
     period = periods.Period(text)
     metas = {t: get_metas(NAMES[t], period) for t in 'fhd'}
-    checker = Checker()
+    checker = Checker(quality)
     failures = []
 
     # the checking
@@ -170,6 +177,11 @@ def get_parser():
     parser.add_argument(
         '-v', '--verbose',
         action='store_true',
+    )
+    parser.add_argument(
+        '-q', '--quality',
+        action='store_true',
+        help='Include quality checks.',
     )
     return parser
 
