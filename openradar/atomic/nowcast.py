@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
 """
-Stores latest nowcast into special nowcast store. Needs throttleserver.
+Stores latest nowcast into.
 """
 
 from __future__ import print_function
@@ -21,14 +21,13 @@ import tempfile
 
 import h5py
 import numpy as np
-
+import turn
 from osgeo import osr
 
 from raster_store import regions
 from raster_store import stores
 
 from openradar import config
-from openradar import throttles
 from openradar import utils
 
 WKT = osr.GetUserInputAsWKT(b'epsg:28992')
@@ -114,9 +113,8 @@ def rotate_nowcast_stores(region):
     """
     # paths
     base = os.path.join(config.STORE_DIR, '5min')
-    with throttles.Throttle() as throttle:
-        throttle.get('5min#nowcast')
-
+    locker = turn.Locker()
+    with locker.lock(resource='5min', label='nowcast'):
         old = stores.get(os.path.join(base, 'nowcast1'))
         new = stores.get(os.path.join(base, 'nowcast2'))
         if new:

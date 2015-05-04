@@ -2,9 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Move data from one store to another, flushing the store but leaving it intact.
-
-Needs throttle to be active, since it can interfere with update operations
-on the store.
 """
 
 from __future__ import print_function
@@ -18,9 +15,9 @@ import os
 import sys
 
 from raster_store import stores
+import turn
 
 from openradar import config
-from openradar import throttles
 
 logger = logging.getLogger(__name__)
 
@@ -68,14 +65,13 @@ def command(time_name, source_name, target_name, verbose):
     target = get_store(time_name=time_name, store_name=target_name)
 
     # promote
-    with throttles.Throttle() as throttle:
-        logger.info('Move from {} into {}'.format(source_name, target_name))
-        source = get_store(time_name=time_name, store_name=source_name)
-        while source:
-            # intermediate throttling to let other atomics do work
-            throttle.get('{}#move'.format(time_name))
+    locker = turn.Locker()
+    logger.info('Move from {} into {}'.format(source_name, target_name))
+    source = get_store(time_name=time_name, store_name=source_name)
+    while source:
+        # lock in chunks to let other processes do things, as well.
+        with locker.lock(resource=time_name, label='move'):
             move_target_chunk_equivalent(source=source, target=target)
-
     logger.info('Move procedure completed.')
 
 
@@ -88,7 +84,7 @@ def get_parser():
         'time_name',
         metavar='NAME',
         choices=('5min', 'hour', 'day'),
-        help='Timeframe to execute promotion for; used to throttle.',
+        help='Timeframe to execute promotion for; used to locking, too.',
     )
     parser.add_argument(
         'source_name',

@@ -18,6 +18,7 @@ import sys
 
 import h5py
 import numpy as np
+import turn
 
 from osgeo import osr
 
@@ -26,7 +27,6 @@ from raster_store import stores
 
 from openradar import config
 from openradar import periods
-from openradar import throttles
 from openradar import utils
 
 logger = logging.getLogger(__name__)
@@ -243,12 +243,11 @@ def command(text, verbose):
     logger.info('Store procedure initiated.')
 
     period = periods.Period(text)
-    with throttles.Throttle() as throttle:
-        for timeframe in 'fhd':
-            for prodcode in 'r':  # notice reversed order
-                # ask for permssion
-                resource = NAMES[timeframe][prodcode]['group']
-                throttle.get('{}#store'.format(resource))
+    locker = turn.Locker()
+    for timeframe in 'fhd':
+        for prodcode in 'r':  # notice reversed order
+            resource = NAMES[timeframe][prodcode]['group']
+            with locker.Lock(resource=resource, label='store'):
                 kwargs = {'timeframe': timeframe, 'prodcode': prodcode}
                 store = Store(**kwargs)
                 store.process(period)
