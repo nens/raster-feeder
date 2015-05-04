@@ -9,13 +9,14 @@ long_description = '\n\n'.join([
     ])
 
 install_requires = [
+    'Pillow',
     'celery',
     'celery[redis]',
-    'h5py',
+    'gdal',
+    'h5py>=2.3.1',
     'matplotlib',
     'numpy',
     'pandas',
-    'Pillow',
     'pydap >= 3.1.RC1',
     'pytz',
     'raster-store',

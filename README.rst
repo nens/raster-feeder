@@ -33,9 +33,11 @@ Install using system repositories (e.g. apt-get, brew, pacman):
     * python-psycopg2
     * python-rpy2
     * python-scipy
+    * python-tornado
 
-    * libhdf5-serial-dev
     * libgeos-dev
+    * libhdf5-serial-dev
+    * libnetcdf-dev
 
 Then, to install the 'gstat' package, in the R interpreter::
     
