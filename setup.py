@@ -18,10 +18,12 @@ install_requires = [
     'Pillow',
     'pydap >= 3.1.RC1',
     'pytz',
+    'raster-store',
     'rpy2',
     'scipy',
     'setuptools',
     'supervisor',
+    'turn',
     ],
 
 tests_require = [
@@ -65,5 +67,11 @@ setup(name='openradar',
               'repair = openradar.scripts.repair:main',
               'image = openradar.scripts.image:main',
               'elevation_image = openradar.scripts.elevation_image:main',
+              # Store interaction
+              'atomic-init = openradar.atomic.init:main',
+              'atomic-move = openradar.atomic.move:main',
+              'atomic-nowcast = openradar.atomic.nowcast:main',
+              'atomic-report = openradar.atomic.report:main',
+              'atomic-store = openradar.atomic.store:main',
           ]},
       )
