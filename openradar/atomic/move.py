@@ -66,11 +66,12 @@ def command(time_name, source_name, target_name, verbose):
 
     # promote
     locker = turn.Locker()
+    label = 'move: {} => {}'.format(source_name, target_name)
     logger.info('Move from {} into {}'.format(source_name, target_name))
     source = get_store(time_name=time_name, store_name=source_name)
     while source:
         # lock in chunks to let other processes do things, as well.
-        with locker.lock(resource=time_name, label='move'):
+        with locker.lock(resource=time_name, label=label):
             move_target_chunk_equivalent(source=source, target=target)
     logger.info('Move procedure completed.')
 
