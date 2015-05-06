@@ -247,7 +247,7 @@ def command(text, verbose):
     for timeframe in 'fhd':
         for prodcode in 'r':  # notice reversed order
             resource = NAMES[timeframe][prodcode]['group']
-            with locker.Lock(resource=resource, label='store'):
+            with locker.lock(resource=resource, label='store'):
                 kwargs = {'timeframe': timeframe, 'prodcode': prodcode}
                 store = Store(**kwargs)
                 store.process(period)
