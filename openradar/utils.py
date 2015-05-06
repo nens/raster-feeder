@@ -626,6 +626,12 @@ def get_countrymask():
     return mask
 
 
+def get_geo_transform():
+    left, right, top, bottom = config.COMPOSITE_EXTENT
+    width, height = config.COMPOSITE_CELLSIZE
+    return left, width, 0, top, 0, -height
+
+
 # copied from raster-store
 def parse_datetime(text):
     """ Return a datetime instance. """
