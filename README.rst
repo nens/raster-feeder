@@ -39,6 +39,8 @@ Install using system repositories (e.g. apt-get, brew, pacman):
     * libhdf5-serial-dev
     * libnetcdf-dev
 
+    * imagemagick
+
 Then, to install the 'gstat' package, in the R interpreter::
     
     > install.packages('gstat')
