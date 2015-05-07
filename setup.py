@@ -70,6 +70,7 @@ setup(name='openradar',
               'elevation_image = openradar.scripts.elevation_image:main',
               # Store interaction
               'atomic-init = openradar.atomic.init:main',
+              'atomic-merge = openradar.atomic.merge:main',
               'atomic-move = openradar.atomic.move:main',
               'atomic-nowcast = openradar.atomic.nowcast:main',
               'atomic-report = openradar.atomic.report:main',

@@ -46,7 +46,7 @@ def move_target_chunk_equivalent(source, target):
     source.delete(start=start, stop=stop)
 
 
-def command(time_name, source_name, target_name, verbose):
+def move(time_name, source_name, target_name, verbose):
     """
     Move data from one radar store into another.
     """
@@ -105,10 +105,9 @@ def get_parser():
 
 
 def main():
-    """ Call command with args from parser. """
-    return command(**vars(get_parser().parse_args()))
+    """ Call move with args from parser. """
     try:
-        command(**vars(get_parser().parse_args()))
+        move(**vars(get_parser().parse_args()))
         return 0
     except:
         logger.exception('An execption occurred:')
