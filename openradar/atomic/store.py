@@ -48,6 +48,7 @@ NAMES = {'f': {'r': dict(group='5min', store='real1'),
          'd': {'r': dict(group='day', store='real'),
                'n': dict(group='day', store='near'),
                'a': dict(group='day', store='after')}}
+PRODUCTS = {'r': 'realtime', 'n': 'near-realtime', 'a': 'after'}
 
 
 def get_path_helper(timeframe, prodcode):
@@ -245,9 +246,10 @@ def command(text, verbose):
     period = periods.Period(text)
     locker = turn.Locker()
     for timeframe in 'fhd':
-        for prodcode in 'r':  # notice reversed order
+        for prodcode in 'anr':  # notice reversed order
             resource = NAMES[timeframe][prodcode]['group']
-            with locker.lock(resource=resource, label='store'):
+            label = 'store: {}'.format(PRODUCTS['product'])
+            with locker.lock(resource=resource, label=label):
                 kwargs = {'timeframe': timeframe, 'prodcode': prodcode}
                 store = Store(**kwargs)
                 store.process(period)
