@@ -56,7 +56,7 @@ KWARGS = {'dtype': 'f4',
           'projection': WKT,
           'compression': 'lzf',
           'geo_transform': (0, 1000, 0, 0, 0, -1000),
-          'origin': datetime.datetime(2000, 1, 1, 8)}
+          'origin': datetime.datetime(2000, 1, 1, 8, 5)}
 
 ORDERING = {
     '5min': (
