@@ -51,18 +51,19 @@ DEPTHS = {'5min': {'real1':   (1,   12),   # arrives every 5 minutes
 
 WKT = osr.GetUserInputAsWKT(b'epsg:28992')
 
+ORIGINS = {'day': datetime.datetime(2000, 1, 1, 8),
+           'hour': datetime.datetime(2000, 1, 1, 9),
+           '5min': datetime.datetime(2000, 1, 1, 8, 5)}
+
 KWARGS = {'dtype': 'f4',
           'scaleoffset': 2,
           'projection': WKT,
           'compression': 'lzf',
-          'geo_transform': (0, 1000, 0, 0, 0, -1000),
-          'origin': datetime.datetime(2000, 1, 1, 8, 5)}
+          'geo_transform': (0, 1000, 0, 0, 0, -1000)}
 
 ORDERING = {
-    '5min': (
-        'final', 'merge', 'real2', 'real1',
-        'near', 'after', 'nowcast1', 'nowcast2',
-    ),
+    '5min': ('final', 'merge', 'real2', 'real1',
+             'near', 'after', 'nowcast2', 'nowcast1'),
     'hour': ('final', 'merge', 'real', 'near', 'after'),
     'day': ('final', 'merge', 'real', 'near', 'after'),
 }
@@ -78,7 +79,8 @@ def add_nowcast_stores(base):
         kwargs = {'path': path,
                   'delta': datetime.timedelta(minutes=5)}
         kwargs.update(KWARGS)
-        kwargs.update({'depths': (depth, 1)})
+        kwargs['depths'] = (depth, 1)
+        kwargs['origin'] = ORIGINS['5min']
         store = stores.Store.create(**kwargs)
         store.create_storage((depth, depth))
         store.create_aggregation('topleft', depths=(depth, 1))
@@ -105,6 +107,7 @@ def command():
                 'depths': (1, 256) if store_name == 'final' else (1, 288),
             }
             kwargs.update(KWARGS)
+            kwargs['origin'] = ORIGINS[group_name]
             logger.info('Creating {}'.format(store_path))
             store = stores.Store.create(**kwargs)
 
