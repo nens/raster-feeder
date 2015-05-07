@@ -136,7 +136,8 @@ def command(verbose):
     else:
         kwargs = {'level': logging.INFO,
                   'format': '%(asctime)s %(levelname)s %(message)s',
-                  'filename': os.path.join(config.LOG_DIR, 'nowcast.log')}
+                  'filename': os.path.join(config.LOG_DIR,
+                                           'atomic_nowcast.log')}
     logging.basicConfig(**kwargs)
     logger.info('Nowcast procedure initiated.')
 

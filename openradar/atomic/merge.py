@@ -31,7 +31,7 @@ def command(verbose):
     else:
         kwargs = {'level': logging.INFO,
                   'format': '%(asctime)s %(levelname)s %(message)s',
-                  'filename': os.path.join(config.LOG_DIR, 'move.log')}
+                  'filename': os.path.join(config.LOG_DIR, 'atomic_merge.log')}
     logging.basicConfig(**kwargs)
 
     logger.info('Merge procedure initiated.')

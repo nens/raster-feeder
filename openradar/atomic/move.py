@@ -57,7 +57,7 @@ def move(time_name, source_name, target_name, verbose):
     else:
         kwargs = {'level': logging.INFO,
                   'format': '%(asctime)s %(levelname)s %(message)s',
-                  'filename': os.path.join(config.LOG_DIR, 'move.log')}
+                  'filename': os.path.join(config.LOG_DIR, 'atomic_move.log')}
     logging.basicConfig(**kwargs)
     logger.info('Move procedure initiated for {}.'.format(time_name))
 

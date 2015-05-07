@@ -237,7 +237,7 @@ def command(text, verbose):
     else:
         kwargs = {'level': logging.INFO,
                   'format': '%(asctime)s %(levelname)s %(message)s',
-                  'filename': os.path.join(config.LOG_DIR, 'store.log')}
+                  'filename': os.path.join(config.LOG_DIR, 'atomic_store.log')}
     logging.basicConfig(**kwargs)
 
     # storing
