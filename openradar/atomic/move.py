@@ -108,6 +108,8 @@ def main():
     """ Call command with args from parser. """
     return command(**vars(get_parser().parse_args()))
     try:
-        return command(**vars(get_parser().parse_args()))
+        command(**vars(get_parser().parse_args()))
+        return 0
     except:
         logger.exception('An execption occurred:')
+        return 1
