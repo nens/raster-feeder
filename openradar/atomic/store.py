@@ -157,31 +157,6 @@ class Store(object):
         logger.info('Store {} sources'.format(len(self.sources)))
         self.store.update([region])
 
-    def process(self, period):
-        """
-        Controls flushing and filters according to timeframe.
-        on start: init according to datetime
-        on edge: init and flush
-        on finish: flush
-        """
-        datetimes = (d
-                     for d in period
-                     if self.timeframe in utils.get_valid_timeframes(d))
-        # grab first datetime if any, reset band index, meta accordingly
-        try:
-            first = datetimes.next()
-        except StopIteration:
-            return
-        self.reset(first)
-        self.consider(first)
-        for datetime in datetimes:
-            if datetime not in self.bands:
-                self.flush()
-                yield  # makes unlocking possible here
-                self.reset(datetime)
-            self.consider(datetime)
-        self.flush()
-
     def consider(self, datetime):
         """ Consider a matching product for loading. """
         # logging fields
@@ -216,6 +191,31 @@ class Store(object):
         # add to sources
         logger.debug('queueing: {d} {t} {p}'.format(**fields))
         self.sources[self.bands[datetime]] = {'path': path, 'mtime': mtime}
+
+    def process(self, period):
+        """
+        Controls flushing and filters according to timeframe.
+        on start: init according to datetime
+        on edge: init and flush
+        on finish: flush
+        """
+        datetimes = (d
+                     for d in period
+                     if self.timeframe in utils.get_valid_timeframes(d))
+        # grab first datetime if any, reset band index, meta accordingly
+        try:
+            first = datetimes.next()
+        except StopIteration:
+            return
+        self.reset(first)
+        self.consider(first)
+        for datetime in datetimes:
+            if datetime not in self.bands:
+                self.flush()
+                yield  # makes unlocking possible here
+                self.reset(datetime)
+            self.consider(datetime)
+        self.flush()
 
 
 def command(text, verbose):
