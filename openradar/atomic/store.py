@@ -118,7 +118,7 @@ class Store(object):
     def flush(self):
         """ Load all accepted products into store. """
         if not self.sources:
-            return
+            return False
         # create region
         start = min(self.sources)
         stop = max(self.sources)
@@ -156,6 +156,7 @@ class Store(object):
 
         logger.info('Store {} sources'.format(len(self.sources)))
         self.store.update([region])
+        return True
 
     def consider(self, datetime):
         """ Consider a matching product for loading. """
@@ -211,8 +212,8 @@ class Store(object):
         self.consider(first)
         for datetime in datetimes:
             if datetime not in self.bands:
-                self.flush()
-                yield  # makes unlocking possible here
+                if self.flush()
+                    yield  # makes unlocking possible here
                 self.reset(datetime)
             self.consider(datetime)
         self.flush()
@@ -245,6 +246,7 @@ def command(text, verbose):
             while True:
                 with locker.lock(resource=resource, label=label):
                     try:
+                        # process will yield if a store was updated
                         processor.next()
                     except StopIteration:
                         break
