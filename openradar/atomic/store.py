@@ -62,8 +62,12 @@ def get_path_helper(timeframe, prodcode):
 
 
 def get_mtime(path):
-    """ return mtime as datetime object. """
-    return Datetime.fromtimestamp(os.path.getmtime(path)).isoformat()
+    """
+    Return isoformat mtime.
+
+    Add one second to prevent resolution things.
+    """
+    return Datetime.fromtimestamp(os.path.getmtime(path) + 1).isoformat()
 
 
 def get_contents(path):
