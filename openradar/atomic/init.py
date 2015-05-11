@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
 """
@@ -62,8 +61,8 @@ KWARGS = {'dtype': 'f4',
           'geo_transform': (0, 1000, 0, 0, 0, -1000)}
 
 ORDERING = {
-    '5min': ('final', 'merge', 'real2', 'real1',
-             'near', 'after', 'nowcast2', 'nowcast1'),
+    '5min': ('nowcast2', 'nowcast1', 'final',
+             'merge', 'real2', 'real1', 'near', 'after'),
     'hour': ('final', 'merge', 'real', 'near', 'after'),
     'day': ('final', 'merge', 'real', 'near', 'after'),
 }
