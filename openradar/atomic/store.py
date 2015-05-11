@@ -97,6 +97,7 @@ class Store(object):
         self.helper = get_path_helper(timeframe, prodcode)
         self.level = LEVELS[prodcode]
 
+    # meta caching and source queueing
     def reset(self, datetime):
         """ Init band lookup table for current chunk. """
         band = self.store.select_bands(datetime)[0]
@@ -114,7 +115,6 @@ class Store(object):
         # put here datetime: mtime, path
         self.sources = {}
 
-    # meta caching and source queueing
     def flush(self):
         """ Load all accepted products into store. """
         if not self.sources:
@@ -125,14 +125,14 @@ class Store(object):
         size = stop - start + 1
         shape = size, 490, 500
         bands = 0, shape[0]
-        data = np.ones(shape, self.store.dtype) * self.store.fillvalue
+        data = np.ones(shape, self.store.dtype) * config.NODATAVALUE
         meta = size * [None]
         time = sorted(t for t, b in self.bands.items() if start <= b <= stop)
         region = regions.Region.from_mem(data=data,
                                          meta=meta,
                                          time=time,
                                          bands=bands,
-                                         fillvalue=None,
+                                         fillvalue=config.NODATAVALUE,
                                          projection=WKT,
                                          geo_transform=GEO_TRANSFORM)
 
@@ -141,10 +141,12 @@ class Store(object):
 
             contents = get_contents(source['path'])
 
-            if region.box.fillvalue is None:
-                region.fillvalue = contents['fillvalue']
-
-            region.box.data[band - start] = contents['data']
+            data = np.where(
+                contents['data'] == contents['fillvalue'],
+                config.NODATAVALUE,
+                contents['data'],
+            )
+            region.box.data[band - start] = data
 
             meta = contents['meta']
             meta.update({'stored': NOW,
@@ -175,6 +177,7 @@ class Store(object):
         for datetime in datetimes:
             if datetime not in self.bands:
                 self.flush()
+                yield  # makes unlocking possible here
                 self.reset(datetime)
             self.consider(datetime)
         self.flush()
@@ -210,22 +213,9 @@ class Store(object):
                 logger.debug('present: {d} {t} {p}'.format(**fields))
                 return
 
-        # flush when logical
+        # add to sources
         logger.debug('queueing: {d} {t} {p}'.format(**fields))
         self.sources[self.bands[datetime]] = {'path': path, 'mtime': mtime}
-
-    def __getitem__(self, datetime):
-        if self.meta_period is None:
-            self.fetch_meta(datetime)
-        if datetime < self.meta_period[0] or datetime > self.meta_period[1]:
-            self.fetch_meta(datetime)
-        return self.meta_dict.get(datetime, {})
-
-    def update(self, source):
-        """ Append source to queue and flush if queue becomes to big. """
-        self.queue.append(source)
-        if len(self.queue) == 128:
-            self.flush()
 
 
 def command(text, verbose):
@@ -249,11 +239,15 @@ def command(text, verbose):
         for prodcode in 'anr':  # notice reversed order
             resource = NAMES[timeframe][prodcode]['group']
             label = 'store: {}'.format(PRODUCTS[prodcode])
-            with locker.lock(resource=resource, label=label):
-                kwargs = {'timeframe': timeframe, 'prodcode': prodcode}
-                store = Store(**kwargs)
-                store.process(period)
-
+            kwargs = {'timeframe': timeframe, 'prodcode': prodcode}
+            store = Store(**kwargs)
+            processor = store.process(period)
+            while True:
+                with locker.lock(resource=resource, label=label):
+                    try:
+                        processor.next()
+                    except StopIteration:
+                        break
     logger.info('Store procedure completed.')
 
 

@@ -6,14 +6,6 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
-from osgeo import osr
-
-from openradar import config
-
-from matplotlib import colors
-from matplotlib import cm
-
-from PIL import Image
 
 import codecs
 import cStringIO
@@ -24,6 +16,12 @@ import logging
 import numpy as np
 import os
 
+from osgeo import osr
+from matplotlib import colors
+from matplotlib import cm
+from PIL import Image
+
+from openradar import config
 
 # Some projections
 UTM = 3405
@@ -630,13 +628,3 @@ def get_geo_transform():
     left, right, top, bottom = config.COMPOSITE_EXTENT
     width, height = config.COMPOSITE_CELLSIZE
     return left, width, 0, top, 0, -height
-
-
-# copied from raster-store
-def parse_datetime(text):
-    """ Return a datetime instance. """
-    date_or_datetime = np.array([text], np.datetime64).item()
-    if 'T' in text:
-        # datetime
-        return date_or_datetime
-    return datetime.datetime.combine(date_or_datetime, datetime.time())

@@ -13,7 +13,7 @@ import datetime
 import math
 import re
 
-from openradar import utils
+from raster_store import utils
 
 # period parsing
 PERIOD = re.compile('([0-9]{1,2})([mhdw])')
