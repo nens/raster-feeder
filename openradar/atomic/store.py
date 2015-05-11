@@ -212,7 +212,7 @@ class Store(object):
         self.consider(first)
         for datetime in datetimes:
             if datetime not in self.bands:
-                if self.flush()
+                if self.flush():
                     yield  # makes unlocking possible here
                 self.reset(datetime)
             self.consider(datetime)
