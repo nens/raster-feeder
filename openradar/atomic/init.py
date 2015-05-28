@@ -124,9 +124,12 @@ def command():
         # group file, for use by store script
         logger.info('Update group for {}.'.format(group_name))
         group = [os.path.join(group_path, n) for n in ORDERING[group_name]]
-        source = os.path.join(group_path, 'group.json.in')
-        target = os.path.join(group_path, 'group.json')
-        json.dump({'stores': group}, open(source, 'w'), indent=2)
+        conf = {'type': 'Group',
+                'args': [{'type': 'Store',
+                          'kwargs': {'path': path}} for path in group]}
+        source = '{}.json.in'.format(group_path)
+        target = '{}.json'.format(group_path)
+        json.dump(conf, open(source, 'w'), indent=2)
         os.rename(source, target)
 
     logger.info('Init procedure completed.')

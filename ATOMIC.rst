@@ -7,11 +7,34 @@ From /srv/history(arjan-boxes):
     - atomic-promote everything to the q stores
     - verify with store-info
     - rm -r z and u stores
-    - mv q final
 From /srv/openradar(master):
   - git pull, python bootstrap.py, bin/buildout
   - bin/atomic-init
   - copy cronjobs from staging
+
+
+2. Stop activity.
+3. Rename stores
+4. Init new stores
+3. Leave current q, add it to the group
+4. Make another final-like store, try copy all at once from q to semifinal
+5. Copy final to semifinal and swap with finals
+6. Repeat for day, hour, 5min
+
+Later:
+
+Tasks to be replaced by seach-and-fix scripts:
+- Aggregate when needed
+- Calibrate when needed
+- Rescale when needed
+
+Special thing is publish:
+- Need a special published state somewhere. If not, publish on all old-fashioned channels again such as ftp, thredds, images.
+
+Store and others:
+- move atomic report to radar-task server
+- remove history checkout
+- document this new radar procedure in master readme
 
 
 Roadmap to atomic infrastructure
