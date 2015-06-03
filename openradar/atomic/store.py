@@ -114,7 +114,8 @@ class Store(object):
         # make loop-up table for bands and create sources dictionary
         times = self.store.get_time_for_bands((start, stop))
         self.bands = dict(zip(times, bands))
-        self.meta = self.group.get_meta_direct(times[0], times[-1])
+        self.meta = self.group.get_meta_direct(start=times[0],
+                                               stop=times[-1])
 
         # put here datetime: mtime, path
         self.sources = {}
