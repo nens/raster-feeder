@@ -18,6 +18,7 @@ import sys
 
 import h5py
 import numpy as np
+import redis
 import turn
 
 from osgeo import osr
@@ -30,6 +31,11 @@ from openradar import periods
 from openradar import utils
 
 logger = logging.getLogger(__name__)
+
+# mtime caching
+if config.REDIS_HOST is not None:
+    stores.mtime_cache = redis.Redis(db=config.REDIS_DB,
+                                     host=config.REDIS_HOST)
 
 # stores and levels
 GEO_TRANSFORM = utils.get_geo_transform()
@@ -195,7 +201,7 @@ class Store(object):
                 return
 
         # add to sources
-        logger.debug('queueing: {d} {t} {p}'.format(**fields))
+        logger.debug('staging: {d} {t} {p}'.format(**fields))
         self.sources[self.bands[datetime]] = {'path': path, 'mtime': mtime}
 
     def process(self, period):

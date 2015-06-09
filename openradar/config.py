@@ -160,6 +160,10 @@ FTP_RADARS = {}
 # Throughputs of radar related data to client ftp.
 FTP_THROUGH = {}
 
+# Mtime Cache for raster stores
+REDIS_HOST = None
+REDIS_DB = 0
+
 # Import local settings
 try:
     from openradar.localconfig import *

@@ -20,6 +20,7 @@ install_requires = [
     'pydap >= 3.1.RC1',
     'pytz',
     'raster-store',
+    'redis',
     'rpy2',
     'scipy',
     'setuptools',

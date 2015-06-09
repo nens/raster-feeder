@@ -15,11 +15,17 @@ import os
 import sys
 
 from raster_store import stores
+import redis
 import turn
 
 from openradar import config
 
 logger = logging.getLogger(__name__)
+
+# mtime caching
+if config.REDIS_HOST is not None:
+    stores.mtime_cache = redis.Redis(db=config.REDIS_DB,
+                                     host=config.REDIS_HOST)
 
 
 def get_store(time_name, store_name):

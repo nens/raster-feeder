@@ -21,6 +21,7 @@ import tempfile
 
 import h5py
 import numpy as np
+import redis
 import turn
 from osgeo import osr
 
@@ -33,6 +34,11 @@ from openradar import utils
 WKT = osr.GetUserInputAsWKT(b'epsg:28992')
 
 logger = logging.getLogger(__name__)
+
+# mtime caching
+if config.REDIS_HOST is not None:
+    stores.mtime_cache = redis.Redis(db=config.REDIS_DB,
+                                     host=config.REDIS_HOST)
 
 
 def fetch_latest_nowcast_h5():
