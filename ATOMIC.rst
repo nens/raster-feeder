@@ -1,36 +1,11 @@
 How to convert the process for streamlining radar storage
 ---------------------------------------------------------
-Production current repo states:
-    /srv/history:   4d5f25dc099dc85abd1c8e0ec04cdae43c7baed5
-    /srv/openradar: f19ca6eabc280cd1cb632d09ae549feb5d89ae25
-
-On production server:
-From /srv/history(arjan-boxes):
-- Remove store related cronjobs
-- Verify updating has stopped
 - For 5min, hour and day:
-    - verify with store-info
-    - update group.jsons that employ these things
-    - rm -r z and u stores
-
-From /srv/openradar(master):
-- git pull, python bootstrap.py, bin/buildout
-- bin/atomic-init
-- For 5min, hour and day:
-  - rename q to final_past_old
-  - copy final to final_past_new
-  - copy group configs from staging groups to production groups
-  - add final_past_old and final_past_new to these configs
-  - check with store-info
-  - mkey all
-- verify all works fine
-- copy cronjobs from staging
-- verify all works fine
-- For 5min, hour and day:
-- store-put final_past_old final_past_new
-  - remove final_past_old from group config
-  - check with store-info
+  - store-put final_past_old final_past_new
   - stop all cronjobs
+  - replace final_past_old with final_past_new in radar group config
+  - remove final_past_old from rasterserver raster group config
+  - check with store-info
   - mv final final_future
   - mv final_past_new final
   - store-put final_future final
@@ -39,8 +14,7 @@ From /srv/openradar(master):
   - check with store-info
   - check all is very well
   - start all cronjobs
-  - remove final_past_old
-- move atomic report to radar-task server
+  - remove final_past_old completely
 - document this new radar procedure in master readme
 
 Tasks to be replaced by search-and-fix scripts:
