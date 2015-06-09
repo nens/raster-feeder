@@ -1,10 +1,5 @@
 How to convert the process for streamlining radar storage
 ---------------------------------------------------------
-Locally with staging raster mount:
-- Test the working of meta with raster-store 1.5 and staging data
-- Update raster-store to 1.5 in master openradar
-- Verify everything works o.k. on staging task server
-
 On production server:
 From /srv/history(arjan-boxes):
 - Remove store related cronjobs
@@ -24,7 +19,6 @@ From /srv/openradar(master):
 - copy cronjobs from staging
 - move atomic report to radar-task server
 - document this new radar procedure in master readme
-
 
 Tasks to be replaced by seach-and-fix scripts:
 - Aggregate when needed
