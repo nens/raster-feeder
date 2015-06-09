@@ -1,5 +1,9 @@
 How to convert the process for streamlining radar storage
 ---------------------------------------------------------
+Production current repo states:
+    /srv/history:   4d5f25dc099dc85abd1c8e0ec04cdae43c7baed5
+    /srv/openradar: f19ca6eabc280cd1cb632d09ae549feb5d89ae25
+
 On production server:
 From /srv/history(arjan-boxes):
 - Remove store related cronjobs
@@ -13,14 +17,32 @@ From /srv/openradar(master):
 - git pull, python bootstrap.py, bin/buildout
 - bin/atomic-init
 - For 5min, hour and day:
-  - copy final to transfer
-  - copy group config from staging groups to production groups
-  - add final and q to these
+  - rename q to final_past_old
+  - copy final to final_past_new
+  - copy group configs from staging groups to production groups
+  - add final_past_old and final_past_new to these configs
+  - check with store-info
+  - mkey all
+- verify all works fine
 - copy cronjobs from staging
+- verify all works fine
+- For 5min, hour and day:
+  - store-put final_past_old final_past_new
+  - remove final_past_old from group config
+  - check with store-info
+  - stop all cronjobs
+  - mv final final_future
+  - mv final_past_new final
+  - store-put final_future final
+  - rm -r final_future
+  - remove final_past_new from group config
+  - check with store-info
+  - check all is very well
+  - remove final_past_old
 - move atomic report to radar-task server
 - document this new radar procedure in master readme
 
-Tasks to be replaced by seach-and-fix scripts:
+Tasks to be replaced by search-and-fix scripts:
 - Aggregate when needed
 - Calibrate when needed
 - Rescale when needed
