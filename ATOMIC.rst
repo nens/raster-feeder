@@ -38,6 +38,7 @@ From /srv/openradar(master):
   - remove final_past_new from group config
   - check with store-info
   - check all is very well
+  - start all cronjobs
   - remove final_past_old
 - move atomic report to radar-task server
 - document this new radar procedure in master readme

@@ -33,9 +33,7 @@ from openradar import utils
 logger = logging.getLogger(__name__)
 
 # mtime caching
-if config.REDIS_HOST is not None:
-    stores.mtime_cache = redis.Redis(db=config.REDIS_DB,
-                                     host=config.REDIS_HOST)
+stores.mtime_cache = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
 
 # stores and levels
 GEO_TRANSFORM = utils.get_geo_transform()
@@ -246,7 +244,7 @@ def command(text, verbose):
     logger.info('Store procedure initiated.')
 
     period = periods.Period(text)
-    locker = turn.Locker()
+    locker = turn.Locker(host=config.REDIS_HOST, db=config.REDIS_DB)
     for timeframe in 'fhd':
         for prodcode in 'anr':  # notice reversed order
             resource = NAMES[timeframe][prodcode]['group']

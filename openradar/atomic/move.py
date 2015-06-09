@@ -23,9 +23,7 @@ from openradar import config
 logger = logging.getLogger(__name__)
 
 # mtime caching
-if config.REDIS_HOST is not None:
-    stores.mtime_cache = redis.Redis(db=config.REDIS_DB,
-                                     host=config.REDIS_HOST)
+stores.mtime_cache = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
 
 
 def get_store(time_name, store_name):
@@ -71,7 +69,7 @@ def move(time_name, source_name, target_name, verbose):
     target = get_store(time_name=time_name, store_name=target_name)
 
     # promote
-    locker = turn.Locker()
+    locker = turn.Locker(host=config.REDIS_HOST, db=config.REDIS_DB)
     label = 'move: {} => {}'.format(source_name, target_name)
     logger.info('Move from {} into {}'.format(source_name, target_name))
     source = get_store(time_name=time_name, store_name=source_name)

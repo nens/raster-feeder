@@ -160,8 +160,8 @@ FTP_RADARS = {}
 # Throughputs of radar related data to client ftp.
 FTP_THROUGH = {}
 
-# Mtime Cache for raster stores
-REDIS_HOST = None
+# redis host for mtime cache and turn locking system
+REDIS_HOST = 'localhost'
 REDIS_DB = 0
 
 # Import local settings
