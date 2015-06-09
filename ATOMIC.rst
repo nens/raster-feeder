@@ -9,8 +9,8 @@ From /srv/history(arjan-boxes):
 - Remove store related cronjobs
 - Verify updating has stopped
 - For 5min, hour and day:
-    - atomic-promote everything to the q stores
     - verify with store-info
+    - update group.jsons that employ these things
     - rm -r z and u stores
 
 From /srv/openradar(master):
@@ -27,7 +27,7 @@ From /srv/openradar(master):
 - copy cronjobs from staging
 - verify all works fine
 - For 5min, hour and day:
-  - store-put final_past_old final_past_new
+- store-put final_past_old final_past_new
   - remove final_past_old from group config
   - check with store-info
   - stop all cronjobs
