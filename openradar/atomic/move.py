@@ -45,7 +45,7 @@ def move_target_chunk_equivalent(source, target):
     stop = target.get_time_for_bands((last - 1, last))[0]
 
     # let's move
-    logger.debug('Move data between {} and {}'.format(start, stop))
+    logger.info('Move data between {} and {}'.format(start, stop))
     target.update(source, start=start, stop=stop)
     source.delete(start=start, stop=stop)
 

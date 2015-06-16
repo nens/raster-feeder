@@ -1,6 +1,6 @@
 How to convert the process for streamlining radar storage
 ---------------------------------------------------------
-- Atomic move seems not totally aligned, see real1 => real2 movements
+- atomic move indicates a start or end band too much.
 - document this new radar procedure in master readme
 
 Tasks to be replaced by search-and-fix scripts:
