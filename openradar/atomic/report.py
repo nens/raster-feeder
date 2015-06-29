@@ -48,7 +48,7 @@ products were not delivered in time. The following problems were reported:
 def get_metas(name, period):
     store = stores.get(os.path.join(config.STORE_DIR, name))
     metas = store.get_meta_direct(start=period.start, stop=period.stop)
-    return {k: json.loads(v) for k, v in metas.items()}
+    return {k: json.loads(v) for k, v in metas.items() if v}
 
 
 def send_mail(report):
