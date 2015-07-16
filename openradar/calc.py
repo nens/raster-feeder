@@ -31,7 +31,6 @@ import numpy as np
 
 RADIUS43 = 8495.  # Effective earth radius in km.
 
-
 def R(Z):
     return np.power(Z / 200., 0.625)
 

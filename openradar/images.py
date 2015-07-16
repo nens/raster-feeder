@@ -291,10 +291,10 @@ def create_png_for_animated_gif(products, **kwargs):
 
     # Load some images
     img_mapbox = mapbox_image()
-    #img_osm = osm_image()
-    #img_shape = shape_image()
-    #img_blue = plain_image(color=(0, 0, 127))
-    #img_shape_filled = shape_image_filled()
+    img_osm = osm_image()
+    img_shape = shape_image()
+    img_blue = plain_image(color=(0, 0, 127))
+    img_shape_filled = shape_image_filled()
 
     # Get dutch time label
     tz_amsterdam = pytz.timezone('Europe/Amsterdam')
@@ -327,9 +327,9 @@ def create_png_for_animated_gif(products, **kwargs):
             img_radars,
             img_rain,
             img_mapbox,
-            #img_shape,
-            #img_shape_filled,
-            #img_blue,
+            img_shape,
+            img_shape_filled,
+            img_blue,
         ]).save(path)
 
         logging.info('saved {}.'.format(os.path.basename(path)))

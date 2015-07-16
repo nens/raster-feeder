@@ -13,6 +13,10 @@ Changelog of openradar
 
 - Remove groundfile code, add grounddata from database code
 
+- Improved the atomic report code
+
+- Many improvements to atomic scripts for raster store management
+
 
 0.3.7 (2013-08-29)
 ------------------

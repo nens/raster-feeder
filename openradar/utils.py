@@ -6,14 +6,6 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
-from osgeo import osr
-
-from openradar import config
-
-from matplotlib import colors
-from matplotlib import cm
-
-from PIL import Image
 
 import codecs
 import cStringIO
@@ -24,6 +16,12 @@ import logging
 import numpy as np
 import os
 
+from osgeo import osr
+from matplotlib import colors
+from matplotlib import cm
+from PIL import Image
+
+from openradar import config
 
 # Some projections
 UTM = 3405
@@ -275,26 +273,37 @@ def get_valid_timeframes(datetime):
 def get_aggregate_combinations(datetimes,
                                timeframes=['f', 'h', 'd']):
     """ Return generator of dictionaries. """
-    for datetime in datetimes:
-        valid_timeframes = get_valid_timeframes(datetime=datetime)
+    for _datetime in datetimes:
+        valid_timeframes = get_valid_timeframes(datetime=_datetime)
         for timeframe in timeframes:
             if timeframe in valid_timeframes:
-                yield dict(datetime=datetime,
+                yield dict(nowcast=False,
+                           datetime=_datetime,
                            timeframe=timeframe)
+                if timeframe == 'f':
+                    yield dict(nowcast=True,
+                               datetime=_datetime,
+                               timeframe=timeframe)
 
 
 def get_product_combinations(datetimes,
                              prodcodes=['r', 'n', 'a'],
                              timeframes=['f', 'h', 'd']):
     """ Return generator of dictionaries. """
-    for datetime in datetimes:
-        valid_timeframes = get_valid_timeframes(datetime=datetime)
+    for _datetime in datetimes:
+        valid_timeframes = get_valid_timeframes(datetime=_datetime)
         for prodcode in prodcodes:
             for timeframe in timeframes:
                 if timeframe in valid_timeframes:
-                    yield dict(datetime=datetime,
+                    yield dict(nowcast=False,
+                               datetime=_datetime,
                                prodcode=prodcode,
                                timeframe=timeframe)
+                    if timeframe == 'f' and prodcode == 'r':
+                        yield dict(nowcast=True,
+                                   datetime=_datetime,
+                                   prodcode=prodcode,
+                                   timeframe=timeframe)
 
 
 def consistent_product_expected(prodcode, timeframe):
@@ -503,18 +512,19 @@ def save_dataset(data, meta, path):
     h5 = h5py.File(tmp_path, 'w')
 
     # Geographic group
+    left, right, top, bottom = meta['grid_extent']
+    width, height = meta['grid_size']
+
     geographic = dict(
         geo_par_pixel=b'X,Y',
         geo_dim_pixel=b'KM,KM',
         geo_pixel_def=b'CENTRE',
-        geo_number_columns=500,
-        geo_number_rows=490,
+        geo_number_columns=width,
+        geo_number_rows=height,
         geo_pixel_size_x=1.000,
         geo_pixel_size_y=-1.000,
-        geo_product_corners=[-110000, 210000,
-                             -110000, 700000,
-                             390000, 700000,
-                             390000, 210000],
+        geo_product_corners=[left, bottom, left, top,
+                             right, top, right, bottom],
         map_projection=dict(
             projection_indication=b'Y',
             projection_name=b'STEREOGRAPHIC',
@@ -545,8 +555,6 @@ def save_dataset(data, meta, path):
         product_datetime_start=product_datetime_start,
         product_group_name=str(os.path.splitext(os.path.basename(path))[0]),
         products_missing=products_missing,
-        #product_group_doc=b'http://nationaleregenradar.nl',
-        #dataset_raster_type=b'Composited interpolated rectangular radar data',
     )
 
     # Image group
@@ -616,11 +624,7 @@ def get_countrymask():
     return mask
 
 
-# copied from raster-store
-def parse_datetime(text):
-    """ Return a datetime instance. """
-    date_or_datetime = np.array([text], np.datetime64).item()
-    if 'T' in text:
-        # datetime
-        return date_or_datetime
-    return datetime.datetime.combine(date_or_datetime, datetime.time())
+def get_geo_transform():
+    left, right, top, bottom = config.COMPOSITE_EXTENT
+    width, height = config.COMPOSITE_CELLSIZE
+    return left, width, 0, top, 0, -height

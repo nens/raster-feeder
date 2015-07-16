@@ -9,19 +9,23 @@ long_description = '\n\n'.join([
     ])
 
 install_requires = [
+    'Pillow',
     'celery',
-    'h5py',
+    'celery[redis]',
+    'gdal',
+    'h5py>=2.3.1',
     'matplotlib',
     'numpy',
     'pandas',
-    'Pillow',
     'pydap >= 3.1.RC1',
     'pytz',
+    'raster-store',
+    'redis',
     'rpy2',
     'scipy',
     'setuptools',
-    'SQLAlchemy',
     'supervisor',
+    'turn',
     ],
 
 tests_require = [
@@ -60,11 +64,17 @@ setup(name='openradar',
               # Tools
               'clutter = openradar.scripts.clutter:main',
               'histogram = openradar.scripts.histogram:main',
-              'sandbox = openradar.scripts.sandbox:main',
               'organize = openradar.scripts.organize:main',
               'report = openradar.scripts.report:main',
+              'repair = openradar.scripts.repair:main',
               'image = openradar.scripts.image:main',
-              'export_to_store = openradar.scripts.export_to_store:main',
               'elevation_image = openradar.scripts.elevation_image:main',
+              # Store interaction
+              'atomic-init = openradar.atomic.init:main',
+              'atomic-merge = openradar.atomic.merge:main',
+              'atomic-move = openradar.atomic.move:main',
+              'atomic-nowcast = openradar.atomic.nowcast:main',
+              'atomic-report = openradar.atomic.report:main',
+              'atomic-store = openradar.atomic.store:main',
           ]},
       )

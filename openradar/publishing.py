@@ -34,8 +34,8 @@ class FtpPublisher(object):
         ftp_paths = self.ftp.nlst()
         for path in [path
                      for d in config.PRODUCT_CODE.values()
-                     for path in d.values()]:
-            if not path in ftp_paths:
+                     for path in d.values()] + [config.NOWCAST_PRODUCT_CODE]:
+            if path not in ftp_paths:
                 self.ftp.mkd(path)
 
         # Set empty dictionary for nlst caching
@@ -48,10 +48,7 @@ class FtpPublisher(object):
 
     def publish(self, product, overwrite=True):
         """ Publish the product in the correct folder. """
-        ftp_file = os.path.join(
-            config.PRODUCT_CODE[product.timeframe][product.prodcode],
-            os.path.basename(product.path),
-        )
+        ftp_file = product.ftp_path
         logging.debug(ftp_file)
 
         if not overwrite:
@@ -83,13 +80,14 @@ class Publisher(object):
 
     Datetimes can be a sequence of datetimes or a rangetext string.
     """
-    def __init__(self, datetimes, prodcodes, timeframes):
+    def __init__(self, datetimes, prodcodes, timeframes, nowcast):
         """ If cascade . """
         self.datetimes = datetimes
         self.prodcodes = prodcodes
         self.timeframes = timeframes
+        self.nowcast = nowcast
 
-    def publications(self, cascade=False):
+    def ftp_publications(self, cascade=False):
         """ Return product generator. """
         if isinstance(self.datetimes, (list, tuple)):
             datetimes = self.datetimes
@@ -102,6 +100,14 @@ class Publisher(object):
             timeframes=self.timeframes,
         )
         for combination in combinations:
+            nowcast = combination.pop('nowcast')
+            if nowcast != self.nowcast:
+                continue
+
+            if nowcast:
+                yield products.CopiedProduct(datetime=combination['datetime'])
+                continue
+
             consistent = utils.consistent_product_expected(
                 prodcode=combination['prodcode'],
                 timeframe=combination['timeframe'],
@@ -113,6 +119,11 @@ class Publisher(object):
                 rps = products.Consistifier.get_rescaled_products(product)
                 for rescaled_product in rps:
                     yield rescaled_product
+
+    def publications(self, cascade=False):
+        for publication in self.ftp_publications(cascade=cascade):
+            if not isinstance(publication, products.CopiedProduct):
+                yield publication
 
     def image_publications(self):
         """ Return product generator of real-time, five-minute products. """
@@ -152,12 +163,13 @@ class Publisher(object):
 
     def publish_ftp(self, cascade=False, overwrite=True):
         """ Publish to FTP configured in config. """
-        if hasattr(config, 'FTP_HOST') and config.FTP_HOST != '':
-            with FtpPublisher() as ftp_publisher:
-                for publication in self.publications(cascade=cascade):
-                    ftp_publisher.publish(product=publication,
-                                          overwrite=overwrite)
-            logging.info('FTP publishing complete.')
+        if hasattr(config, 'FTP_HOST'):
+            if config.FTP_HOST != '':
+                with FtpPublisher() as ftp_publisher:
+                    for publication in self.ftp_publications(cascade=cascade):
+                        ftp_publisher.publish(product=publication,
+                                              overwrite=overwrite)
+                logging.info('FTP publishing complete.')
         else:
             logging.warning('FTP not configured, FTP publishing not possible.')
 

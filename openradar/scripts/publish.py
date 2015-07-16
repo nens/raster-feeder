@@ -26,7 +26,8 @@ def publish(**kwargs):
                          prodcodes=kwargs['prodcodes'],
                          timeframes=kwargs['timeframes'],
                          endpoints=kwargs['endpoints'],
-                         cascade=kwargs['cascade'])
+                         cascade=kwargs['cascade'],
+                         nowcast=kwargs['nowcast'])
     action(**action_kwargs)
 
 def main():
@@ -38,5 +39,6 @@ def main():
         'endpoints',
         'direct',
         'cascade',
+        'nowcast'
     ])
     publish(**vars(parser.parse_args()))

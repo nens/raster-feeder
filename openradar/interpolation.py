@@ -457,9 +457,9 @@ class Interpolator(object):
         leave_uncalibrated = numpy.logical_or(
             correction_factor < 0, correction_factor > 10
         )
-        logging.info('Leaving {} extreme pixels uncalibrated.').format(
+        logging.info('Leaving {} extreme pixels uncalibrated.'.format(
             leave_uncalibrated.sum(),
-        )
+        ))
         rain_est[leave_uncalibrated] = self.precipitation[leave_uncalibrated]
 
         return rain_est
