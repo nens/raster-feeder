@@ -19,7 +19,7 @@ install_requires = [
     'pandas',
     'pydap >= 3.1.RC1',
     'pytz',
-    'raster-store',
+    # 'raster-store',
     'redis',
     'rpy2',
     'scipy',
