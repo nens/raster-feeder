@@ -191,6 +191,7 @@ class ThreddsFile(object):
             2: Realtime
             3: Near-realtime
             4: Afterwards
+            5: Ultimate
         """
         thredds_file = cls()
         thredds_file.timeframe = product.timeframe
