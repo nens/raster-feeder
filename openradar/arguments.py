@@ -46,10 +46,10 @@ class Argument(object):
             '-p', '--prodcodes',
             metavar='PRODCODE',
             nargs='*',
-            choices=['r', 'n', 'a'],
-            default=['r', 'n', 'a'],
+            choices=['r', 'n', 'a', 'u'],
+            default=['r', 'n', 'a', 'u'],
             help=('Choose product: (n)ear-realtime'
-                  ' (r)ealtime or (a)fterwards'),
+                  ' (r)ealtime, (a)fterwards or (u)ltimate'),
         )
 
     def timeframes(self, parser):

@@ -39,7 +39,7 @@ LOG_DIR = os.path.join(BUILDOUT_DIR, 'var', 'log')
 NODATAVALUE = -9999
 
 # Declutter defaults
-DECLUTTER_FILEPATH = 'clutter-20140701-20150630.h5'
+DECLUTTER_FILEPATH = 'clutter-20140101-20141231.h5'
 DECLUTTER_HISTORY = 0.1
 DECLUTTER_SIZE = 4
 
@@ -135,7 +135,7 @@ TIMEFRAME_DELTA = {
 }
 FRAMESTAMP = dict(f='0005', h='0100', d='2400')
 PRODUCT_CODE = {t: {p: 'TF{}_{}'.format(FRAMESTAMP[t], p.upper())
-                    for p in 'rna'}
+                    for p in 'rnau'}
                 for t in 'fhd'}
 PRODUCT_TEMPLATE = 'RAD_{code}_{timestamp}.h5'
 NOWCAST_PRODUCT_CODE = 'TF0005_X'
