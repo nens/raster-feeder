@@ -75,14 +75,18 @@ class Checker(object):
 
     template0 = 'Need {exp} or better, found nothing.'
     template1 = 'Need {exp} or better, found {act}.'
-    names = {'r': 'realtime', 'n': 'near-realtime', 'a': 'after'}
+    names = {'r': 'realtime',
+             'n': 'near-realtime',
+             'a': 'after',
+             'u': 'ultimate'}
 
     def __init__(self, quality):
         # determine zones
         u = datetime.datetime.utcnow() - TOLERANCE
         self.r = utils.closest_time(timeframe='f', dt_close=u)
         self.n = utils.closest_time(timeframe='h', dt_close=u) - HOUR
-        self.a = utils.closest_time(timeframe='d', dt_close=u) - HOUR * 48
+        self.a = utils.closest_time(timeframe='d', dt_close=u) - HOUR * 24 * 2
+        self.u = utils.closest_time(timeframe='d', dt_close=u) - HOUR * 24 * 30
 
         self.quality = quality
 
@@ -92,6 +96,17 @@ class Checker(object):
         actual_calibration = meta.get('cal_method', 'None')
 
         # what do we expect
+        if date < self.u:
+            expected_prodcode = 'u'
+            try:
+                composite_count = meta['composite_count']
+            except KeyError:
+                logger.debug('{}: no product or no meta.'.format(date))
+                return
+            if composite_count == 1:
+                expected_calibration = IDW,
+            else:
+                expected_calibration = KED,
         if date < self.a:
             expected_prodcode = 'a'
             try:

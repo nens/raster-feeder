@@ -36,7 +36,7 @@ def sync_radar():
     """
     loghelper.setup_logging(os.path.join(config.LOG_DIR, 'sync.log'))
     datetimes = tuple(get_datetimes())
-    prodcodes = 'rna'
+    prodcodes = 'rnau'
     timeframes = 'fhd'
 
     publisher = publishing.Publisher(datetimes=datetimes,

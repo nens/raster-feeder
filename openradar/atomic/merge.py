@@ -37,9 +37,9 @@ def command(verbose):
     logger.info('Merge procedure initiated.')
 
     source_names = {
-        'day': ('real', 'near', 'after'),
-        'hour': ('real', 'near', 'after'),
-        '5min': ('real2', 'near', 'after'),
+        'day': ('real', 'near', 'after', 'ultimate'),
+        'hour': ('real', 'near', 'after', 'ultimate'),
+        '5min': ('real2', 'near', 'after', 'ultimate'),
     }
 
     for time_name in ('day', 'hour', '5min'):
