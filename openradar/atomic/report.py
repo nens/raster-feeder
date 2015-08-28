@@ -108,7 +108,7 @@ class Checker(object):
             else:
                 expected_calibration = KED,
         if date < self.a:
-            expected_prodcode = 'a'
+            expected_prodcode = 'au'
             try:
                 composite_count = meta['composite_count']
             except KeyError:
@@ -119,10 +119,10 @@ class Checker(object):
             else:
                 expected_calibration = KED,
         elif date < self.n:
-            expected_prodcode = 'na'
+            expected_prodcode = 'nau'
             expected_calibration = IDW, KED
         elif date < self.r:
-            expected_prodcode = 'rna'
+            expected_prodcode = 'rnau'
             expected_calibration = RAW, IDW, KED
         else:
             return
