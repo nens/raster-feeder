@@ -14,9 +14,6 @@ import numpy as np
 import os
 import shutil
 
-from pydap import client
-from pydap.exceptions import ServerError
-
 from openradar import config
 from openradar import utils
 from openradar import scans
@@ -124,39 +121,6 @@ class ThreddsFile(object):
         """
         for i in range(start, end + 1):
             yield self.datetime + i * self.timedelta
-
-    def get_data_from_opendap(self, x, y, start=None, end=None):
-        """
-        Return list of dicts for data at x, y.
-
-        Start, end are datetimes, and default to the first and last
-        datetime in the file.
-        """
-        try:
-            dataset = client.open_url(self.url)
-        except ServerError:
-            return []
-
-        index_start = 0
-        if start is not None:
-            index_start = self.index(start)
-
-        if end is None:
-            index_end = self.timesteps - 1
-        else:
-            index_end = self.index(end)
-
-        precipitation = dataset['precipitation']['precipitation']
-
-        tuples = zip(
-            iter(self._get_datetime_generator(start=index_start,
-                                              end=index_end)),
-            precipitation[y, x, index_start: index_end + 1][0, 0, :],
-        )
-
-        return [dict(unit='mm/5min', datetime=d, value=float(p))
-                for d, p in tuples
-                if not p == config.NODATAVALUE]
 
     def next(self):
         """ Return thredds_file object that comes after this one in time. """
@@ -756,17 +720,3 @@ class Consistifier(object):
             )
         rescaled_products.extend(extra_rescaled_products)
         return rescaled_products
-
-
-def get_values_from_opendap(x, y, start_date, end_date):
-    result = []
-    current = ThreddsFile(timeframe='f', datetime=start_date)
-    end = ThreddsFile(timeframe='f', datetime=end_date)
-    while True:
-        result.extend(current.get_data_from_opendap(x=x,
-                                                    y=y,
-                                                    start=start_date,
-                                                    end=end_date))
-        if current == end:
-            return result
-        current = current.next()

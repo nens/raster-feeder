@@ -17,7 +17,6 @@ install_requires = [
     'matplotlib',
     'numpy',
     'pandas',
-    'pydap >= 3.1.RC1',
     'pytz',
     'raster-store',
     'redis',
