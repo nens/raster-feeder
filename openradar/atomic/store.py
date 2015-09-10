@@ -163,7 +163,9 @@ class Store(object):
                          'prodcode': self.prodcode})
             region.meta[band - start] = json.dumps(meta)
 
-        logger.info('Store {} source(s).'.format(len(self.sources)))
+        logger.info('Store {} {} source(s).'.format(
+            len(self.sources), self.names['group'],
+        ))
         self.store.update([region])
         return True
 
