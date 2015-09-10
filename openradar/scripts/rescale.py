@@ -31,7 +31,10 @@ def rescale(**kwargs):
         action_kwargs = dict(result=None,
                              direct=kwargs['direct'],
                              cascade=kwargs['cascade'])
-        action_kwargs.update(combination)
+        rescale_kwargs = {k: v
+                          for k, v in combination.items()
+                          if k in ['datetime', 'prodcode', 'timeframe']}
+        action_kwargs.update(rescale_kwargs)
         action(**action_kwargs)
 
 

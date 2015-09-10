@@ -114,7 +114,10 @@ def calibrate(result, datetime, prodcode, timeframe, nowcast,
                 rescale_kwargs = dict(result=None,
                                       direct=direct,
                                       cascade=cascade)
-                rescale_kwargs.update(combination)
+                extra_kwargs = {k: v
+                                for k, v in combination.items()
+                                if k in ['datetime', 'prodcode', 'timeframe']}
+                rescale_kwargs.update(extra_kwargs)
                 if direct:
                     rescale(**rescale_kwargs)
                 else:
