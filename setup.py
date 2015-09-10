@@ -21,7 +21,7 @@ install_requires = [
     'raster-store',
     'redis',
     'rpy2',
-    'scipy',
+    'scipy>=0.13.3',
     'setuptools',
     'supervisor',
     'turn',
