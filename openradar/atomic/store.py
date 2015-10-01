@@ -37,7 +37,7 @@ stores.mtime_cache = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
 
 # stores and levels
 GEO_TRANSFORM = utils.get_geo_transform()
-LEVELS = {'r': 1, 'n': 2, 'a': 3, 'u': 4}
+LEVELS = {'r': 1, 'n': 2, 'a': 3}
 EPOCH = Datetime.fromtimestamp(0).isoformat()
 ROOT = config.STORE_DIR
 NOW = Datetime.now().isoformat()  # or should we refresh more often?
@@ -45,21 +45,14 @@ WKT = osr.GetUserInputAsWKT(b'EPSG:28992')
 
 NAMES = {'f': {'r': dict(group='5min', store='real1'),
                'n': dict(group='5min', store='near'),
-               'a': dict(group='5min', store='after'),
-               'u': dict(group='5min', store='ultimate')},
+               'a': dict(group='5min', store='after')},
          'h': {'r': dict(group='hour', store='real'),
                'n': dict(group='hour', store='near'),
-               'a': dict(group='hour', store='after'),
-               'u': dict(group='hour', store='ultimate')},
+               'a': dict(group='hour', store='after')},
          'd': {'r': dict(group='day', store='real'),
                'n': dict(group='day', store='near'),
-               'a': dict(group='day', store='after'),
-               'u': dict(group='day', store='ultimate')}}
-
-PRODUCTS = {'r': 'realtime',
-            'n': 'near-realtime',
-            'a': 'after',
-            'u': 'ultimate'}
+               'a': dict(group='day', store='after')}}
+PRODUCTS = {'r': 'realtime', 'n': 'near-realtime', 'a': 'after'}
 
 
 def get_path_helper(timeframe, prodcode):
