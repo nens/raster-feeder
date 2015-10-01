@@ -312,9 +312,7 @@ def consistent_product_expected(prodcode, timeframe):
     can be used to determine if a product needs to be published, or
     not. If not, the rescaled equivalent should be published.
     """
-    if prodcode == 'u' and timeframe == 'fh':
-        return True
-    if prodcode == 'a' and timeframe in 'fh':
+    if prodcode in 'au' and timeframe in 'fh':
         return True
     if prodcode == 'n' and timeframe == 'f':
         return True
