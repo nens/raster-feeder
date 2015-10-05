@@ -31,9 +31,9 @@ def get_image_args():
                         default='',
                         help='Label text in image.')
     parser.add_argument('-p', '--prodcode',
-                        choices=['r', 'n', 'a'],
+                        choices=['r', 'n', 'a', 'u'],
                         default='r',
-                        help='(r)ealtime, (n)ear-realtime or (a)fterwards')
+                help='(r)ealtime, (n)ear-realtime, (a)fterwards or (u)ltimate')
     parser.add_argument('-c', '--product',
                         choices=['a', 'b', 'c'],
                         default='b',
