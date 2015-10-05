@@ -146,7 +146,7 @@ DELIVERY_TIMES = (
     ('r', datetime.timedelta()),
     ('n', datetime.timedelta(hours=1)),
     ('a', datetime.timedelta(hours=12)),
-    ('u', datetime.timedelta(days=30))
+    ('u', datetime.timedelta(days=30)),
 )
 
 # Delays for waiting-for-files

@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
 """
@@ -82,7 +81,7 @@ class Checker(object):
         u = datetime.datetime.utcnow() - TOLERANCE
         self.r = utils.closest_time(timeframe='f', dt_close=u)
         self.n = utils.closest_time(timeframe='h', dt_close=u) - HOUR
-        self.a = utils.closest_time(timeframe='d', dt_close=u) - HOUR * 48
+        self.a = utils.closest_time(timeframe='d', dt_close=u) - HOUR * 12
 
         self.quality = quality
 

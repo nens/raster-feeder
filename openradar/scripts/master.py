@@ -47,8 +47,9 @@ def master(**kwargs):
         history=config.DECLUTTER_HISTORY,
     )
     radars = config.ALL_RADARS
-    delivery_times = config.DELIVERY_TIMES.copy()
-    delivery_times.pop('x')  # nowcast extent is from utils.get_combinations
+
+    # nowcast extent is from utils.get_combinations
+    delivery_times = [(p, t) for p, t in config.DELIVERY_TIMES if p in 'rnau']
 
     # Submit tasks in a chain.
     subtasks = [tasks.do_nothing.s()]
