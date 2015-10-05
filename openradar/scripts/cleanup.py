@@ -10,15 +10,17 @@ from __future__ import division
 from openradar import config
 from openradar import loghelper
 
-import datetime
+from datetime import datetime as Datetime
 import logging
 import ftplib
 import os
 import re
 
 DIR_PATTERN = re.compile('TF[0-9]{4}_[XRNA]')
-FILE_PATTERN = re.compile('RAD_TF[0-9]{4}_[XRNA]_(?P<timestamp>[0-9]{14}).h5')
-AGE_MAX_DAYS = 10
+FILE_PATTERN = re.compile(
+    'RAD_TF[0-9]{4}_(?P<prodcode>[XRNAU])_(?P<timestamp>[0-9]{14}).h5'
+)
+AGE_MAX_DAYS = 7
 
 
 def has_expired(filename):
@@ -31,8 +33,10 @@ def has_expired(filename):
     if match is None:
         return False
     timestamp = match.group('timestamp')
-    utcnow = datetime.datetime.utcnow()
-    age = utcnow - datetime.datetime.strptime(timestamp, '%Y%m%d%H%M%S')
+    prodcode = match.group('prodcode')
+    timedelta_delivery = config.DELIVERY_TIMES(prodcode)
+    datetime_product = Datetime.strptime(timestamp, '%Y%m%d%H%M%S')
+    age = Datetime.utcnow() - datetime_product - timedelta_delivery
     return age.days > AGE_MAX_DAYS
 
 

@@ -7,7 +7,6 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
-import datetime
 import logging
 
 from celery import chain
@@ -48,12 +47,8 @@ def master(**kwargs):
         history=config.DECLUTTER_HISTORY,
     )
     radars = config.ALL_RADARS
-    delivery_times = (
-        ('r', datetime.timedelta()),
-        ('n', datetime.timedelta(hours=1)),
-        ('a', datetime.timedelta(days=2)),
-        ('u', datetime.timedelta(days=30))
-    )
+    delivery_times = config.DELIVERY_TIMES.copy()
+    delivery_times.pop('x')  # nowcast extent is from utils.get_combinations
 
     # Submit tasks in a chain.
     subtasks = [tasks.do_nothing.s()]

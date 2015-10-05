@@ -140,6 +140,15 @@ PRODUCT_CODE = {t: {p: 'TF{}_{}'.format(FRAMESTAMP[t], p.upper())
 PRODUCT_TEMPLATE = 'RAD_{code}_{timestamp}.h5'
 NOWCAST_PRODUCT_CODE = 'TF0005_X'
 
+# Delivery times for various products:
+DELIVERY_TIMES = (
+    ('x', datetime.timedelta()),
+    ('r', datetime.timedelta()),
+    ('n', datetime.timedelta(hours=1)),
+    ('a', datetime.timedelta(hours=12)),
+    ('u', datetime.timedelta(days=30))
+)
+
 # Delays for waiting-for-files
 WAIT_SLEEP_TIME = 10  # Seconds
 WAIT_EXPIRE_DELTA = datetime.timedelta(minutes=3)
