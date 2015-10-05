@@ -287,7 +287,7 @@ def get_aggregate_combinations(datetimes,
 
 
 def get_product_combinations(datetimes,
-                             prodcodes=['r', 'n', 'a'],
+                             prodcodes=['r', 'n', 'a', 'u'],
                              timeframes=['f', 'h', 'd']):
     """ Return generator of dictionaries. """
     for _datetime in datetimes:
@@ -312,7 +312,7 @@ def consistent_product_expected(prodcode, timeframe):
     can be used to determine if a product needs to be published, or
     not. If not, the rescaled equivalent should be published.
     """
-    if prodcode == 'a' and timeframe in 'fh':
+    if prodcode in 'au' and timeframe in 'fh':
         return True
     if prodcode == 'n' and timeframe == 'f':
         return True
@@ -338,7 +338,7 @@ def get_groundfile_datetimes(prodcode, timeframe, date):
     delta = dict(
         r=datetime.timedelta(minutes=0),
         n=datetime.timedelta(hours=1),
-        a=datetime.timedelta(days=2),
+        a=datetime.timedelta(days=2)
     )
     base_datetime = date + delta[prodcode]
     if timeframe == 'f':

@@ -52,6 +52,7 @@ def master(**kwargs):
         ('r', datetime.timedelta()),
         ('n', datetime.timedelta(hours=1)),
         ('a', datetime.timedelta(days=2)),
+        ('u', datetime.timedelta(days=30))
     )
 
     # Submit tasks in a chain.

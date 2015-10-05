@@ -135,7 +135,7 @@ TIMEFRAME_DELTA = {
 }
 FRAMESTAMP = dict(f='0005', h='0100', d='2400')
 PRODUCT_CODE = {t: {p: 'TF{}_{}'.format(FRAMESTAMP[t], p.upper())
-                    for p in 'rna'}
+                    for p in 'rnau'}
                 for t in 'fhd'}
 PRODUCT_TEMPLATE = 'RAD_{code}_{timestamp}.h5'
 NOWCAST_PRODUCT_CODE = 'TF0005_X'

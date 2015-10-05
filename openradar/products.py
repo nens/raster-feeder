@@ -30,7 +30,8 @@ class ThreddsFile(object):
     REALTIME = 2
     NEARREALTIME = 3
     AFTERWARDS = 4
-    FLAGS = dict(r=REALTIME, n=NEARREALTIME, a=AFTERWARDS)
+    ULTIMATE = 5
+    FLAGS = dict(r=REALTIME, n=NEARREALTIME, a=AFTERWARDS, u=ULTIMATE)
 
     def __init__(self, datetime=None,
                  timeframe=None, prodcode='r', merge=True):
@@ -154,6 +155,7 @@ class ThreddsFile(object):
             2: Realtime
             3: Near-realtime
             4: Afterwards
+            5: Ultimate
         """
         thredds_file = cls()
         thredds_file.timeframe = product.timeframe
@@ -453,7 +455,7 @@ class CalibratedProduct(object):
                 interpolator.precipitation,
                 mask=precipitation_mask,
             )
-        elif self.prodcode == 'a' and self.timeframe in ['h', 'd']:
+        elif self.prodcode in ['a', 'u'] and self.timeframe in ['h', 'd']:
             logging.info('Calibrating using kriging.')
             calibration_method = 'Kriging External Drift'
             try:
@@ -625,7 +627,7 @@ class Consistifier(object):
         Return if product enables consistification of other products.
         """
         prodcode, timeframe = product.prodcode, product.timeframe
-        if prodcode == 'a':
+        if prodcode in ['a', 'u']:
             if timeframe == 'd':
                 return True
             if timeframe == 'h' and isinstance(product, ConsistentProduct):
