@@ -35,7 +35,7 @@ def has_expired(filename):
     if match is None:
         return False
     timestamp = match.group('timestamp')
-    prodcode = match.group('prodcode')
+    prodcode = match.group('prodcode').lower()
     timedelta_delivery = delivery_times[prodcode]
     datetime_product = Datetime.strptime(timestamp, '%Y%m%d%H%M%S')
     age = Datetime.utcnow() - datetime_product - timedelta_delivery
