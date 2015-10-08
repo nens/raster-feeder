@@ -140,7 +140,7 @@ PRODUCT_CODE = {t: {p: 'TF{}_{}'.format(FRAMESTAMP[t], p.upper())
 PRODUCT_TEMPLATE = 'RAD_{code}_{timestamp}.h5'
 NOWCAST_PRODUCT_CODE = 'TF0005_X'
 
-# Delivery times for various products:
+# Delivery times for various products (not a dict, because order matters)
 DELIVERY_TIMES = (
     ('x', datetime.timedelta()),
     ('r', datetime.timedelta()),
