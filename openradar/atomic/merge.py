@@ -1,7 +1,7 @@
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
 # -*- coding: utf-8 -*-
 """
-Move data from one store to another, flushing the store but leaving it intact.
+Merge realtime, near-realtime and after stores into a single 'merge' store.
 """
 
 from __future__ import print_function
@@ -20,10 +20,8 @@ from openradar.atomic import move
 logger = logging.getLogger(__name__)
 
 
-def command(verbose):
-    """
-    Move data from one radar store into another.
-    """
+def merge(verbose):
+    """ Call move for a number of stores. """
     # logging
     if verbose:
         kwargs = {'stream': sys.stderr,
@@ -65,10 +63,9 @@ def get_parser():
 
 
 def main():
-    """ Call command with args from parser. """
-    return command(**vars(get_parser().parse_args()))
+    """ Call merge with args from parser. """
     try:
-        command(**vars(get_parser().parse_args()))
+        merge(**vars(get_parser().parse_args()))
         return 0
     except:
         logger.exception('An execption occurred:')
