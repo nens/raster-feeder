@@ -122,13 +122,14 @@ def command():
             add_nowcast_stores(group_path)
 
         # group file, for use by store script
-        logger.info('Update group for {}.'.format(group_name))
-        group = [os.path.join(group_path, n) for n in ORDERING[group_name]]
-        conf = {'Group': [{'Store': {'path': path}} for path in group]}
-        source = '{}.json.in'.format(group_path)
-        target = '{}.json'.format(group_path)
-        json.dump(conf, open(source, 'w'), indent=2)
-        os.rename(source, target)
+        logger.info('Update config for {}.'.format(group_name))
+        store_confs = []
+        for store_name in ORDERING[group_name]:
+            store_path = os.path.join(group_name, store_name)
+            store_confs.append({'Store': {'path': store_path}})
+        conf = {'Group': store_confs}
+        conf_path = '{}.json'.format(group_path)
+        json.dump(conf, open(conf_path, 'w'), indent=2)
 
     logger.info('Init procedure completed.')
 
