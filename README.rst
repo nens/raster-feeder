@@ -34,6 +34,7 @@ Install using system repositories (e.g. apt-get, brew, pacman):
     * python-rpy2
     * python-scipy
     * python-tornado
+    * redis-server
 
     * libgeos-dev
     * libhdf5-serial-dev
