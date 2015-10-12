@@ -80,8 +80,8 @@ class Checker(object):
         # determine zones
         u = datetime.datetime.utcnow() - TOLERANCE
         self.r = utils.closest_time(timeframe='f', dt_close=u)
-        self.n = utils.closest_time(timeframe='h', dt_close=u) - HOUR
-        self.a = utils.closest_time(timeframe='d', dt_close=u) - HOUR * 12
+        self.n = utils.closest_time(timeframe='h', dt_close=u - HOUR)
+        self.a = utils.closest_time(timeframe='d', dt_close=u - HOUR * 12)
 
         self.quality = quality
 
