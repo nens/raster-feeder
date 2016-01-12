@@ -16,7 +16,7 @@ import ftplib
 import os
 import re
 
-DIR_PATTERN = re.compile('TF[0-9]{4}_[XRNA]')
+DIR_PATTERN = re.compile('TF[0-9]{4}_[XRNAU]')
 FILE_PATTERN = re.compile(
     'RAD_TF[0-9]{4}_(?P<prodcode>[XRNAU])_(?P<timestamp>[0-9]{14}).h5'
 )
