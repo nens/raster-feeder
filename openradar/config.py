@@ -161,6 +161,7 @@ OPENDAP_ROOT = 'http://opendap.nationaleregenradar.nl/thredds/dodsC/radar'
 
 # FTP settings
 # Publishing
+FTP_AGE = 7   # max age in days for files on ftp
 FTP_HOST = ''  # Empty to skip ftp publishing
 FTP_USER = 'MyUser'
 FTP_PASSWORD = 'MyPassword'

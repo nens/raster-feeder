@@ -20,7 +20,6 @@ DIR_PATTERN = re.compile('TF[0-9]{4}_[XRNA]')
 FILE_PATTERN = re.compile(
     'RAD_TF[0-9]{4}_(?P<prodcode>[XRNAU])_(?P<timestamp>[0-9]{14}).h5'
 )
-AGE_MAX_DAYS = 7
 
 delivery_times = dict(config.DELIVERY_TIMES)
 
@@ -39,7 +38,7 @@ def has_expired(filename):
     timedelta_delivery = delivery_times[prodcode]
     datetime_product = Datetime.strptime(timestamp, '%Y%m%d%H%M%S')
     age = Datetime.utcnow() - datetime_product - timedelta_delivery
-    return age.days > AGE_MAX_DAYS
+    return age.days > config.FTP_AGE
 
 
 def cleanup_ftp_dir(ftp, dirname):

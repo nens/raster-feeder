@@ -146,7 +146,7 @@ class FtpImporter(object):
         synced = []
         for group in config.FTP_RADARS:
             try:
-                if not group in self.connections:
+                if group not in self.connections:
                     self._connect(group)
                 synced.extend(self._sync(group))
             except ftplib.all_errors:
