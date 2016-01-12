@@ -2,7 +2,7 @@
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
 """
 Create the necessary radar stores if they do not yet exist and create
-a group.json with absolute paths.
+wrapper configurations per timeframe.
 """
 
 from __future__ import print_function
