@@ -31,22 +31,25 @@ DELTAS = {'5min': datetime.timedelta(minutes=5),
 
 # the depths here aim at fast storage and merging
 # the offloading is more heavy and should definitely happen at night
-DEPTHS = {'5min': {'real1':   (1,   12),   # arrives every 5 minutes
-                   'real2':  (12,  288),   # move here every hour
-                   'near':   (12,  288),   # arrives every hour
-                   'after':  (72,  288),   # arrives once a day
-                   'merge':  (72,  576),   # merge at night
-                   'final': (512, 1024)},  # offload once a day at night
-          'hour': {'real':    (1,   24),   # arrives every hour
-                   'near':    (1,   24),   # arrives every hour
-                   'after':  (24,   24),   # arrives once a day
-                   'merge':  (24,  576),   # merge at night
-                   'final': (512, 1024)},  # offload once a week at night
-          'day':  {'real':    (1,   24),   # arrives once a day
-                   'near':    (1,   24),   # arrives once a day
-                   'after':   (1,   24),   # arrives once a day
-                   'merge':   (6,  576),   # merge at night
-                   'final': (512, 1024)}}  # offload once a month at night
+DEPTHS = {'5min': {'real1':      (1,   12),   # arrives every 5 minutes
+                   'real2':     (12,  288),   # move here every hour
+                   'near':      (12,  288),   # arrives every hour
+                   'after':     (72,  288),   # arrives once a day
+                   'ultimate':  (72,  288),   # arrives once a day
+                   'merge':     (72,  576),   # merge at night
+                   'final':    (512, 1024)},  # offload once a day at night
+          'hour': {'real':       (1,   24),   # arrives every hour
+                   'near':       (1,   24),   # arrives every hour
+                   'after':     (24,   24),   # arrives once a day
+                   'ultimate':  (24,   24),   # arrives once a day
+                   'merge':     (24,  576),   # merge at night
+                   'final':    (512, 1024)},  # offload once a week at night
+          'day':  {'real':       (1,   24),   # arrives once a day
+                   'near':       (1,   24),   # arrives once a day
+                   'after':      (1,   24),   # arrives once a day
+                   'ultimate':   (1,   24),   # arrives once a day
+                   'merge':      (6,  576),   # merge at night
+                   'final':    (512, 1024)}}  # offload once a month at night
 
 WKT = osr.GetUserInputAsWKT(b'epsg:28992')
 
@@ -62,9 +65,9 @@ KWARGS = {'dtype': 'f4',
 
 ORDERING = {
     '5min': ('nowcast2', 'nowcast1', 'final',
-             'merge', 'real2', 'real1', 'near', 'after'),
-    'hour': ('final', 'merge', 'real', 'near', 'after'),
-    'day': ('final', 'merge', 'real', 'near', 'after'),
+             'merge', 'real2', 'real1', 'near', 'after', 'ultimate'),
+    'hour': ('final', 'merge', 'real', 'near', 'after', 'ultimate'),
+    'day': ('final', 'merge', 'real', 'near', 'after', 'ultimate'),
 }
 
 

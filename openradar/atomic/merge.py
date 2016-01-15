@@ -1,7 +1,8 @@
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
 # -*- coding: utf-8 -*-
 """
-Merge realtime, near-realtime and after stores into a single 'merge' store.
+Merge realtime, near-realtime, after and ultimate stores into a single
+'merge' store.
 """
 
 from __future__ import print_function
@@ -35,9 +36,9 @@ def merge(verbose):
     logger.info('Merge procedure initiated.')
 
     source_names = {
-        'day': ('real', 'near', 'after'),
-        'hour': ('real', 'near', 'after'),
-        '5min': ('real2', 'near', 'after'),
+        'day': ('real', 'near', 'after', 'ultimate'),
+        'hour': ('real', 'near', 'after', 'ultimate'),
+        '5min': ('real2', 'near', 'after', 'ultimate'),
     }
 
     for time_name in ('day', 'hour', '5min'):
