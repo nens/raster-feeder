@@ -33,7 +33,7 @@ def organize_from_path(source_dir):
             scansource = abspath(join(path, name))
             target_path = scans.ScanSignature(
                 scansource=scansource,
-            ).get_scan_path()
+            ).get_scanpath()
 
             if not exists(dirname(target_path)):
                 os.makedirs(dirname(target_path))
@@ -90,10 +90,7 @@ class FtpImporter(object):
             scandatetime = scan_signature.get_datetime()
             path = scan_signature.get_scanpath()
             age = (self.datetime - scandatetime).total_seconds()
-            no_need = (name in self.arrived or
-                       age > self.max_age or
-                       exists(path))
-            if no_need:
+            if name in self.arrived or age > self.max_age or exists(path):
                 continue
 
             # Try to retrieve the file, but remove it when errors occur.
