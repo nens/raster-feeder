@@ -13,7 +13,9 @@ from openradar import gridtools
 
 from scipy import interpolate
 
-import datetime
+from datetime import datetime as Datetime
+from datetime import timedelta as Timedelta
+
 import h5py
 import json
 import logging
@@ -31,6 +33,26 @@ BAND_META = {
     BAND_RANG: dict(name='range'),
     BAND_ELEV: dict(name='elevation'),
 }
+
+# Regex patterns
+PATTERNS = (
+    # KNMI
+    re.compile(
+        'RAD_(?P<code>.*)_VOL_NA_(?P<timestamp>[0-9]{12})\.h5',
+    ),
+    # DWD archive
+    re.compile(
+        'raa00-dx_(?P<code>.*)-(?P<timestamp>[0-9]{10})-dwd---bin',
+    ),
+    # DWD operational
+    re.compile(
+        'raa00-dx_(?P<id>.*)-(?P<timestamp>[0-9]{10})-(?P<code>.*)---bin',
+    ),
+    # Jabbeke on FTP
+    re.compile(
+        'T_PAGZ42_C_EBUM_(?P<timestamp>[0-9]{14})\.hdf',
+    )
+)
 
 
 def create_basegrid(extent, cellsize):
@@ -61,58 +83,82 @@ class ScanSignature(object):
     Get timestamp or scanpath.
     """
 
-    def __init__(self, scanname=None, scancode=None, scandatetime=None):
-        if scancode and scandatetime and (scanname is None):
+    def __init__(self, scansource=None, scancode=None, scandatetime=None):
+        if scancode and scandatetime and (scansource is None):
             self._datetime = scandatetime
 
             self._code = scancode
 
             # Operational DWD data has an id in the name
-            if self._datetime.year >= config.START_YEAR:
+            if self._datetime.year >= 2013:
                 self._id = config.RADAR_ID.get(self._code, '')
             else:
                 self._id = ''
 
-        elif scanname and (scancode is None) and (scandatetime is None):
-            self._from_scanname(scanname)
+        elif scansource and (scancode is None) and (scandatetime is None):
+            self._from_scansource(scansource)
         else:
             raise ValueError(
-                'Specify either scanname or scandatetime and scancode.'
+                'Specify either scansource or scandatetime and scancode.'
             )
 
-    def _from_scanname(self, scanname):
-        radar_dict = self._radar_dict_from_scanname(scanname)
+    def _from_scansource(self, scansource):
+        """ Set attributes from a scansource. """
+        radar_dict = self._radar_dict_from_scansource(scansource)
         datetime_format = self._get_datetime_format(radar_dict)
-        scandatetime = datetime.datetime.strptime(
+        scandatetime = Datetime.strptime(
             radar_dict['timestamp'], datetime_format)
 
         self._datetime = scandatetime
         self._code = radar_dict['code']
         self._id = radar_dict['id']
 
-    def _radar_dict_from_scanname(self, scanname):
-        for pattern in config.RADAR_PATTERNS:
-            match = pattern.match(scanname)
+    def _radar_dict_from_scansource(self, scansource):
+        """ Return dict with radar parameters from ftp scansource. """
+        for pattern in PATTERNS:
+            match = pattern.match(os.path.basename(scansource))
             if match:
-                # Jabbeke is the only one without a code in the file name.
-                if 'code' in match.groupdict().keys():
+
+                # handle id
+                if 'id' in pattern.groupindex:
+                    radar_id = match.group('id')  # dwd from 2013
+                else:
+                    radar_id = ''
+
+                # handle code and timestamp
+                if 'code' in pattern.groupindex:
                     radar_code = match.group('code')
+                    radar_timestamp = match.group('timestamp')
                 else:
                     radar_code = 'JAB'
-                try:
-                    radar_id = match.group('id')
-                except:
-                    radar_id = ''
-                radar_timestamp = match.group('timestamp')
-                return {'id': radar_id, 'code': radar_code,
+                    if os.path.exists(scansource):
+                        # get exact product time from h5
+                        with h5py.File(scansource, 'r') as h5:
+                            attrs = h5['what'].attrs
+                            date = attrs['date']
+                            time = attrs['time'][:-2]  # truncate seconds
+                            radar_timestamp = date + time
+                    else:
+                        # guess from filename
+                        name_timestamp = match.group('timestamp')
+                        d1 = utils.timestamp2datetime(name_timestamp)
+                        m = 5 * (d1.minute // 5)
+                        d2 = d1.replace(minute=m, second=0, microsecond=0)
+                        t = Timedelta(minutes=5)
+                        d3 = d1 + min((d2 - d1), abs(d2 - d1 + t), key=abs) - t
+                        radar_timestamp = utils.datetime2timestamp(d3)[:-2]
+
+                return {'id': radar_id,
+                        'code': radar_code,
                         'timestamp': radar_timestamp}
-        raise ValueError("Currently no pattern matching '{}'".format(scanname))
+
+        message = 'No pattern matches {}'
+        raise ValueError(message.format(scansource))
 
     def _get_datetime_format(self, radar_dict):
         """
         Return the filename format with the datetime format string
         that corresponds to current scan.
-
         """
         radar_code = radar_dict['code']
 
@@ -139,13 +185,9 @@ class ScanSignature(object):
         raise ValueError("There is no format for {}".format(radar_dict))
 
     def get_scanname(self):
-        return datetime.datetime.strftime(
-            self._datetime, self._get_datetime_name(
-                radar_dict={
-                    'code': self._code, 'id': self._id,
-                },
-            ),
-        )
+        radar_dict = {'code': self._code, 'id': self._id}
+        fmt = self._get_datetime_name(radar_dict)
+        return self._datetime.strftime(fmt)
 
     def get_scanpath(self):
         return os.path.join(
@@ -832,10 +874,10 @@ class Aggregate(object):
     rain still has to fall down.
     """
     CODE = {
-        datetime.timedelta(minutes=5): '5min',
-        datetime.timedelta(hours=1): 'uur',
-        datetime.timedelta(days=1): '24uur',
-        datetime.timedelta(days=2): '48uur',
+        Timedelta(minutes=5): '5min',
+        Timedelta(hours=1): 'uur',
+        Timedelta(days=1): '24uur',
+        Timedelta(days=2): '48uur',
     }
 
     TD = {v: k for k, v in CODE.items()}
@@ -916,7 +958,7 @@ class Aggregate(object):
             raise ValueError('Other history declutter setting in aggregate')
         if h5.attrs['declutter_size'] != self.declutter['size']:
             raise ValueError('Other size declutter setting in aggregate')
-        is_recent = (datetime.datetime.utcnow() - self.datetime).days < 7
+        is_recent = (Datetime.utcnow() - self.datetime).days < 7
         if not is_recent:
             logging.info('Skipping completeness check for old aggregate')
         if is_recent and not h5.attrs['available'].all():

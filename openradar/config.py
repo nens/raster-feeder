@@ -44,7 +44,6 @@ DECLUTTER_HISTORY = 0.1
 DECLUTTER_SIZE = 4
 
 # Radar codes
-START_YEAR = 2013  # expect an id in dwd filenames starting from here
 DWD_RADARS = ('ess', 'nhb', 'emd', 'ase')  # ess is sometimes called ase
 KNMI_RADARS = ('NL60', 'NL61')
 JABBEKE_RADARS = ('JAB',)
@@ -57,26 +56,6 @@ RADAR_ID = {
     'nhb': '10605',
 }
 
-# Regex patterns
-RADAR_PATTERNS = [
-    # KNMI
-    re.compile(
-        'RAD_(?P<code>.*)_VOL_NA_(?P<timestamp>[0-9]{12})\.h5',
-    ),
-    # DWD archive
-    re.compile(
-        'raa00-dx_(?P<code>.*)-(?P<timestamp>[0-9]{10})-dwd---bin',
-    ),
-    # DWD operational
-    re.compile(
-        'raa00-dx_(?P<id>.*)-(?P<timestamp>[0-9]{10})-(?P<code>.*)---bin',
-    ),
-    # Jabbeke on FTP
-    re.compile(
-        '(?P<timestamp>[0-9]{12})[0-9]{4}dBZ\.vol\.h5',
-    ),
-
-]
 CALIBRATION_PATTERN = re.compile(
     'GEO *= *(?P<a>[-.0-9]+) *\* *PV *\+ *(?P<b>[-.0-9]+)',
 )
@@ -176,6 +155,6 @@ REDIS_DB = 0
 
 # Import local settings
 try:
-    from openradar.localconfig import *
+    from openradar.localconfig import *  # NOQA
 except ImportError:
     pass

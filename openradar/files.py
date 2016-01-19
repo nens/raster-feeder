@@ -16,23 +16,6 @@ import logging
 import os
 import shutil
 import time
-import zipfile
-
-
-def move_to_zip(source_path, target_path):
-    """ Move the file at source_path to a zipfile at target_path. """
-    # Prepare
-    root, ext = os.path.splitext(target_path)
-    zip_path = root + '.zip'
-    arcname = os.path.basename(target_path)
-
-    # Write to zip
-    with zipfile.ZipFile(zip_path, 'w',
-                         compression=zipfile.ZIP_DEFLATED) as zip_file:
-        zip_file.write(source_path, arcname=arcname)
-
-    # Remove source
-    os.remove(source_path)
 
 
 def organize_from_path(source_dir):
@@ -41,35 +24,26 @@ def organize_from_path(source_dir):
         source_dir,
     ))
     count = 0
-    zipcount = 0
 
     for path, dirs, names in os.walk(source_dir):
         for name in names:
+            scansource = os.path.abspath(os.path.join(path, name))
 
             # Is it radar?
             try:
-                scan_signature = scans.ScanSignature(scanname=name)
+                scan_signature = scans.ScanSignature(scansource=scansource)
             except ValueError:
-                scan_signature = None
-
-            if scan_signature:
-                target_path = scan_signature.get_scanpath()
-            else:
-                logging.debug(
-                    'Could not determine target path for {}'.format(name),
-                )
+                message = 'Could not determine target path to %s'
+                logging.info(message, scansource)
                 continue
 
-            source_path = os.path.join(path, name)
+            target_path = scan_signature.get_scanpath()
             if not os.path.exists(os.path.dirname(target_path)):
                 os.makedirs(os.path.dirname(target_path))
-            if target_path.endswith('.csv'):
-                move_to_zip(source_path, target_path)
-                zipcount += 1
-            else:
-                shutil.move(source_path, target_path)
+            shutil.move(scansource, target_path)
             count += 1
-    logging.info('Moved {} files'.format(count, zipcount))
+
+    logging.info('Processed %s files', count)
 
 
 class FtpImporter(object):
@@ -112,16 +86,17 @@ class FtpImporter(object):
         for name in remote:
             try:
                 scan_signature = scans.ScanSignature(scanname=name)
-                scandatetime = scan_signature.get_datetime()
-                path = scan_signature.get_scanpath()
-                age = (self.datetime - scandatetime).total_seconds()
-                no_need = (name in self.arrived or
-                           age > self.max_age or
-                           os.path.exists(path))
-                if no_need:
-                    continue
             except ValueError:
                 continue  # It is not a radar file as we know it.
+
+            scandatetime = scan_signature.get_datetime()
+            path = scan_signature.get_scanpath()
+            age = (self.datetime - scandatetime).total_seconds()
+            no_need = (name in self.arrived or
+                       age > self.max_age or
+                       os.path.exists(path))
+            if no_need:
+                continue
 
             # Try to retrieve the file, but remove it when errors occur.
             targetpath = os.path.join(config.SOURCE_DIR, name)
