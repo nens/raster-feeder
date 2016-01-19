@@ -10,7 +10,10 @@ from openradar import config
 from openradar import scans
 from openradar import utils
 
-import datetime
+from datetime import datetime as Datetime
+from datetime import timedelta as Timedelta
+from os.path import abspath, dirname, exists, join
+
 import ftplib
 import logging
 import os
@@ -27,19 +30,13 @@ def organize_from_path(source_dir):
 
     for path, dirs, names in os.walk(source_dir):
         for name in names:
-            scansource = os.path.abspath(os.path.join(path, name))
+            scansource = abspath(join(path, name))
+            target_path = scans.ScanSignature(
+                scansource=scansource,
+            ).get_scan_path()
 
-            # Is it radar?
-            try:
-                scan_signature = scans.ScanSignature(scansource=scansource)
-            except ValueError:
-                message = 'Could not determine target path to %s'
-                logging.info(message, scansource)
-                continue
-
-            target_path = scan_signature.get_scanpath()
-            if not os.path.exists(os.path.dirname(target_path)):
-                os.makedirs(os.path.dirname(target_path))
+            if not exists(dirname(target_path)):
+                os.makedirs(dirname(target_path))
             shutil.move(scansource, target_path)
             count += 1
 
@@ -84,8 +81,9 @@ class FtpImporter(object):
         remote = ftp.nlst()
         synced = []
         for name in remote:
+            scansource = abspath(join(config.SOURCE_DIR, name))
             try:
-                scan_signature = scans.ScanSignature(scanname=name)
+                scan_signature = scans.ScanSignature(scansource=scansource)
             except ValueError:
                 continue  # It is not a radar file as we know it.
 
@@ -94,12 +92,12 @@ class FtpImporter(object):
             age = (self.datetime - scandatetime).total_seconds()
             no_need = (name in self.arrived or
                        age > self.max_age or
-                       os.path.exists(path))
+                       exists(path))
             if no_need:
                 continue
 
             # Try to retrieve the file, but remove it when errors occur.
-            targetpath = os.path.join(config.SOURCE_DIR, name)
+            targetpath = join(config.SOURCE_DIR, name)
             try:
                 with open(targetpath, 'wb') as scanfile:
                     ftp.retrbinary('RETR ' + name, scanfile.write)
@@ -107,7 +105,7 @@ class FtpImporter(object):
                 logging.debug('Fetched: {}'.format(name))
             except ftplib.all_errors:
                 logging.warn('Fetch of {} failed.'.format(name))
-                if os.path.exists(targetpath):
+                if exists(targetpath):
                     os.remove(targetpath)
         return synced
 
@@ -150,7 +148,7 @@ def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
         dt_calculation + td_wait,
     ))
 
-    dt_radar = dt_calculation - datetime.timedelta(minutes=5)
+    dt_radar = dt_calculation - Timedelta(minutes=5)
 
     set_expected = set()
 
@@ -159,7 +157,7 @@ def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
         scan_signature = scans.ScanSignature(
             scancode=radar, scandatetime=dt_radar,
         )
-        if not os.path.exists(scan_signature.get_scanpath()):
+        if not exists(scan_signature.get_scanpath()):
             set_expected.add(scan_signature.get_scanname())
 
     logging.debug('looking for {}'.format(', '.join(set_expected)))
@@ -174,13 +172,10 @@ def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
         set_arrived = set()
         for path, dirs, names in os.walk(config.SOURCE_DIR):
             set_names = set()
-            for n in names:
-                try:
-                    set_names.add(
-                        scans.ScanSignature(scanname=n).get_scanname(),
-                    )
-                except ValueError:
-                    set_names.add(n)
+            for name in names:
+                set_names.add(scans.ScanSignature(
+                    scansource=abspath(join(path, name))
+                ).get_scanname())
             # Add the intersection of names and expected to arrived.
             set_arrived |= (set_names & set_expected)
 
@@ -195,7 +190,7 @@ def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
                 ', '.join(set_expected),
             ))
 
-        if datetime.datetime.utcnow() > dt_calculation + td_wait:
+        if Datetime.utcnow() > dt_calculation + td_wait:
             break
 
         try:
