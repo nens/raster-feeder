@@ -607,9 +607,8 @@ class MultiScan(object):
             logging.debug('Starting with empty multiscan file.')
 
         for scancode in self.scancodes:
-            scan = ScanSignature(
-                scandatetime=self.multiscandatetime, scancode=scancode,
-            ).get_scan(self.grid)
+            scan_tuple = scancode, self.multiscandatetime
+            scan = ScanSignature(scan_tuple=scan_tuple).get_scan(self.grid)
             if scan is None or scancode in dataset:
                 continue
             if scan.is_readable():
@@ -976,9 +975,9 @@ class Aggregate(object):
             dt_composite = self.datetime - self.TD[self.code]
             files_available = []
             for radar in sorted(self.radars):
-                files_available.append(os.path.exists(ScanSignature(
-                    scancode=radar, scandatetime=dt_composite
-                ).get_scanpath()))
+                scan_tuple = radar, dt_composite
+                scan_path = ScanSignature(scan_tuple=scan_tuple).get_scanpath()
+                files_available.append(os.path.exists(scan_path))
             if not (h5.attrs['available'] == files_available).all():
                 raise ValueError('Missing radars, but scanfiles exist.')
             else:
