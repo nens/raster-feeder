@@ -83,42 +83,40 @@ class ScanSignature(object):
     Get timestamp or scanpath.
     """
 
-    def __init__(self, scansource=None, scancode=None, scandatetime=None):
-        if scancode and scandatetime and (scansource is None):
-            self._datetime = scandatetime
+    def __init__(self, scan_name=None, scan_path=None, scan_tuple=None):
+        """
+        Init with scan_path, scan_name, or (code, datetime) scan_tuple.
+        """
+        if scan_tuple:
+            radar_code, scan_datetime = scan_tuple
+            radar_id = config.RADAR_ID.get(radar_code, '')
+            radar_id = radar_id if scan_datetime.year >= 2013 else ''
 
-            self._code = scancode
+            self._datetime = scan_datetime
+            self._code = radar_code
+            self._id = radar_id
 
-            # Operational DWD data has an id in the name
-            if self._datetime.year >= 2013:
-                self._id = config.RADAR_ID.get(self._code, '')
-            else:
-                self._id = ''
+            return
 
-        elif scansource and (scancode is None) and (scandatetime is None):
-            self._from_scansource(scansource)
+        if scan_name:
+            radar_dict = self._radar_dict_from_scan_name(scan_name)
         else:
-            raise ValueError(
-                'Specify either scansource or scandatetime and scancode.'
-            )
+            radar_dict = self._radar_dict_from_scan_path(scan_path)
+        fmt = self._get_datetime_format(radar_dict)
 
-    def _from_scansource(self, scansource):
-        """ Set attributes from a scansource. """
-        radar_dict = self._radar_dict_from_scansource(scansource)
-        datetime_format = self._get_datetime_format(radar_dict)
-        scandatetime = Datetime.strptime(
-            radar_dict['timestamp'], datetime_format)
-
-        self._datetime = scandatetime
+        self._datetime = Datetime.strptime(radar_dict['timestamp'], fmt)
         self._code = radar_dict['code']
         self._id = radar_dict['id']
 
-    def _radar_dict_from_scansource(self, scansource):
-        """ Return dict with radar parameters from ftp scansource. """
-        for pattern in PATTERNS:
-            match = pattern.match(os.path.basename(scansource))
-            if match:
+    def _radar_dict_from_scan_name(self, scan_name):
+        """
+        Return dict with radar parameters from ftp scansource.
 
+        Use this when judging files in ftp listing.
+        """
+        for pattern in PATTERNS:
+            match = pattern.match(scan_name)
+            if match:
                 # handle id
                 if 'id' in pattern.groupindex:
                     radar_id = match.group('id')  # dwd from 2013
@@ -131,29 +129,39 @@ class ScanSignature(object):
                     radar_timestamp = match.group('timestamp')
                 else:
                     radar_code = 'JAB'
-                    if os.path.exists(scansource):
-                        # get exact product time from h5
-                        with h5py.File(scansource, 'r') as h5:
-                            attrs = h5['what'].attrs
-                            date = attrs['date']
-                            time = attrs['time'][:-2]  # truncate seconds
-                            radar_timestamp = date + time
-                    else:
-                        # guess from filename
-                        name_timestamp = match.group('timestamp')
-                        d1 = utils.timestamp2datetime(name_timestamp)
-                        m = 5 * (d1.minute // 5)
-                        d2 = d1.replace(minute=m, second=0, microsecond=0)
-                        t = Timedelta(minutes=5)
-                        d3 = d1 + min((d2 - d1), abs(d2 - d1 + t), key=abs) - t
-                        radar_timestamp = utils.datetime2timestamp(d3)[:-2]
+                    name_timestamp = match.group('timestamp')
+                    d1 = utils.timestamp2datetime(name_timestamp)
+                    m = 5 * (d1.minute // 5)
+                    d2 = d1.replace(minute=m, second=0, microsecond=0)
+                    t = Timedelta(minutes=5)
+                    d3 = d1 + min((d2 - d1), abs(d2 - d1 + t), key=abs) - t
+                    radar_timestamp = utils.datetime2timestamp(d3)[:-2]
 
                 return {'id': radar_id,
                         'code': radar_code,
                         'timestamp': radar_timestamp}
 
         message = 'No pattern matches {}'
-        raise ValueError(message.format(scansource))
+        raise ValueError(message.format(scan_name))
+
+    def _radar_dict_from_scan_path(self, scan_path):
+        """ Use this when judging files on disk, such as when organizing. """
+        scan_name = os.path.basename(scan_path)
+        radar_dict = self._radar_dict_from_scan_name(scan_name)
+
+        # get exact product time from h5
+        if radar_dict['code'] == 'JAB':
+            try:
+                with h5py.File(scan_path, 'r') as h5:
+                    attrs = h5['what'].attrs
+                    date = attrs['date']
+                    time = attrs['time'][:-2]  # truncate seconds
+            except IOError:
+                msg = 'Error reading %s'
+                raise ValueError(msg % scan_path)
+            radar_dict['radar_timestamp'] = date + time
+
+        return radar_dict
 
     def _get_datetime_format(self, radar_dict):
         """

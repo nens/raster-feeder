@@ -21,26 +21,30 @@ import shutil
 import time
 
 
-def organize_from_path(source_dir):
+def organize_from_path(path):
     """ Walk basepath and move every scan in there to it's desired location """
-    logging.info('Starting organize from {}'.format(
-        source_dir,
-    ))
-    count = 0
+    logging.info('Starting organize from {}'.format(path))
 
-    for path, dirs, names in os.walk(source_dir):
-        for name in names:
-            scansource = abspath(join(path, name))
-            target_path = scans.ScanSignature(
-                scansource=scansource,
-            ).get_scanpath()
+    for count, name in enumerate(os.listdir(path), 1):
+        scan_path = abspath(join(path, name))
 
-            if not exists(dirname(target_path)):
-                os.makedirs(dirname(target_path))
-            shutil.move(scansource, target_path)
-            count += 1
+        try:
+            scan_signature = scans.ScanSignature(scan_path=scan_path)
+        except ValueError:
+            msg = 'Error instantiating scan signature for %s'
+            logging.exception(msg % scan_path)
+            continue
 
-    logging.info('Processed %s files', count)
+        target_path = scan_signature.get_scanpath()
+
+        if not exists(dirname(target_path)):
+            os.makedirs(dirname(target_path))
+        shutil.move(scan_path, target_path)
+
+    try:
+        logging.info('Processed %s files', count)
+    except NameError:
+        logging.info('Nothing found.')
 
 
 class FtpImporter(object):
@@ -81,9 +85,8 @@ class FtpImporter(object):
         remote = ftp.nlst()
         synced = []
         for name in remote:
-            scansource = abspath(join(config.SOURCE_DIR, name))
             try:
-                scan_signature = scans.ScanSignature(scansource=scansource)
+                scan_signature = scans.ScanSignature(name=name)
             except ValueError:
                 continue  # It is not a radar file as we know it.
 
@@ -94,16 +97,16 @@ class FtpImporter(object):
                 continue
 
             # Try to retrieve the file, but remove it when errors occur.
-            targetpath = join(config.SOURCE_DIR, name)
+            target_path = join(config.SOURCE_DIR, name)
             try:
-                with open(targetpath, 'wb') as scanfile:
+                with open(target_path, 'wb') as scanfile:
                     ftp.retrbinary('RETR ' + name, scanfile.write)
                 synced.append(name)
                 logging.debug('Fetched: {}'.format(name))
             except ftplib.all_errors:
                 logging.warn('Fetch of {} failed.'.format(name))
-                if exists(targetpath):
-                    os.remove(targetpath)
+                if exists(target_path):
+                    os.remove(target_path)
         return synced
 
     def fetch(self):

@@ -18,4 +18,5 @@ def main():
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     argument = arguments.Argument()
     parser = argument.parser(['source_dir'])
-    files.organize_from_path(**vars(parser.parse_args()))
+    kwargs = vars(parser.parse_args())
+    files.organize_from_path(path=kwargs['source_dir'])
