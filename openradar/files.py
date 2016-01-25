@@ -86,7 +86,7 @@ class FtpImporter(object):
         synced = []
         for name in remote:
             try:
-                scan_signature = scans.ScanSignature(name=name)
+                scan_signature = scans.ScanSignature(scan_name=name)
             except ValueError:
                 continue  # It is not a radar file as we know it.
 
@@ -154,9 +154,8 @@ def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
 
     # Add radars to expected files.
     for radar in config.ALL_RADARS:
-        scan_signature = scans.ScanSignature(
-            scancode=radar, scandatetime=dt_radar,
-        )
+        scan_tuple = radar, dt_radar
+        scan_signature = scans.ScanSignature(scan_tuple=scan_tuple)
         if not exists(scan_signature.get_scanpath()):
             set_expected.add(scan_signature.get_scanname())
 
@@ -169,16 +168,14 @@ def sync_and_wait_for_files(dt_calculation, td_wait=None, sleep=10):
         fetched = ftp_importer.fetch()
         if fetched:
             logging.info('Fetched {} files from FTP.'.format(len(fetched)))
-        set_arrived = set()
-        for path, dirs, names in os.walk(config.SOURCE_DIR):
-            set_names = set()
-            for name in names:
-                set_names.add(scans.ScanSignature(
-                    scansource=abspath(join(path, name))
-                ).get_scanname())
-            # Add the intersection of names and expected to arrived.
-            set_arrived |= (set_names & set_expected)
 
+        set_names = set()
+        for name in os.listdir(config.SOURCE_DIR):
+            scan_signature = scans.ScanSignature(scan_name=name)
+            set_names.add(scan_signature.get_scanname())
+
+        # Add the intersection of names and expected to arrived.
+        set_arrived = set_names & set_expected
         if set_arrived:
             set_expected -= set_arrived
             logging.debug('Found: {}'.format(', '.join(set_arrived)))
