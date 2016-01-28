@@ -10,6 +10,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 from datetime import datetime as Datetime
+from datetime import timedelta as Timedelta
 import argparse
 import json
 import logging
@@ -36,6 +37,7 @@ logger = logging.getLogger(__name__)
 stores.mtime_cache = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
 
 # stores and levels
+DELIVERY_TIMES = dict(config.DELIVERY_TIMES)
 GEO_TRANSFORM = utils.get_geo_transform()
 LEVELS = {'r': 1, 'n': 2, 'a': 3, 'u': 4}
 EPOCH = Datetime.fromtimestamp(0).isoformat()
@@ -235,7 +237,7 @@ class Store(object):
         self.flush()
 
 
-def command(text, verbose):
+def command(text, verbose, delivery):
     """ No doc yet. """
     # logging
     if verbose:
@@ -254,11 +256,15 @@ def command(text, verbose):
     locker = turn.Locker(host=config.REDIS_HOST, db=config.REDIS_DB)
     for timeframe in 'fhd':
         for prodcode in 'uanr':  # notice reversed order
+
+            # determine offset for datetimes
+            offset = -DELIVERY_TIMES[prodcode] if delivery else Timedelta(0)
+
             resource = NAMES[timeframe][prodcode]['group']
             label = 'store: {}'.format(PRODUCTS[prodcode])
             kwargs = {'timeframe': timeframe, 'prodcode': prodcode}
             store = Store(**kwargs)
-            processor = store.process(period)
+            processor = store.process(d + offset for d in period)
             while True:
                 with locker.lock(resource=resource, label=label):
                     try:
@@ -281,6 +287,11 @@ def get_parser():
     parser.add_argument(
         '-v', '--verbose',
         action='store_true',
+    )
+    parser.add_argument(
+        '-d', '--delivery',
+        action='store_true',
+        help='interpret dates in PERIOD as delivery dates.',
     )
     return parser
 
