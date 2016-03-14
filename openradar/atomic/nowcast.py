@@ -53,11 +53,12 @@ def fetch_latest_nowcast_h5():
             credentials['password'],
         )
         source.cwd(credentials['path'])
-        nlst = source.nlst()
+        nlst = [n for n in source.nlst()
+                if n.startswith('RAD_TF0005_R_PROG_')]
         if not nlst:
             logger.info('No files found on ftp.')
             return None
-        target_name = sorted(nlst, reverse=True)[0]
+        target_name = sorted(nlst)[-1]
         target_path = os.path.join(tempfile.mkdtemp(), target_name)
         with open(target_path, 'w') as target_file:
             source.retrbinary('RETR ' + target_name, target_file.write)
