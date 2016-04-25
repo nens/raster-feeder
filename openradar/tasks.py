@@ -27,7 +27,7 @@ os.environ['PYTHONPATH'] = ':'.join(sys.path)
 
 # Configure celery
 app = celery.Celery()
-app.conf.update(BROKER_URL='redis://localhost')
+app.conf.update(BROKER_URL=config.CELERY_BROKER_URL)
 
 
 @celery.task
@@ -40,47 +40,47 @@ def aggregate(result, datetime, timeframe, nowcast,
               radars, declutter, direct=False, cascade=False):
     """ Create aggregates and optionally cascade to depending products. """
     loghelper.setup_logging(logfile_name='radar_aggregate.log')
+    
     logging.info(20 * '-' + ' aggregate ' + 20 * '-')
-    try:
-        # Create aggregates
-        aggregate_kwargs = dict(
-            radars=radars,
-            declutter=declutter,
-            datetime=datetime,
-            timeframe=timeframe
-            )
-        if nowcast:
-            aggregate_kwargs.update(dict(
-                basedir=config.NOWCAST_AGGREGATE_DIR,
-                multiscandir=config.NOWCAST_MULTISCAN_DIR,
-                grid=scans.NOWCASTGRID))
-        else:
-            aggregate_kwargs.update(dict(
-                basedir=config.AGGREGATE_DIR,
-                multiscandir=config.MULTISCAN_DIR,
-                grid=scans.BASEGRID))
+    
+    # Create aggregates
+    aggregate_kwargs = dict(
+        radars=radars,
+        declutter=declutter,
+        datetime=datetime,
+        timeframe=timeframe
+        )
+    if nowcast:
+        aggregate_kwargs.update(dict(
+            basedir=config.NOWCAST_AGGREGATE_DIR,
+            multiscandir=config.NOWCAST_MULTISCAN_DIR,
+            grid=scans.NOWCASTGRID))
+    else:
+        aggregate_kwargs.update(dict(
+            basedir=config.AGGREGATE_DIR,
+            multiscandir=config.MULTISCAN_DIR,
+            grid=scans.BASEGRID))
 
-        aggregate = scans.Aggregate(**aggregate_kwargs)
+    aggregate = scans.Aggregate(**aggregate_kwargs)
 
-        aggregate.make()
-        # Cascade when requested
-        if cascade:
-            combinations = utils.get_product_combinations(
-                datetimes=[datetime], timeframes=[timeframe],
-            )
-            for combination in combinations:
-                calibrate_kwargs = dict(result=None,
-                                        radars=radars,
-                                        declutter=declutter,
-                                        direct=direct,
-                                        cascade=cascade)
-                calibrate_kwargs.update(combination)
-                if direct:
-                    calibrate(**calibrate_kwargs)
-                else:
-                    calibrate.delay(**calibrate_kwargs)
-    except Exception as e:
-        logging.exception(e)
+    aggregate.make()
+    # Cascade when requested
+    if cascade:
+        combinations = utils.get_product_combinations(
+            datetimes=[datetime], timeframes=[timeframe],
+        )
+        for combination in combinations:
+            calibrate_kwargs = dict(result=None,
+                                    radars=radars,
+                                    declutter=declutter,
+                                    direct=direct,
+                                    cascade=cascade)
+            calibrate_kwargs.update(combination)
+            if direct:
+                calibrate(**calibrate_kwargs)
+            else:
+                calibrate.delay(**calibrate_kwargs)
+    
     logging.info(20 * '-' + ' aggregate complete ' + 20 * '-')
 
 
