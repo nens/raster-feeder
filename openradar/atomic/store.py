@@ -268,7 +268,7 @@ def command(text, verbose, delivery):
             while True:
                 with locker.lock(resource=resource, label=label):
                     try:
-                        # process will yield if a store was updated
+                        # processor will yield if a store was updated
                         processor.next()
                     except StopIteration:
                         break
