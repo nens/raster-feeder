@@ -120,7 +120,7 @@ Cronjobs on production server
 14     7 *   *   *   find /mnt/fews-g/data-archive/img -mtime +3 -delete
 # Load radar data into the raster store
 */5    * *   *   *   /srv/openradar/bin/atomic-nowcast
-4-59/5 * *   *   *   /srv/openradar/bin/atomic-store 7d
+4-59/5 * *   *   *   /srv/openradar/bin/atomic-store 7d -d
 06     * *   *   *   /srv/openradar/bin/atomic-move 5min real1 real2
 01    22 *   *   *   /srv/openradar/bin/atomic-merge
 11    23 *   *   *   /srv/openradar/bin/atomic-move 5min merge final
