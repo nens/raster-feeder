@@ -90,40 +90,39 @@ def calibrate(result, datetime, prodcode, timeframe, nowcast,
     """ Created calibrated aggregated composites. """
     loghelper.setup_logging(logfile_name='radar_calibrate.log')
     logging.info(20 * '-' + ' calibrate ' + 20 * '-')
-    try:
-        # Create products
-        if nowcast:
-            product = products.CopiedProduct(datetime)
-        else:
-            product = products.CalibratedProduct(
-                radars=radars,
-                prodcode=prodcode,
-                datetime=datetime,
-                timeframe=timeframe,
-                declutter=declutter,
-            )
-        product.make()
-        # Cascade when requested
-        if cascade:
-            combinations = utils.get_product_combinations(
-                datetimes=[datetime],
-                prodcodes=[prodcode],
-                timeframes=[timeframe],
-            )
-            for combination in combinations:
-                rescale_kwargs = dict(result=None,
-                                      direct=direct,
-                                      cascade=cascade)
-                extra_kwargs = {k: v
-                                for k, v in combination.items()
-                                if k in ['datetime', 'prodcode', 'timeframe']}
-                rescale_kwargs.update(extra_kwargs)
-                if direct:
-                    rescale(**rescale_kwargs)
-                else:
-                    rescale.delay(**rescale_kwargs)
-    except Exception as e:
-        logging.exception(e)
+
+    # Create products
+    if nowcast:
+        product = products.CopiedProduct(datetime)
+    else:
+        product = products.CalibratedProduct(
+            radars=radars,
+            prodcode=prodcode,
+            datetime=datetime,
+            timeframe=timeframe,
+            declutter=declutter,
+        )
+    product.make()
+    # Cascade when requested
+    if cascade:
+        combinations = utils.get_product_combinations(
+            datetimes=[datetime],
+            prodcodes=[prodcode],
+            timeframes=[timeframe],
+        )
+        for combination in combinations:
+            rescale_kwargs = dict(result=None,
+                                  direct=direct,
+                                  cascade=cascade)
+            extra_kwargs = {k: v
+                            for k, v in combination.items()
+                            if k in ['datetime', 'prodcode', 'timeframe']}
+            rescale_kwargs.update(extra_kwargs)
+            if direct:
+                rescale(**rescale_kwargs)
+            else:
+                rescale.delay(**rescale_kwargs)
+
     logging.info(20 * '-' + ' calibrate complete ' + 20 * '-')
 
 
@@ -133,15 +132,14 @@ def rescale(result, datetime, prodcode,
     """ Create rescaled products wherever possible. """
     loghelper.setup_logging(logfile_name='radar_rescale.log')
     logging.info(20 * '-' + ' rescale ' + 20 * '-')
-    try:
-        product = products.CalibratedProduct(prodcode=prodcode,
-                                             datetime=datetime,
-                                             timeframe=timeframe)
-        rescaleds = products.Consistifier.create_consistent_products(product)
-        if not rescaleds:
-            logging.info('Nothing to rescale.')
-    except Exception as e:
-        logging.exception(e)
+
+    product = products.CalibratedProduct(prodcode=prodcode,
+                                         datetime=datetime,
+                                         timeframe=timeframe)
+    rescaleds = products.Consistifier.create_consistent_products(product)
+    if not rescaleds:
+        logging.info('Nothing to rescale.')
+
     logging.info(20 * '-' + ' rescale complete ' + 20 * '-')
 
 
@@ -162,10 +160,7 @@ def publish(result, datetimes, prodcodes, timeframes, endpoints, cascade,
                                      timeframes=timeframes,
                                      nowcast=nowcast)
     for endpoint in endpoints:
-        try:
-            getattr(publisher, 'publish_' + endpoint)(cascade=cascade)
-        except Exception as e:
-            logging.exception(e)
+        getattr(publisher, 'publish_' + endpoint)(cascade=cascade)
     logging.info(20 * '-' + ' publish complete ' + 20 * '-')
 
 
@@ -198,13 +193,10 @@ def nowcast(result, datetime, timeframe, minutes):
         datetime=datetime - timedelta(minutes=minutes)
     )
 
-    try:
-        nowcast_product.make(
-            base_product=base_product,
-            vector_products=vector_products,
-        )
-    except Exception as e:
-        logging.exception(e)
+    nowcast_product.make(
+        base_product=base_product,
+        vector_products=vector_products,
+    )
     logging.info(20 * '-' + ' nowcast complete ' + 20 * '-')
 
 
@@ -218,8 +210,6 @@ def animate(result, datetime):
     """
     loghelper.setup_logging(logfile_name='radar_animate.log')
     logging.info(20 * '-' + ' animate ' + 20 * '-')
-    try:
-        images.create_animated_gif(datetime=datetime)
-    except Exception as e:
-        logging.exception(e)
+
+    images.create_animated_gif(datetime=datetime)
     logging.info(20 * '-' + ' animate complete ' + 20 * '-')
