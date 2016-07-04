@@ -17,6 +17,10 @@ Changelog of openradar
 
 - Many improvements to atomic scripts for raster store management
 
+- Remove catch-all style exception handling from tasks
+
+- Celery broker url configurable in settings
+
 
 0.3.7 (2013-08-29)
 ------------------
