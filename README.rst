@@ -88,18 +88,29 @@ probably work, too.
 
 Troubleshooting
 ---------------
-If there is a hickup in the production and the task queue gets congested,
-try purging it::
-
-    $ bin/celery --app=openradar.tasks.app purge
-
-Now, the realtime products are a good indication for the times at which
+The realtime products are a good indication for the times at which
 master execution has not succesfully completed. To get a list of missing
 products in the past 7 days run::
 
     $ bin/repair 7d
 
 To get a hint about which masters to re-run.
+
+Lately, there have been tasks hanging due to difficulties reaching or
+writing to a configured share. In that case, try to stop celery, kill
+any celery workers and start celery to see if the problem persists::
+
+    $ bin/supervisorctl shutdown
+
+    Actions to kill remaining celery workers...
+
+    $ bin/supervisord
+
+In extreme cases you could purge the task queue, but chances are that
+the problem lies not in the tasks itself. It brings a lot of work to
+resubmit the lost tasks. Anyway::
+
+    $ bin/celery --app=openradar.tasks.app purge
 
 
 Cronjobs on production server
