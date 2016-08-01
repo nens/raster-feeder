@@ -115,28 +115,60 @@ resubmit the lost tasks. Anyway::
 
 Cronjobs on production server
 -----------------------------
-# m    h dom mon dow command
-# availability
-@reboot              /srv/openradar/bin/supervisord
-1      7 *   *   *   /srv/openradar/bin/supervisorctl restart celery
-2      7 *   *   *   /srv/openradar/bin/sync_radar_to_ftp  # repairs missed ftp pubs
-# production and cleanup
-13     * *   *   *   /srv/openradar/bin/cleanup
-*/5    * *   *   *   /srv/openradar/bin/master
-43     * *   *   *   /srv/openradar/bin/sync  # synops is last written at about 38!
-# Remove old things
-11     * *   *   *   find /srv/openradar/var/nowcast_multiscan -mmin +59 -delete
-12     * *   *   *   find /srv/openradar/var/nowcast_aggregate -mmin +59 -delete
-13     * *   *   *   find /srv/openradar/var/nowcast_calibrate -mmin +59 -delete
-14     7 *   *   *   find /mnt/fews-g/data-archive/img -mtime +3 -delete
-# Load radar data into the raster store
-*/5    * *   *   *   /srv/openradar/bin/atomic-nowcast
-4-59/5 * *   *   *   /srv/openradar/bin/atomic-store 7d -d
-06     * *   *   *   /srv/openradar/bin/atomic-move 5min real1 real2
-01    22 *   *   *   /srv/openradar/bin/atomic-merge
-11    23 *   *   *   /srv/openradar/bin/atomic-move 5min merge final
-21    23 *   *   1   /srv/openradar/bin/atomic-move hour merge final
-31    23 1   *   *   /srv/openradar/bin/atomic-move day merge final
-# Report on the status of the data in the raster stores
-0     12 *   *   *   /srv/openradar/bin/atomic-report 7d -q
-*/15   * *   *   *   /srv/openradar/bin/atomic-report 7d
+
+::
+
+    # m    h dom mon dow command
+    # availability
+    @reboot              /srv/openradar/bin/supervisord
+    1      7 *   *   *   /srv/openradar/bin/supervisorctl restart celery
+    2      7 *   *   *   /srv/openradar/bin/sync_radar_to_ftp  # repairs missed ftp pubs
+    # production and cleanup
+    13     * *   *   *   /srv/openradar/bin/cleanup
+    */5    * *   *   *   /srv/openradar/bin/master
+    43     * *   *   *   /srv/openradar/bin/sync  # synops is last written at about 38!
+    # Remove old things
+    11     * *   *   *   find /srv/openradar/var/nowcast_multiscan -mmin +59 -delete
+    12     * *   *   *   find /srv/openradar/var/nowcast_aggregate -mmin +59 -delete
+    13     * *   *   *   find /srv/openradar/var/nowcast_calibrate -mmin +59 -delete
+    14     7 *   *   *   find /mnt/fews-g/data-archive/img -mtime +3 -delete
+    # Load radar data into the raster store
+    */5    * *   *   *   /srv/openradar/bin/atomic-nowcast
+    4-59/5 * *   *   *   /srv/openradar/bin/atomic-store 7d -d
+    06     * *   *   *   /srv/openradar/bin/atomic-move 5min real1 real2
+    01    22 *   *   *   /srv/openradar/bin/atomic-merge
+    11    23 *   *   *   /srv/openradar/bin/atomic-move 5min merge final
+    21    23 *   *   1   /srv/openradar/bin/atomic-move hour merge final
+    31    23 1   *   *   /srv/openradar/bin/atomic-move day merge final
+    # Report on the status of the data in the raster stores
+    0     12 *   *   *   /srv/openradar/bin/atomic-report 7d -q
+    */15   * *   *   *   /srv/openradar/bin/atomic-report 7d
+
+
+Product table
+-------------
+This table shows how the products should be calibrated and which products
+should be consistent with which other products. *) Delivery can not
+be earlier than the aggregated product that the consistent product is
+based upon.
+
+::
+
+
+    Timeframe | Product | Delivery*     | Calibration | Consistent with
+    ----------+---------+---------------+-------------+----------------
+              |    R    | Immediate     | Corr. Field |
+    5 minutes |    N    | 1 hour        | Corr. Field | N - 1 hour
+              |    A    | 12 hours      | Corr. Field | A - 1 hour
+              |    U    | 30 days       | Corr. Field | U - 1 hour
+    ----------+---------+---------------+-------------+----------------
+              |    R    | Immediate     | Corr. Field |
+     1 hour   |    N    | 1 hour        | Corr. Field |
+              |    A    | 12 hours      | Kriging     | A - 1 day
+              |    U    | 30 days       | Kriging     | U - 1 day
+    ----------+---------+---------------+-------------+----------------
+              |    R    | Immediate     | Corr. Field |
+      1 day   |    N    | 1 hour        | Corr. Field |
+              |    A    | 12 hours      | Kriging     |
+              |    U    | 30 days       | Kriging     |
+
