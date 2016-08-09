@@ -46,7 +46,9 @@ products were not delivered in time. The following problems were reported:
 
 def get_metas(name, period):
     store = stores.get(os.path.join(config.STORE_DIR, name))
-    metas = store.get_meta_direct(start=period.start, stop=period.stop)
+    start = period.start.isoformat()
+    stop = period.stop.isoformat()
+    metas = store.get_meta(start=start, stop=stop)
     return {k: json.loads(v) for k, v in metas.items() if v}
 
 
@@ -72,7 +74,7 @@ def send_mail(report):
 
 class Checker(object):
 
-    template0 = 'Need {exp} or better, found nothing.'
+    template0 = 'Need {exp} or better, found no product.'
     template1 = 'Need {exp} or better, found {act}.'
     names = {'r': 'realtime', 'n': 'near-realtime', 'a': 'after'}
 
