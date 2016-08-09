@@ -115,21 +115,30 @@ class Store(object):
     # meta caching and source queueing
     def reset(self, datetime):
         """ Init band lookup table for current chunk. """
-        band = self.store.select_bands(datetime)[0]
-        depth = self.store.max_depth
-        chunk = band // depth
-        start = chunk * depth
-        stop = start + depth
-        bands = range(0, stop - start)
+        # find band for current date
+        timedelta = self.store.timedelta
+        timedelta_seconds = timedelta.total_seconds()
+        origin = self.store.timeorigin
+        position_seconds = (datetime - origin).total_seconds()
+        current_band = int(round(position_seconds / timedelta_seconds))
 
-        # make loop-up table for bands and create sources dictionary
-        times = self.store.get_time_for_bands((start, stop))
-        self.bands = dict(zip(times, bands))
-        self.meta = self.group.get_meta_direct(start=times[0],
-                                               stop=times[-1])
+        # calculate chunk start and stop band for this date
+        chunk_depth = self.store.max_depth
+        current_chunk = current_band // chunk_depth
+        start_band = current_chunk * chunk_depth
 
-        # put here datetime: mtime, path
-        self.sources = {}
+        # determine bands and dates for sources for this chunk
+        bands = range(chunk_depth)
+        dates = [origin + timedelta * (start_band + b) for b in bands]
+
+        # fetch meta in the store group for this chunk
+        start = dates[0].isoformat()
+        stop = dates[-1].isoformat()
+        self.meta = self.group.get_meta(start=start, stop=stop)
+
+        # create sources dict and make look-up table for bands
+        self.sources = {}  # put here items of datetime: (mtime, path)
+        self.bands = dict(zip(dates, bands))
 
     def flush(self):
         """ Load all accepted products into store. """
@@ -170,8 +179,12 @@ class Store(object):
                          'prodcode': self.prodcode})
             region.meta[band - start] = json.dumps(meta)
 
-        logger.info('Store {} {} source(s).'.format(
-            len(self.sources), self.names['group'],
+        message = 'Store {} source(s) into the {} group between {} and {}.'
+        logger.info(message.format(
+            len(self.sources),
+            self.names['group'],
+            region.time[0],
+            region.time[-1],
         ))
         self.store.update([region])
         return True
@@ -237,25 +250,15 @@ class Store(object):
         self.flush()
 
 
-def command(text, verbose, delivery):
+def command(text, delivery, timeframes, prodcodes):
     """ No doc yet. """
-    # logging
-    if verbose:
-        kwargs = {'stream': sys.stderr,
-                  'level': logging.INFO}
-    else:
-        kwargs = {'level': logging.INFO,
-                  'format': '%(asctime)s %(levelname)s %(message)s',
-                  'filename': os.path.join(config.LOG_DIR, 'atomic_store.log')}
-    logging.basicConfig(**kwargs)
-
     # storing
     logger.info('Store procedure initiated.')
 
     period = periods.Period(text)
     locker = turn.Locker(host=config.REDIS_HOST, db=config.REDIS_DB)
-    for timeframe in 'fhd':
-        for prodcode in 'uanr':  # notice reversed order
+    for timeframe in timeframes:
+        for prodcode in prodcodes:  # use reversed order
 
             # determine offset for datetimes
             offset = -DELIVERY_TIMES[prodcode] if delivery else Timedelta(0)
@@ -278,7 +281,8 @@ def command(text, verbose, delivery):
 def get_parser():
     """ Return argument parser. """
     parser = argparse.ArgumentParser(
-        description=__doc__
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
         'text',
@@ -291,14 +295,41 @@ def get_parser():
     parser.add_argument(
         '-d', '--delivery',
         action='store_true',
-        help='interpret dates in PERIOD as delivery dates.',
+        help='interpret PERIOD as delivery period.',
     )
+    parser.add_argument(
+        '-t', '--timeframes',
+        metavar='TIMEFRAME',
+        default='fhd',
+        help='Restrict to these timeframes.',
+    )
+    parser.add_argument(
+        '-p', '--prodcodes',
+        metavar='PRODCODE',
+        default='uanr',
+        help='Restrict these prodcodes.',
+    )
+
     return parser
 
 
 def main():
     """ Call command with args from parser. """
+    kwargs = vars(get_parser().parse_args())
+
+    # logging
+    if kwargs.pop('verbose'):
+        basic = {'stream': sys.stderr,
+                 'level': logging.INFO,
+                 'format': '%(message)s'}
+    else:
+        basic = {'level': logging.INFO,
+                 'format': '%(asctime)s %(levelname)s %(message)s',
+                 'filename': os.path.join(config.LOG_DIR, 'atomic_store.log')}
+    logging.basicConfig(**basic)
+
+    # run
     try:
-        return command(**vars(get_parser().parse_args()))
+        command(**kwargs)
     except:
         logger.exception('An exception occurred:')
