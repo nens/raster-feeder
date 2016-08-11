@@ -179,10 +179,11 @@ class Store(object):
                          'prodcode': self.prodcode})
             region.meta[band - start] = json.dumps(meta)
 
-        message = 'Store {} source(s) into the {} group between {} and {}.'
+        message = 'Store {} source(s) into {}/{} ({} - {}).'
         logger.info(message.format(
             len(self.sources),
             self.names['group'],
+            self.names['store'],
             region.time[0],
             region.time[-1],
         ))
