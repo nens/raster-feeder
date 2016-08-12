@@ -36,7 +36,7 @@ WKT = osr.GetUserInputAsWKT(b'epsg:28992')
 logger = logging.getLogger(__name__)
 
 # mtime caching
-stores.mtime_cache = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
+stores.cache = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
 
 
 def fetch_latest_nowcast_h5():

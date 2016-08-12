@@ -23,7 +23,7 @@ from openradar import config
 logger = logging.getLogger(__name__)
 
 # mtime caching
-stores.mtime_cache = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
+stores.cache = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
 
 
 def get_store(time_name, store_name):
