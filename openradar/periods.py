@@ -62,3 +62,6 @@ class Period(object):
         while now <= self.stop:
             yield now
             now += self.step
+
+    def __repr__(self):
+        return '{} - {}'.format(self.start, self.stop)

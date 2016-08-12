@@ -252,11 +252,19 @@ class Store(object):
 
 
 def command(text, delivery, timeframes, prodcodes):
-    """ No doc yet. """
-    # storing
-    logger.info('Store procedure initiated.')
-
+    """ Store radar images in a dedicated group of raster stores. """
+    # parse text and log something useful
     period = periods.Period(text)
+
+    message = 'Store produre initiated: {}{}, {}, {}'.format(
+        period,
+        ' (delivery)' if delivery else '',
+        ' '.join(timeframes),
+        ' '.join(prodcodes),
+    )
+    logger.info(message)
+
+
     locker = turn.Locker(host=config.REDIS_HOST, db=config.REDIS_DB)
     for timeframe in timeframes:
         for prodcode in prodcodes:  # use reversed order
