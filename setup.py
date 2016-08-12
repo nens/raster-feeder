@@ -17,6 +17,7 @@ install_requires = [
     'matplotlib',
     'numpy',
     'pandas',
+    'psycopg2',
     'pytz',
     'raster-store',
     'redis',
