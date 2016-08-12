@@ -51,7 +51,7 @@ def move_target_chunk_equivalent(source, target):
     stop = target.timeorigin + target.timedelta * last
 
     # let's move
-    logger.info('Move data between {} and {}'.format(start, stop))
+    logger.info('Move between {} and {}.'.format(start, stop))
     target.update(source, start=start, stop=stop)
     source.delete(start=start, stop=stop)
 
@@ -68,7 +68,9 @@ def move(time_name, source_name, target_name):
     # promote
     locker = turn.Locker(host=config.REDIS_HOST, db=config.REDIS_DB)
     label = 'move: {} => {}'.format(source_name, target_name)
-    logger.info('Move from {} into {}'.format(source_name, target_name))
+    template = "Move from '{}/{}' into '{}/{}'."
+    message = template.format(time_name, source_name, time_name, target_name)
+    logger.info(message)
     source = get_store(time_name=time_name, store_name=source_name)
     while source:
         # lock in chunks to let other processes do things, as well.
