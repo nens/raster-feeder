@@ -21,18 +21,8 @@ from openradar.atomic import move
 logger = logging.getLogger(__name__)
 
 
-def merge(verbose):
+def merge():
     """ Call move for a number of stores. """
-    # logging
-    if verbose:
-        kwargs = {'stream': sys.stderr,
-                  'level': logging.INFO}
-    else:
-        kwargs = {'level': logging.INFO,
-                  'format': '%(asctime)s %(levelname)s %(message)s',
-                  'filename': os.path.join(config.LOG_DIR, 'atomic_merge.log')}
-    logging.basicConfig(**kwargs)
-
     logger.info('Merge procedure initiated.')
 
     source_names = {
@@ -43,8 +33,7 @@ def merge(verbose):
 
     for time_name in ('day', 'hour', '5min'):
         for source_name in source_names[time_name]:
-            move.move(verbose=verbose,
-                      target_name='merge',
+            move.move(target_name='merge',
                       time_name=time_name,
                       source_name=source_name)
 
@@ -65,9 +54,18 @@ def get_parser():
 
 def main():
     """ Call merge with args from parser. """
-    try:
-        merge(**vars(get_parser().parse_args()))
-        return 0
-    except:
-        logger.exception('An execption occurred:')
-        return 1
+    kwargs = vars(get_parser().parse_args())
+
+    # logging
+    if kwargs.pop('verbose'):
+        basic = {'stream': sys.stderr,
+                 'level': logging.INFO,
+                 'format': '%(message)s'}
+    else:
+        basic = {'level': logging.INFO,
+                 'format': '%(asctime)s %(levelname)s %(message)s',
+                 'filename': os.path.join(config.LOG_DIR, 'atomic_merge.log')}
+    logging.basicConfig(**basic)
+
+    # run
+    merge(**kwargs)

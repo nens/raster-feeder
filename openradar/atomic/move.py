@@ -56,19 +56,10 @@ def move_target_chunk_equivalent(source, target):
     source.delete(start=start, stop=stop)
 
 
-def move(time_name, source_name, target_name, verbose):
+def move(time_name, source_name, target_name):
     """
     Move data from one radar store into another.
     """
-    # logging
-    if verbose:
-        kwargs = {'stream': sys.stderr,
-                  'level': logging.INFO}
-    else:
-        kwargs = {'level': logging.INFO,
-                  'format': '%(asctime)s %(levelname)s %(message)s',
-                  'filename': os.path.join(config.LOG_DIR, 'atomic_move.log')}
-    logging.basicConfig(**kwargs)
     logger.info('Move procedure initiated for {}.'.format(time_name))
 
     # init target
@@ -116,9 +107,18 @@ def get_parser():
 
 def main():
     """ Call move with args from parser. """
-    try:
-        move(**vars(get_parser().parse_args()))
-        return 0
-    except:
-        logger.exception('An execption occurred:')
-        return 1
+    kwargs = vars(get_parser().parse_args())
+
+    # logging
+    if kwargs.pop('verbose'):
+        basic = {'stream': sys.stderr,
+                 'level': logging.INFO,
+                 'format': '%(message)s'}
+    else:
+        basic = {'level': logging.INFO,
+                 'format': '%(asctime)s %(levelname)s %(message)s',
+                 'filename': os.path.join(config.LOG_DIR, 'atomic_move.log')}
+    logging.basicConfig(**basic)
+
+    # run
+    move(**kwargs)
