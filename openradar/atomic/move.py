@@ -37,12 +37,18 @@ def move_target_chunk_equivalent(source, target):
     Move at most an amount of bands equal to the target's max depth from
     source to target.
     """
-    # find the target chunk in which the start of the period of the source is
+    # start move at beginning of source's period
     start = source.period[0]
+
+    # for the target, determine first and last bands
     depth = target.max_depth
-    first = target.select_bands(start)[0]
-    last = depth * ((first // depth) + 1)
-    stop = target.get_time_for_bands((last - 1, last))[0]
+    position_seconds = (start - target.timeorigin).total_seconds()
+    timedelta_seconds = target.timedelta.total_seconds()
+    first = int(round(position_seconds / timedelta_seconds))
+    last = depth * ((first // depth) + 1) - 1
+
+    # calculate stop date corresponding to last target band to move
+    stop = target.timeorigin + target.timedelta * last
 
     # let's move
     logger.info('Move data between {} and {}'.format(start, stop))
