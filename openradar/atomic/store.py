@@ -34,7 +34,7 @@ from openradar import utils
 logger = logging.getLogger(__name__)
 
 # mtime caching
-stores.mtime_cache = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
+stores.cache = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
 
 # stores and levels
 DELIVERY_TIMES = dict(config.DELIVERY_TIMES)
