@@ -60,7 +60,7 @@ def get_metas(name, period):
 
 def send_mail(report):
     """ Send report as email. """
-    recipients = config.REPORT_RECIPIENTS
+    recipients = getattr(config, 'REPORT_RECIPIENTS', [])
     if not recipients:
         logger.info('No recipients configured for report email.')
         return
@@ -149,22 +149,14 @@ class Checker(object):
             return self.template1.format(exp=exp, act=act)
 
 
-def command(text, verbose, quality):
+def report(text, quality):
     """
     """
-    # logging
-    if verbose:
-        kwargs = {'stream': sys.stderr,
-                  'level': logging.DEBUG}
-    else:
-        kwargs = {'level': logging.INFO,
-                  'format': '%(asctime)s %(levelname)s %(message)s',
-                  'filename': os.path.join(config.LOG_DIR, 'report.log')}
-    logging.basicConfig(**kwargs)
-
     # period
     period = periods.Period(text)
+    logger.info('Report produre initiated.')
     metas = {t: get_metas(NAMES[t], period) for t in 'fhd'}
+    logger.info('Metas retrieved.')
     checker = Checker(quality)
     failures = []
 
@@ -179,14 +171,14 @@ def command(text, verbose, quality):
 
     # communicate
     if failures:
-        logger.info('There were {} failures'.format(len(failures)))
+        logger.debug('There were {} failures'.format(len(failures)))
         for f in failures:
-            logger.info(f)
-        report = TEMPLATE_EMAIL.format('\n'.join(failures))
-        logger.debug('Email body:\n{}'.format(report))
-        send_mail(report)
+            logger.debug(f)
+        body = TEMPLATE_EMAIL.format('\n'.join(failures))
+        send_mail(body)
     else:
         logger.debug('Everything o.k.')
+    logger.info('Report procedure completed.')
 
 
 def get_parser():
@@ -211,8 +203,19 @@ def get_parser():
 
 
 def main():
-    """ Call command with args from parser. """
-    try:
-        return command(**vars(get_parser().parse_args()))
-    except:
-        logger.exception('An execption occurred:')
+    """ Call report with args from parser. """
+    kwargs = vars(get_parser().parse_args())
+
+    # logging
+    if kwargs.pop('verbose'):
+        basic = {'stream': sys.stderr,
+                 'level': logging.DEBUG,
+                 'format': '%(message)s'}
+    else:
+        basic = {'level': logging.INFO,
+                 'format': '%(asctime)s %(levelname)s %(message)s',
+                 'filename': os.path.join(config.LOG_DIR, 'atomic_report.log')}
+    logging.basicConfig(**basic)
+
+    # run
+    report(**kwargs)
