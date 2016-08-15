@@ -136,8 +136,8 @@ Cronjobs on production server
     */5    * *   *   *   /srv/openradar/bin/atomic-nowcast
     4-59/5 * *   *   *   /srv/openradar/bin/atomic-store 1h -d -p r
     05     * *   *   *   /srv/openradar/bin/atomic-store 1d -d -p n
-    06     * *   *   *   /srv/openradar/bin/atomic-store 1d -d -p a
-    07     * *   *   *   /srv/openradar/bin/atomic-store 1d -d -p u
+    06     * *   *   *   /srv/openradar/bin/atomic-store 7d -d -p a
+    07     * *   *   *   /srv/openradar/bin/atomic-store 7d -d -p u
     # Optimize radar data in the raster store
     08     * *   *   *   /srv/openradar/bin/atomic-move 5min real1 real2
     01    22 *   *   *   /srv/openradar/bin/atomic-merge

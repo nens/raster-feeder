@@ -35,6 +35,7 @@ stores.cache = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
 TOLERANCE = datetime.timedelta(minutes=15)
 NAMES = {'f': '5min', 'h': 'hour', 'd': 'day'}
 HOUR = datetime.timedelta(hours=1)
+DAY = datetime.timedelta(days=1)
 
 # calibrations:
 KED = 'Kriging External Drift'
@@ -81,7 +82,12 @@ class Checker(object):
 
     template0 = 'Need {exp} or better, found no product.'
     template1 = 'Need {exp} or better, found {act}.'
-    names = {'r': 'realtime', 'n': 'near-realtime', 'a': 'after'}
+    names = {
+        'r': 'realtime',
+        'n': 'near-realtime',
+        'a': 'after',
+        'u': 'ultimate',
+    }
 
     def __init__(self, quality):
         # determine zones
@@ -89,6 +95,7 @@ class Checker(object):
         self.r = utils.closest_time(timeframe='f', dt_close=u)
         self.n = utils.closest_time(timeframe='h', dt_close=u - HOUR)
         self.a = utils.closest_time(timeframe='d', dt_close=u - HOUR * 12)
+        self.u = utils.closest_time(timeframe='d', dt_close=u - DAY * 30)
 
         self.quality = quality
 
@@ -98,8 +105,19 @@ class Checker(object):
         actual_calibration = meta.get('cal_method', 'None')
 
         # what do we expect
-        if date < self.a:
-            expected_prodcode = 'a'
+        if date < self.u:
+            expected_prodcode = 'u'
+            try:
+                composite_count = meta['composite_count']
+            except KeyError:
+                logger.debug('{}: no product or no meta.'.format(date))
+                return
+            if composite_count == 1:
+                expected_calibration = IDW,
+            else:
+                expected_calibration = KED,
+        elif date < self.a:
+            expected_prodcode = 'au'
             try:
                 composite_count = meta['composite_count']
             except KeyError:
@@ -110,10 +128,10 @@ class Checker(object):
             else:
                 expected_calibration = KED,
         elif date < self.n:
-            expected_prodcode = 'na'
+            expected_prodcode = 'nau'
             expected_calibration = IDW, KED
         elif date < self.r:
-            expected_prodcode = 'rna'
+            expected_prodcode = 'rnau'
             expected_calibration = RAW, IDW, KED
         else:
             return
