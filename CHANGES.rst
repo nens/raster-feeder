@@ -23,6 +23,8 @@ Changelog of openradar
 
 - Fix atomic move stop date when store end comes before chunk end
 
+- Update of raster store to fix problem with simultaneous merge and store
+
 
 0.3.7 (2013-08-29)
 ------------------
