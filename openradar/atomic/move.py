@@ -47,8 +47,8 @@ def move_target_chunk_equivalent(source, target):
     first = int(round(position_seconds / timedelta_seconds))
     last = depth * ((first // depth) + 1) - 1
 
-    # calculate stop date corresponding to last target band to move
-    stop = target.timeorigin + target.timedelta * last
+    # stop at last date in chunk or end of store, whichever comes first
+    stop = min(source.period[1], target.timeorigin + target.timedelta * last)
 
     # let's move
     logger.info('Move between {} and {}.'.format(start, stop))

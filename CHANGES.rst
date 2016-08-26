@@ -21,6 +21,8 @@ Changelog of openradar
 
 - Celery broker url configurable in settings
 
+- Fix atomic move stop date when store end comes before chunk end
+
 
 0.3.7 (2013-08-29)
 ------------------
