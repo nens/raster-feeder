@@ -140,7 +140,7 @@ class Store(object):
         self.sources = {}  # put here items of datetime: (mtime, path)
         self.bands = dict(zip(dates, bands))
 
-    def flush(self):
+    def offload(self):
         """ Load all accepted products into store. """
         if not self.sources:
             return False
@@ -227,10 +227,10 @@ class Store(object):
 
     def process(self, period):
         """
-        Controls flushing and filters according to timeframe.
+        Controls offloading and filters according to timeframe.
         on start: init according to datetime
-        on edge: init and flush
-        on finish: flush
+        on edge: init and offload
+        on finish: offload
         """
         datetimes = (d
                      for d in period
@@ -244,11 +244,11 @@ class Store(object):
         self.consider(first)
         for datetime in datetimes:
             if datetime not in self.bands:
-                if self.flush():
+                if self.offload():
                     yield  # makes unlocking possible here
                 self.reset(datetime)
             self.consider(datetime)
-        self.flush()
+        self.offload()
 
 
 def command(text, delivery, timeframes, prodcodes):
@@ -263,7 +263,6 @@ def command(text, delivery, timeframes, prodcodes):
         ' '.join(prodcodes),
     )
     logger.info(message)
-
 
     locker = turn.Locker(host=config.REDIS_HOST, db=config.REDIS_DB)
     for timeframe in timeframes:
