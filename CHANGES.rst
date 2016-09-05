@@ -5,7 +5,7 @@ Changelog of openradar
 0.5 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Add time_limit for all tasks.
 
 
 0.4 (2016-08-26)
