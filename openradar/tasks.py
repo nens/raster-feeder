@@ -29,7 +29,7 @@ os.environ['PYTHONPATH'] = ':'.join(sys.path)
 app = celery.Celery()
 app.conf.update(
     BROKER_URL=config.CELERY_BROKER_URL,
-    CELERYD_TASK_TIME_LIMIT=300,
+    CELERYD_TASK_TIME_LIMIT=600,
 )
 
 
