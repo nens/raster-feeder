@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 # mtime caching
 stores.cache = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
 
-TOLERANCE = datetime.timedelta(minutes=15)
+TOLERANCE = datetime.timedelta(minutes=30)
 NAMES = {'f': '5min', 'h': 'hour', 'd': 'day'}
 HOUR = datetime.timedelta(hours=1)
 DAY = datetime.timedelta(days=1)
