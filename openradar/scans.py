@@ -395,8 +395,13 @@ class ScanKNMI(GenericScan):
 
         # Get calibration from attribute
         calibration_formula = (
-            dataset['calibration'].attrs['calibration_Z_formulas'][0]
+            dataset['calibration'].attrs['calibration_Z_formulas']
         )
+
+        # new format since 2016-09-19 does not have the array
+        if isinstance(calibration_formula, np.ndarray):
+            calibration_formula = calibration_formula.item()
+
         calibration_formula_match = re.match(
             config.CALIBRATION_PATTERN, calibration_formula
         )
