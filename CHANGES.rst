@@ -7,6 +7,8 @@ Changelog of openradar
 
 - Add time_limit for all tasks.
 
+- Work towards new HDF5 format.
+
 
 0.4 (2016-08-26)
 ----------------
