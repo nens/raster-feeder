@@ -84,9 +84,10 @@ def get_mtime(path):
 def get_contents(path):
     """ Return data, meta dictionary. """
     with h5py.File(path, 'r') as h5:
-        data = h5['precipitation'][:]
+        # use the knmi specification data
+        data = h5['image1/image_data'][:] * 0.01
+        fillvalue = 65535 * 0.01
         meta = dict(h5.attrs)
-        fillvalue = h5.attrs['fill_value'].item()
 
         # make json serializable already
         for k, v in meta.items():
