@@ -25,7 +25,8 @@ import turn
 from osgeo import osr
 
 from raster_store import regions
-from raster_store import stores
+from raster_store import load
+from raster_store import cache
 
 from openradar import config
 from openradar import periods
@@ -34,7 +35,7 @@ from openradar import utils
 logger = logging.getLogger(__name__)
 
 # mtime caching
-stores.cache = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
+cache.client = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
 
 # stores and levels
 DELIVERY_TIMES = dict(config.DELIVERY_TIMES)
@@ -106,8 +107,8 @@ class Store(object):
         self.names = NAMES[timeframe][prodcode]
         group_path = os.path.join(config.STORE_DIR, self.names['group'])
         store_path = os.path.join(group_path, self.names['store'])
-        self.store = stores.get(store_path)
-        self.group = stores.get(group_path)
+        self.store = load(store_path)
+        self.group = load(group_path)
 
         # others
         self.helper = get_path_helper(timeframe, prodcode)

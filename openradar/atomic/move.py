@@ -14,7 +14,9 @@ import logging
 import os
 import sys
 
-from raster_store import stores
+from raster_store import load
+from raster_store import cache
+
 import redis
 import turn
 
@@ -23,13 +25,13 @@ from openradar import config
 logger = logging.getLogger(__name__)
 
 # mtime caching
-stores.cache = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
+cache.client = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
 
 
 def get_store(time_name, store_name):
     """ Return a raster store. """
     path = os.path.join(config.STORE_DIR, time_name, store_name)
-    return stores.get(path)
+    return load(path)
 
 
 def move_target_chunk_equivalent(source, target):

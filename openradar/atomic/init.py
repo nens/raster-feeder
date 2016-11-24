@@ -58,10 +58,9 @@ ORIGINS = {'day': datetime.datetime(2000, 1, 1, 8),
            '5min': datetime.datetime(2000, 1, 1, 8, 5)}
 
 KWARGS = {'dtype': 'f4',
-          'scaleoffset': 2,
           'projection': WKT,
-          'compression': 'lzf',
-          'geo_transform': (0, 1000, 0, 0, 0, -1000)}
+          'geo_transform': (0, 1000, 0, 0, 0, -1000),
+          'h5opts': {'scaleoffset': 2, 'compression': 'lzf'}}
 
 ORDERING = {
     '5min': ('nowcast2', 'nowcast1', 'final',
@@ -81,9 +80,9 @@ def add_nowcast_stores(base):
         kwargs = {'path': path,
                   'delta': datetime.timedelta(minutes=5)}
         kwargs.update(KWARGS)
-        kwargs['depths'] = (depth, 1)
         kwargs['origin'] = ORIGINS['5min']
         store = stores.Store.create(**kwargs)
+        store.create_storage((depth, 1))
         store.create_storage((depth, depth))
         store.create_aggregation('topleft', depths=(depth, 1))
         store.create_aggregation('sum', depths=(depth, depth))
@@ -106,20 +105,22 @@ def command():
             kwargs = {
                 'path': store_path,
                 'delta': DELTAS[group_name],
-                'depths': (1, 256) if store_name == 'final' else (1, 288),
             }
             kwargs.update(KWARGS)
             kwargs['origin'] = ORIGINS[group_name]
             logger.info('Creating {}'.format(store_path))
             store = stores.Store.create(**kwargs)
 
-            depths = DEPTHS[group_name][store_name]
-            store.create_aggregation('topleft', depths=kwargs['depths'])
-            store.create_aggregation('sum', depths=depths)
+            space_depths = (1, 256) if store_name == 'final' else (1, 288)
+            store.create_storage(depths=space_depths)
+            store.create_aggregation('topleft', depths=space_depths)
 
-            if min(depths) == 1:
+            time_depths = DEPTHS[group_name][store_name]
+            store.create_aggregation('sum', depths=time_depths)
+
+            if min(time_depths) == 1:
                 continue
-            store.create_storage(depths=depths)
+            store.create_storage(depths=time_depths)
 
         if group_name == '5min':
             add_nowcast_stores(group_path)

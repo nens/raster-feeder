@@ -21,7 +21,8 @@ from email.mime.text import MIMEText
 
 import redis
 
-from raster_store import stores
+from raster_store import cache
+from raster_store import load
 
 from openradar import config
 from openradar import periods
@@ -30,7 +31,7 @@ from openradar import utils
 logger = logging.getLogger(__name__)
 
 # mtime caching
-stores.cache = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
+cache.client = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
 
 TOLERANCE = datetime.timedelta(minutes=30)
 NAMES = {'f': '5min', 'h': 'hour', 'd': 'day'}
@@ -51,7 +52,7 @@ products were not delivered in time. The following problems were reported:
 
 
 def get_metas(name, period):
-    store = stores.get(os.path.join(config.STORE_DIR, name))
+    store = load(os.path.join(config.STORE_DIR, name))
     start = period.start.isoformat()
     stop = period.stop.isoformat()
     metas = store.get_meta(start=start, stop=stop)

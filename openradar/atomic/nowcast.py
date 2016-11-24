@@ -25,8 +25,9 @@ import redis
 import turn
 from osgeo import osr
 
+from raster_store import cache
+from raster_store import load
 from raster_store import regions
-from raster_store import stores
 
 from openradar import config
 from openradar import utils
@@ -36,7 +37,7 @@ WKT = osr.GetUserInputAsWKT(b'epsg:28992')
 logger = logging.getLogger(__name__)
 
 # mtime caching
-stores.cache = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
+cache.client = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
 
 
 def fetch_latest_nowcast_h5():
@@ -120,8 +121,8 @@ def rotate_nowcast_stores(region):
     base = os.path.join(config.STORE_DIR, '5min')
     locker = turn.Locker(host=config.REDIS_HOST, db=config.REDIS_DB)
     with locker.lock(resource='5min', label='nowcast'):
-        old = stores.get(os.path.join(base, 'nowcast1'))
-        new = stores.get(os.path.join(base, 'nowcast2'))
+        old = load(os.path.join(base, 'nowcast1'))
+        new = load(os.path.join(base, 'nowcast2'))
         if new:
             old, new = new, old
         new.update([region])
