@@ -21,7 +21,7 @@ from osgeo import osr
 
 from raster_store import stores
 
-from openradar import config
+from raster_feeder.nrr import config
 
 logger = logging.getLogger(__name__)
 
