@@ -9,10 +9,12 @@ long_description = '\n\n'.join([
     ])
 
 install_requires = [
+    'gdal',
     'h5py>=2.3.1',
     'numpy',
     'raster-store',
     'redis',
+    'scipy',
     'setuptools',
     'turn',
     ],
