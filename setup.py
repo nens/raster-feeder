@@ -9,6 +9,7 @@ long_description = '\n\n'.join([
     ])
 
 install_requires = [
+    'ciso8601',
     'gdal',
     'h5py>=2.3.1',
     'numpy',

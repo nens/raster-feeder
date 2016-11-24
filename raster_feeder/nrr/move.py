@@ -20,7 +20,7 @@ from raster_store import cache
 import redis
 import turn
 
-from openradar import config
+from . import config
 
 logger = logging.getLogger(__name__)
 

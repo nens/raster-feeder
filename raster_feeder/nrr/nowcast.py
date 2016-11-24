@@ -29,8 +29,8 @@ from raster_store import cache
 from raster_store import load
 from raster_store import regions
 
-from openradar import config
-from openradar import utils
+from . import config
+from . import utils
 
 WKT = osr.GetUserInputAsWKT(b'epsg:28992')
 

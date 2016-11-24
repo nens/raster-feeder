@@ -24,9 +24,9 @@ import redis
 from raster_store import cache
 from raster_store import load
 
-from openradar import config
-from openradar import periods
-from openradar import utils
+from . import config
+from . import periods
+from . import utils
 
 logger = logging.getLogger(__name__)
 

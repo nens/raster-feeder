@@ -15,8 +15,8 @@ import logging
 import os
 import sys
 
-from openradar import config
-from openradar.atomic import move
+from . import config
+from . import move
 
 logger = logging.getLogger(__name__)
 

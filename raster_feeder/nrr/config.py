@@ -6,23 +6,21 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
-import datetime
-import os
+from os.path import abspath, dirname, join
 
-BUILDOUT_DIR = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)),
-    '..',
-)
+import datetime
+
+BUILDOUT_DIR = abspath(join(dirname(__file__), '..', '..'))
 
 # directories
-LOG_DIR = os.path.join(BUILDOUT_DIR, 'var', 'log')
+LOG_DIR = join(BUILDOUT_DIR, 'var', 'log')
 
 # data is read from here
-CALIBRATE_DIR = None
-CONSISTENT_DIR = None
+CALIBRATE_DIR = join(BUILDOUT_DIR, 'var', 'calibrate')
+CONSISTENT_DIR = join(BUILDOUT_DIR, 'var', 'consistent')
 
 # where to put the stores
-STORE_DIR = None
+STORE_DIR = join(BUILDOUT_DIR, 'var', 'store')
 
 # Default nodatavalue
 NODATAVALUE = -9999
@@ -37,6 +35,13 @@ REDIS_DB = 0
 
 # Format for all-digit timestamp
 TIMESTAMP_FORMAT = '%Y%m%d%H%M%S'
+
+# Naming of products and files
+FRAMESTAMP = dict(f='0005', h='0100', d='2400')
+PRODUCT_CODE = {t: {p: 'TF{}_{}'.format(FRAMESTAMP[t], p.upper())
+                    for p in 'rnau'}
+                for t in 'fhd'}
+PRODUCT_TEMPLATE = 'RAD_{code}_{timestamp}.h5'
 
 # Delivery times for various products (not a dict, because order matters)
 DELIVERY_TIMES = (

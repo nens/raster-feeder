@@ -6,10 +6,12 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
-
 import os
 
-from raster_feeder.nrr import config
+from datetime import datetime as Datetime
+from datetime import timedelta as Timedelta
+
+from . import config
 
 
 # path helpers
@@ -59,6 +61,32 @@ class PathHelper(object):
 
 
 # Timing
+def closest_time(timeframe='f', dt_close=None):
+    '''
+    Get corresponding datetime based on the timeframe.
+    e.g. with    dt_close = 2012-04-13 12:27
+    timeframe = 'f' returns 2012-04-13 12:25
+    timeframe = 'h' returns 2012-04-13 12:00
+    timeframe = 'd' returns 2012-04-12 08:00
+    '''
+    if dt_close:
+        now = dt_close
+    else:
+        now = Datetime.utcnow()
+
+    if timeframe == 'h':
+        closesttime = now.replace(minute=0, second=0, microsecond=0)
+    elif timeframe == 'd':
+        closesttime = now.replace(hour=8, minute=0, second=0, microsecond=0)
+        if closesttime > now:
+            closesttime = closesttime - Timedelta(days=1)
+    else:
+        closesttime = now.replace(
+            minute=now.minute - (now.minute % 5), second=0, microsecond=0,
+        )
+    return closesttime
+
+
 def get_valid_timeframes(datetime):
     """ Return a list of timeframe codes corresponding to a datetime."""
     result = []
