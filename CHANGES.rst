@@ -9,6 +9,8 @@ Changelog of openradar
 
 - Work towards new HDF5 format.
 
+- Pin numpy
+
 
 0.4 (2016-08-26)
 ----------------
