@@ -2,6 +2,12 @@ Changelog of raster-feeder
 ==========================
 
 
+0.6 (unreleased)
+----------------
+
+- Nothing changed yet.
+
+
 0.5 (2016-12-23)
 ----------------
 
