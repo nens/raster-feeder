@@ -5,15 +5,15 @@ Changelog of raster-feeder
 0.5 (unreleased)
 ----------------
 
-- Add time_limit for all tasks.
+- Renamed atomic to nrr.
 
-- Work towards new HDF5 format.
+- Forked and stripped all openradar code.
 
-- Pin numpy
+- Added time_limit for all tasks.
 
-- Fork and strip all openradar code
+- Worked towards new HDF5 format.
 
-- Rename atomic to nrr
+- Pinned numpy.
 
 
 0.4 (2016-08-26)
