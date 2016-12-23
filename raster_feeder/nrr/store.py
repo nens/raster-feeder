@@ -335,7 +335,7 @@ def main():
     else:
         basic = {'level': logging.INFO,
                  'format': '%(asctime)s %(levelname)s %(message)s',
-                 'filename': os.path.join(config.LOG_DIR, 'atomic_store.log')}
+                 'filename': os.path.join(config.LOG_DIR, 'nrr_store.log')}
     logging.basicConfig(**basic)
 
     # run

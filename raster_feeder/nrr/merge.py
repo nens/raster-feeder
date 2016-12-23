@@ -64,7 +64,7 @@ def main():
     else:
         basic = {'level': logging.INFO,
                  'format': '%(asctime)s %(levelname)s %(message)s',
-                 'filename': os.path.join(config.LOG_DIR, 'atomic_merge.log')}
+                 'filename': os.path.join(config.LOG_DIR, 'nrr_merge.log')}
     logging.basicConfig(**basic)
 
     # run

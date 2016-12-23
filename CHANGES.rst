@@ -1,5 +1,5 @@
-Changelog of openradar
-===================================================
+Changelog of raster-feeder
+==========================
 
 
 0.5 (unreleased)
@@ -10,6 +10,10 @@ Changelog of openradar
 - Work towards new HDF5 format.
 
 - Pin numpy
+
+- Fork and strip all openradar code
+
+- Rename atomic to nrr
 
 
 0.4 (2016-08-26)

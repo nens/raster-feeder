@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
 """
-Period looper for atomic scripts.
+Period looper for nrr scripts.
 """
 
 from __future__ import print_function
