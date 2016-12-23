@@ -2,7 +2,7 @@ Changelog of raster-feeder
 ==========================
 
 
-0.5 (unreleased)
+0.5 (2016-12-23)
 ----------------
 
 - Renamed atomic to nrr.
