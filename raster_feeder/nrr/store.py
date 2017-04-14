@@ -11,10 +11,10 @@ from __future__ import division
 
 from datetime import datetime as Datetime
 from datetime import timedelta as Timedelta
+from os.path import getmtime, join
 import argparse
 import json
 import logging
-import os
 import sys
 
 import h5py
@@ -39,12 +39,12 @@ cache.client = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
 
 # stores and levels
 DELIVERY_TIMES = dict(config.DELIVERY_TIMES)
-GEO_TRANSFORM = utils.get_geo_transform()
+GEO_TRANSFORM = config.GEO_TRANSFORM
 LEVELS = {'r': 1, 'n': 2, 'a': 3, 'u': 4}
 EPOCH = Datetime.fromtimestamp(0).isoformat()
 ROOT = config.STORE_DIR
 NOW = Datetime.now().isoformat()  # or should we refresh more often?
-WKT = osr.GetUserInputAsWKT(b'EPSG:28992')
+WKT = osr.GetUserInputAsWKT(str(config.PROJECTION))
 
 NAMES = {'f': {'r': dict(group='5min', store='real1'),
                'n': dict(group='5min', store='near'),
@@ -79,7 +79,7 @@ def get_mtime(path):
 
     Add one second to prevent resolution things.
     """
-    return Datetime.fromtimestamp(os.path.getmtime(path) + 1).isoformat()
+    return Datetime.fromtimestamp(getmtime(path) + 1).isoformat()
 
 
 def get_contents(path):
@@ -105,8 +105,8 @@ class Store(object):
 
         # stores
         self.names = NAMES[timeframe][prodcode]
-        group_path = os.path.join(config.STORE_DIR, self.names['group'])
-        store_path = os.path.join(group_path, self.names['store'])
+        group_path = join(config.STORE_DIR, self.names['group'])
+        store_path = join(group_path, self.names['store'])
         self.store = load(store_path)
         self.group = load(group_path)
 
@@ -159,9 +159,9 @@ class Store(object):
                                          meta=meta,
                                          time=time,
                                          bands=bands,
-                                         fillvalue=config.NODATAVALUE,
                                          projection=WKT,
-                                         geo_transform=GEO_TRANSFORM)
+                                         geo_transform=GEO_TRANSFORM,
+                                         fillvalue=config.NODATAVALUE)
 
         # populate it
         for band, source in self.sources.items():
@@ -335,7 +335,7 @@ def main():
     else:
         basic = {'level': logging.INFO,
                  'format': '%(asctime)s %(levelname)s %(message)s',
-                 'filename': os.path.join(config.LOG_DIR, 'nrr_store.log')}
+                 'filename': join(config.LOG_DIR, 'nrr_store.log')}
     logging.basicConfig(**basic)
 
     # run

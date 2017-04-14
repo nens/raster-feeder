@@ -20,9 +20,9 @@ CONSISTENT_DIR = join(BUILDOUT_DIR, 'var', 'consistent')
 # Default nodatavalue
 NODATAVALUE = -9999
 
-# Gridproperties for resulting composite (left, right, top, bottom)
-COMPOSITE_EXTENT = (-110000, 390000, 700000, 210000)
-COMPOSITE_CELLSIZE = (1000, 1000)
+# Geographical orientation
+GEO_TRANSFORM = -110000, 1000, 0, 700000, 0, -1000
+PROJECTION = 'EPSG:28992'
 
 # redis host for mtime cache and turn locking system
 REDIS_HOST = 'localhost'

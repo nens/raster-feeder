@@ -10,6 +10,8 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
+from os.path import join, exists
+
 import argparse
 import datetime
 import json
@@ -51,7 +53,7 @@ DEPTHS = {'5min': {'real1':      (1,   12),   # arrives every 5 minutes
                    'merge':      (6,  576),   # merge at night
                    'final':    (512, 1024)}}  # offload once a month at night
 
-WKT = osr.GetUserInputAsWKT(b'epsg:28992')
+WKT = osr.GetUserInputAsWKT(str(config.PROJECTION))
 
 ORIGINS = {'day': datetime.datetime(2000, 1, 1, 8),
            'hour': datetime.datetime(2000, 1, 1, 9),
@@ -59,7 +61,7 @@ ORIGINS = {'day': datetime.datetime(2000, 1, 1, 8),
 
 KWARGS = {'dtype': 'f4',
           'projection': WKT,
-          'geo_transform': (0, 1000, 0, 0, 0, -1000),
+          'geo_transform': config.GEO_TRANSFORM,
           'h5opts': {'scaleoffset': 2, 'compression': 'lzf'}}
 
 ORDERING = {
@@ -74,8 +76,8 @@ def add_nowcast_stores(base):
     # nowcast stores
     depth = 37
     for name in ['nowcast1', 'nowcast2']:
-        path = os.path.join(config.STORE_DIR, base, name)
-        if os.path.exists(path):
+        path = join(config.STORE_DIR, base, name)
+        if exists(path):
             continue
         kwargs = {'path': path,
                   'delta': datetime.timedelta(minutes=5)}
@@ -93,13 +95,13 @@ def command():
     """
     # regular stores
     for group_name in DEPTHS:
-        group_path = os.path.join(config.STORE_DIR, group_name)
-        if not os.path.exists(group_path):
+        group_path = join(config.STORE_DIR, group_name)
+        if not exists(group_path):
             os.mkdir(group_path)
 
         for store_name in DEPTHS[group_name]:
-            store_path = os.path.join(group_path, store_name)
-            if os.path.exists(store_path):
+            store_path = join(group_path, store_name)
+            if exists(store_path):
                 continue
 
             kwargs = {
@@ -129,7 +131,7 @@ def command():
         logger.info('Update config for {}.'.format(group_name))
         store_confs = []
         for store_name in ORDERING[group_name]:
-            store_path = os.path.join(group_name, store_name)
+            store_path = join(group_name, store_name)
             store_confs.append({'Store': {'path': store_path}})
         conf = {'Group': store_confs}
         conf_path = '{}.json'.format(group_path)

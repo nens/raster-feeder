@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
-import os
+from os.path import join
 
 from datetime import datetime as Datetime
 from datetime import timedelta as Timedelta
@@ -30,12 +30,12 @@ class PathHelper(object):
         """
         Filetemplate must be something like '{code}_{timestamp}.'
         """
-        self._basedir = os.path.join(basedir, code)
+        self._basedir = join(basedir, code)
         self._code = code
         self._template = template
 
     def path(self, dt):
-        return os.path.join(
+        return join(
             self._basedir,
             dt.strftime('%Y'),
             dt.strftime('%m'),
@@ -47,7 +47,7 @@ class PathHelper(object):
         )
 
     def path_with_hour(self, dt):
-        return os.path.join(
+        return join(
             self._basedir,
             dt.strftime('%Y'),
             dt.strftime('%m'),
@@ -111,9 +111,3 @@ def consistent_product_expected(prodcode, timeframe):
     if prodcode == 'n' and timeframe == 'f':
         return True
     return False
-
-
-def get_geo_transform():
-    left, right, top, bottom = config.COMPOSITE_EXTENT
-    width, height = config.COMPOSITE_CELLSIZE
-    return left, width, 0, top, 0, -height

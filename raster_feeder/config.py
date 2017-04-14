@@ -11,8 +11,6 @@ from __future__ import division
 
 from os.path import abspath, dirname, join
 
-import datetime
-
 BUILDOUT_DIR = abspath(join(dirname(__file__), '..'))
 
 # log directories

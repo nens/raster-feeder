@@ -9,12 +9,13 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
+from os import dirname, join
+
 import argparse
 import datetime
 import ftplib
 import json
 import logging
-import os
 import shutil
 import sys
 import tempfile
@@ -30,9 +31,8 @@ from raster_store import load
 from raster_store import regions
 
 from . import config
-from . import utils
 
-WKT = osr.GetUserInputAsWKT(b'epsg:28992')
+WKT = osr.GetUserInputAsWKT(str(config.PROJECTION))
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ def fetch_latest_nowcast_h5():
             logger.info('No files found on ftp.')
             return None
         target_name = sorted(nlst)[-1]
-        target_path = os.path.join(tempfile.mkdtemp(), target_name)
+        target_path = join(tempfile.mkdtemp(), target_name)
         with open(target_path, 'w') as target_file:
             source.retrbinary('RETR ' + target_name, target_file.write)
         source.quit()
@@ -75,7 +75,7 @@ def get_nowcast_region():
     Get latest nowcast image as region.
     """
     # prepare
-    geo_transform = utils.get_geo_transform()
+    geo_transform = config.GEO_TRANSFORM
     projection = WKT
     fmt = 'RAD_TF0005_R_PROG_%Y%m%d%H%M%S'
     fillvalue = np.finfo('f4').max.item()
@@ -99,7 +99,7 @@ def get_nowcast_region():
             name = h5[image].attrs['image_product_name']
             meta.append(json.dumps({'product': name, 'stored': now}))
             time.append(datetime.datetime.strptime(name, fmt))
-    shutil.rmtree(os.path.dirname(path))
+    shutil.rmtree(dirname(path))
     # create a region
     region = regions.Region.from_mem(data=data,
                                      meta=meta,
@@ -118,11 +118,11 @@ def rotate_nowcast_stores(region):
     loaded store.
     """
     # paths
-    base = os.path.join(config.STORE_DIR, '5min')
+    base = join(config.STORE_DIR, '5min')
     locker = turn.Locker(host=config.REDIS_HOST, db=config.REDIS_DB)
     with locker.lock(resource='5min', label='nowcast'):
-        old = load(os.path.join(base, 'nowcast1'))
-        new = load(os.path.join(base, 'nowcast2'))
+        old = load(join(base, 'nowcast1'))
+        new = load(join(base, 'nowcast2'))
         if new:
             old, new = new, old
         new.update([region])
@@ -142,8 +142,8 @@ def command(verbose):
     else:
         kwargs = {'level': logging.INFO,
                   'format': '%(asctime)s %(levelname)s %(message)s',
-                  'filename': os.path.join(config.LOG_DIR,
-                                           'nrr_nowcast.log')}
+                  'filename': join(config.LOG_DIR,
+                                   'nrr_nowcast.log')}
     logging.basicConfig(**kwargs)
     logger.info('Nowcast procedure initiated.')
 
