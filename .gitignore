@@ -4,7 +4,7 @@
 *.py[co]
 
 # Local configs
-raster_feeder/nrr/local*
+raster_feeder/*/local*
 
 # Packages
 *.egg

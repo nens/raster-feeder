@@ -1,10 +1,26 @@
 raster-feeder
 ==========================================
 
+installation
+------------
+
+Global dependencies::
+
+    $ sudo apt install libhdf5serial-dev python-grib
+
+Setting up::
+    
+    $ python bootstrap.py
+    $ bin/buildout
+
+
 NRR
 ---
-Scripts to feed NRR precipitation data into a group of raster stores
-that enable efficient access of data over the complete growing dataset.
+Scripts to feed NRR precipitation data into a group of raster stores that
+enable efficient access of data over the complete growing dataset. For
+initialization, run::
+
+    $ bin/nrr-init
 
 The following cronjobs should be installed on the production server to
 make everything work::
@@ -25,3 +41,20 @@ make everything work::
     # Report on the status of the data in the raster stores
     0     12 *   *   *   /srv/raster-feeder/bin/nrr-report 7d -q
     */15   * *   *   *   /srv/raster-feeder/bin/nrr-report 7d
+
+
+HARMONIE
+--------
+Scripts to feed NRR precipitation data into a group of raster stores that
+enable efficient access of data over the complete growing dataset. For
+initialization, run::
+
+    $ bin/harmonie-init
+
+The following cronjobs should be installed on the production server to
+make everything work::
+
+    # m    h dom mon dow command
+    # Rotate the HARMONIE stores
+    19     * *   *   *   /srv/raster-feeder/bin/harmonie-rotate
+

@@ -13,6 +13,7 @@ install_requires = [
     'gdal',
     'h5py>=2.3.1',
     'numpy',
+    'pygrib',
     'raster-store',
     'redis',
     'scipy',
@@ -50,5 +51,8 @@ setup(name='raster_feeder',
               'nrr-nowcast = raster_feeder.nrr.nowcast:main',
               'nrr-report = raster_feeder.nrr.report:main',
               'nrr-store = raster_feeder.nrr.store:main',
+              # HARMONIE
+              'harmonie-init = raster_feeder.harmonie.init:main',
+              'harmonie-rotate = raster_feeder.harmonie.rotate:main',
           ]},
       )

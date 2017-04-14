@@ -5,7 +5,7 @@ Changelog of raster-feeder
 0.6 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Added HARMONIE scripts.
 
 
 0.5 (2016-12-23)

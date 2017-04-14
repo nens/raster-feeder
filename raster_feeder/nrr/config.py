@@ -6,21 +6,16 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
-from os.path import abspath, dirname, join
+from os.path import join
+from datetime import timedelta as Timedelta
 
-import datetime
-
-BUILDOUT_DIR = abspath(join(dirname(__file__), '..', '..'))
-
-# directories
-LOG_DIR = join(BUILDOUT_DIR, 'var', 'log')
+from ..config import BUILDOUT_DIR  # NOQA
+from ..config import STORE_DIR     # NOQA
+from ..config import LOG_DIR       # NOQA
 
 # data is read from here
 CALIBRATE_DIR = join(BUILDOUT_DIR, 'var', 'calibrate')
 CONSISTENT_DIR = join(BUILDOUT_DIR, 'var', 'consistent')
-
-# where to put the stores
-STORE_DIR = join(BUILDOUT_DIR, 'var', 'store')
 
 # Default nodatavalue
 NODATAVALUE = -9999
@@ -45,11 +40,11 @@ PRODUCT_TEMPLATE = 'RAD_{code}_{timestamp}.h5'
 
 # Delivery times for various products (not a dict, because order matters)
 DELIVERY_TIMES = (
-    ('x', datetime.timedelta()),
-    ('r', datetime.timedelta()),
-    ('n', datetime.timedelta(hours=1)),
-    ('a', datetime.timedelta(hours=12)),
-    ('u', datetime.timedelta(days=30)),
+    ('x', Timedelta()),
+    ('r', Timedelta()),
+    ('n', Timedelta(hours=1)),
+    ('a', Timedelta(hours=12)),
+    ('u', Timedelta(days=30)),
 )
 
 # Import local settings
