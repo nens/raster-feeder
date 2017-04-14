@@ -10,7 +10,6 @@ from __future__ import absolute_import
 from __future__ import division
 
 from datetime import timedelta as Timedelta
-# from datetime import datetime as Datetime
 from os.path import join
 
 import argparse
@@ -136,7 +135,7 @@ class Downloader(object):
 #         pass
 
 
-def get_region(current):
+def get_region(current=None):
     """
     Return latest harmonie data as raster store region or None.
 
@@ -153,7 +152,7 @@ def get_region(current):
         logging.exception('Error:')
         return
 
-    if downloader.latest == current.strftime(config.FORMAT):
+    if current and downloader.latest == current.strftime(config.FORMAT):
         logger.info('No update available, exiting.')
         downloader.quit()
         return
@@ -199,8 +198,11 @@ def rotate_harmonie():
     group_path = join(config.STORE_DIR, config.GROUP_NAME)
 
     # see if there is an update
-    group_conf = group_path + '.json'
-    current = load(group_conf).period[0]
+    period = load(group_path + '.json').period
+    if period is None:
+        current = None
+    else:
+        current = period[0]
     region = get_region(current)
     if region is None:
         return
