@@ -6,7 +6,7 @@ installation
 
 Global dependencies::
 
-    $ sudo apt install libhdf5serial-dev python-grib
+    $ sudo apt install libhdf5-serial-dev python-grib
 
 Setting up::
     
