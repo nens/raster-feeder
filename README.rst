@@ -56,5 +56,5 @@ make everything work::
 
     # m    h dom mon dow command
     # Rotate the HARMONIE stores
-    19     * *   *   *   /srv/raster-feeder/bin/harmonie-rotate
+    19 5-23/6 *   *   *   /srv/raster-feeder/bin/harmonie-rotate
 
