@@ -4,6 +4,7 @@
 *.py[co]
 
 # Local configs
+raster_feeder/local*
 raster_feeder/*/local*
 
 # Packages
