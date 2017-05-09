@@ -7,6 +7,8 @@ Changelog of raster-feeder
 
 - Added HARMONIE scripts.
 
+- Updated raster-store to fix the flushes.
+
 
 0.5 (2016-12-23)
 ----------------
