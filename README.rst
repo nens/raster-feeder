@@ -1,6 +1,12 @@
 raster-feeder
 ==========================================
 
+This software defines a number of commandline scripts to retrieve and load
+raster data from a variety of sources into raster stores. Although largely
+separated into separate components that have its own directories, they share a
+a number of properties such as the use of the turn library for queueing and
+putting the data on the same shared storage. 
+
 installation
 ------------
 
@@ -14,8 +20,18 @@ Setting up::
     $ bin/buildout
 
 
+Configuration files
+-------------------
+A note of warning regarding configuration files. The separate components each
+define their own config files, but can import certain variables from a central
+config file in the parent directory. Both the central config and the component
+config files try to import from a respective localconfig which makes the
+configuration a bit complex. Be aware.
+
+
 NRR
 ---
+
 Scripts to feed NRR precipitation data into a group of raster stores that
 enable efficient access of data over the complete growing dataset. For
 initialization, run::
@@ -45,6 +61,7 @@ make everything work::
 
 HARMONIE
 --------
+
 Scripts to feed NRR precipitation data into a group of raster stores that
 enable efficient access of data over the complete growing dataset. For
 initialization, run::

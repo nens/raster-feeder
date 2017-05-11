@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*<F7>-
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
+"""
+This is the NRR configuration file. It allows for a 'NRR' localconfig, too,
+which should be put in the same directory as this module.
+"""
 
 from __future__ import print_function
 from __future__ import unicode_literals
@@ -9,9 +13,13 @@ from __future__ import division
 from os.path import join
 from datetime import timedelta as Timedelta
 
-from ..config import BUILDOUT_DIR  # NOQA
+# central config imports
+from ..config import BUILDOUT_DIR
 from ..config import STORE_DIR     # NOQA
 from ..config import LOG_DIR       # NOQA
+
+from ..config import REDIS_HOST    # NOQA
+from ..config import REDIS_DB      # NOQA
 
 # data is read from here
 CALIBRATE_DIR = join(BUILDOUT_DIR, 'var', 'calibrate')
@@ -23,10 +31,6 @@ NODATAVALUE = -9999
 # Geographical orientation
 GEO_TRANSFORM = -110000, 1000, 0, 700000, 0, -1000
 PROJECTION = 'EPSG:28992'
-
-# redis host for mtime cache and turn locking system
-REDIS_HOST = 'localhost'
-REDIS_DB = 0
 
 # Format for all-digit timestamp
 TIMESTAMP_FORMAT = '%Y%m%d%H%M%S'
