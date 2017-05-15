@@ -9,6 +9,8 @@ Changelog of raster-feeder
 
 - Updated raster-store to fix the flushes.
 
+- Enable average aggregations in nrr.
+
 
 0.5 (2016-12-23)
 ----------------

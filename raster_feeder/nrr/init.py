@@ -86,8 +86,9 @@ def add_nowcast_stores(base):
         store = stores.Store.create(**kwargs)
         store.create_storage((depth, 1))
         store.create_storage((depth, depth))
-        store.create_aggregation('topleft', depths=(depth, 1))
-        store.create_aggregation('sum', depths=(depth, depth))
+        store.create_aggregation('average', depths=(depth, 1))
+        store.create_aggregation('average', depths=(depth, depth))
+        store.set_default_aggregation('average')
 
 
 def command():
@@ -115,12 +116,17 @@ def command():
 
             space_depths = (1, 256) if store_name == 'final' else (1, 288)
             store.create_storage(depths=space_depths)
-            store.create_aggregation('topleft', depths=space_depths)
+            store.create_aggregation('average', depths=space_depths)
+            store.set_default_aggregation('average')
 
             time_depths = DEPTHS[group_name][store_name]
-            store.create_aggregation('sum', depths=time_depths)
+            store.create_aggregation('average', depths=time_depths)
 
             if min(time_depths) == 1:
+                # leave out the extra storage since the store is shallow enough
+                # for simple point requests (for other requests we do add the
+                # aggregation above) and loading is faster if there is only one
+                # base storage
                 continue
             store.create_storage(depths=time_depths)
 
