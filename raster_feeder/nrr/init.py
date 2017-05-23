@@ -83,6 +83,7 @@ def add_nowcast_stores(base):
                   'delta': datetime.timedelta(minutes=5)}
         kwargs.update(KWARGS)
         kwargs['origin'] = ORIGINS['5min']
+        logger.info('Creating %s', path)
         store = stores.Store.create(**kwargs)
         store.create_storage((depth, 1))
         store.create_storage((depth, depth))
