@@ -18,8 +18,6 @@ import argparse
 import json
 import os
 
-# from osgeo import osr
-
 from raster_store import stores
 
 from . import config
