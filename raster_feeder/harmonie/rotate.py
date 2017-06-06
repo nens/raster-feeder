@@ -41,7 +41,14 @@ cache.client = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
 
 
 class Grib(object):
-    """ Grib message parser. """
+    """
+    Grib message parser.
+
+    Data should be the bytes of a GRIB file. The parser slices the data into
+    grib messages using the message size indicators from the data.
+
+    Currently only rain intensity messages are yielded.
+    """
     def __init__(self, data):
         self.data = data
 
