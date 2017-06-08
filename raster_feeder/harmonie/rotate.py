@@ -130,11 +130,7 @@ class Downloader(object):
 #     @contextlib.contextmanager
 #     def download(self):
 #         """ Return path to downloaded nowcastfile, if any. """
-#         import os
-#         home = os.environ['HOME']
-#         directory = 'Downloads/harmonie'
-#         name = 'harm36_v1_ned_surface_2017041006.tgz'
-#         path = join(home, directory, name)
+#         path = 'harm36_v1_ned_surface_2017041006.tgz'
 #         logger.info('Using dummy file "{}".'.format(path))
 #         yield path
 
