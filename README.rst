@@ -73,5 +73,4 @@ make everything work::
 
     # m    h dom mon dow command
     # Rotate the HARMONIE stores
-    19 5-23/6 *   *   *   /srv/raster-feeder/bin/harmonie-rotate
-
+    19 5-23/6 *   *   *   /srv/raster-feeder/bin/harmonie-rotate && /srv/raster-feeder/bin/touch-lizard 45d9549d-6c96-48ea-90f5-ea4ca755a1e7

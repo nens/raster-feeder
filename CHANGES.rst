@@ -5,6 +5,8 @@ Changelog of raster-feeder
 0.6 (unreleased)
 ----------------
 
+- Added ``touch-lizard`` script to update the raster in Lizard.
+
 - Added HARMONIE scripts.
 
 - Updated raster-store to fix the flushes.

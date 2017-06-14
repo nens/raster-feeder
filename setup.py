@@ -16,6 +16,7 @@ install_requires = [
     'pygrib',
     'raster-store',
     'redis',
+    'requests',
     'scipy',
     'setuptools',
     'turn',
@@ -54,5 +55,7 @@ setup(name='raster_feeder',
               # HARMONIE
               'harmonie-init = raster_feeder.harmonie.init:main',
               'harmonie-rotate = raster_feeder.harmonie.rotate:main',
+              # MISC
+              'touch-lizard = raster_feeder.touch:main',
           ]},
       )
