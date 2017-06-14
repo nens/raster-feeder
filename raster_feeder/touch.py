@@ -21,7 +21,7 @@ def get_parser():
         'raster_uuids',
         nargs='+',
         type=str,
-        metavar='UUID',
+        metavar='RASTER_UUID',
         help="Lizard raster endpoint UUID",
     )
     return parser
