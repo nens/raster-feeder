@@ -28,7 +28,7 @@ def get_parser():
 
 
 def touch_lizard(raster_uuid):
-    """Update the Lizard raster store metadata."""
+    """Update the raster store metadata using the Lizard API."""
     url = RASTERS_SET_META_URL_TEMPLATE.format(raster_uuid=raster_uuid)
     headers = {'username': LIZARD_USERNAME, 'password': LIZARD_PASSWORD}
 
@@ -36,7 +36,7 @@ def touch_lizard(raster_uuid):
     if resp.ok:
         logger.info("Metadata update succeeded: %s", resp.json())
     else:
-        logger.error("Metedata update failed: %s", resp.json())
+        logger.error("Metadata update failed: %s", resp.json())
 
 
 def main():

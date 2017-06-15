@@ -43,11 +43,11 @@ make everything work::
 
     # m    h dom mon dow command
     # Load radar data into the raster store
-    */5    * *   *   *   /srv/raster-feeder/bin/nrr-nowcast
-    4-59/5 * *   *   *   /srv/raster-feeder/bin/nrr-store 1h -d -p r
-    15     * *   *   *   /srv/raster-feeder/bin/nrr-store 1d -d -p n
-    16     * *   *   *   /srv/raster-feeder/bin/nrr-store 7d -d -p a
-    17     * *   *   *   /srv/raster-feeder/bin/nrr-store 7d -d -p u
+    */5    * *   *   *   /srv/raster-feeder/bin/nrr-nowcast && /srv/raster-feeder/bin/touch-lizard TODO
+    4-59/5 * *   *   *   /srv/raster-feeder/bin/nrr-store 1h -d -p r && /srv/raster-feeder/bin/touch-lizard TODO
+    15     * *   *   *   /srv/raster-feeder/bin/nrr-store 1d -d -p n && /srv/raster-feeder/bin/touch-lizard TODO
+    16     * *   *   *   /srv/raster-feeder/bin/nrr-store 7d -d -p a && /srv/raster-feeder/bin/touch-lizard TODO
+    17     * *   *   *   /srv/raster-feeder/bin/nrr-store 7d -d -p u && /srv/raster-feeder/bin/touch-lizard TODO
     # Optimize radar data in the raster store
     08     * *   *   *   /srv/raster-feeder/bin/nrr-move 5min real1 real2
     01    22 *   *   *   /srv/raster-feeder/bin/nrr-merge
