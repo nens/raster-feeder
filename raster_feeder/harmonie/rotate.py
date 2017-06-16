@@ -22,20 +22,15 @@ import tarfile
 
 import numpy as np
 import pygrib
-import redis
-import turn
 from osgeo import osr
 
-from raster_store import cache
 from raster_store import load
 from raster_store import regions
 
+from ..common import rotate
 from . import config
 
 logger = logging.getLogger(__name__)
-
-# mtime caching
-cache.client = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
 
 
 def parse_gribdata(gribdata):
@@ -185,24 +180,15 @@ def rotate_harmonie():
     regions = extract_regions(fileobj)
 
     # rotate the stores
-    locker = turn.Locker(host=config.REDIS_HOST, db=config.REDIS_DB)
     for name, region in regions.items():
-        logger.info('Starting store rotation of %s.' % name)
         group_path = join(config.STORE_DIR, name)
-        with locker.lock(resource='harmonie', label='rotate'):
-            # load the individual stores
-            old = load(join(group_path, name + '1'))
-            new = load(join(group_path, name + '2'))
-            # swap if new contains data instead of old
-            if new:
-                old, new = new, old
-            # put the regions in the new store
-            new.update([region])
-            # delete the data from the old store
-            if old:
-                start, stop = old.period
-                old.delete(start=start, stop=stop)
-        logger.info('Rotate complete.')
+        rotate(
+            path1=join(group_path, name + '1'),
+            path2=join(group_path, name + '2'),
+            region=region,
+            resource=name,
+            label='rotate',
+        )
 
 
 def get_parser():

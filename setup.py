@@ -12,6 +12,7 @@ install_requires = [
     'ciso8601',
     'gdal',
     'h5py>=2.3.1',
+    'netCDF4',
     'numpy',
     'pygrib',
     'raster-store',
@@ -54,5 +55,8 @@ setup(name='raster_feeder',
               # HARMONIE
               'harmonie-init = raster_feeder.harmonie.init:main',
               'harmonie-rotate = raster_feeder.harmonie.rotate:main',
+              # STEPS
+              'steps-init = raster_feeder.steps.init:main',
+              'steps-rotate = raster_feeder.steps.rotate:main',
           ]},
       )

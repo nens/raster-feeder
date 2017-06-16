@@ -15,13 +15,13 @@ from datetime import timedelta as Timedelta
 
 # central config imports
 from ..config import BUILDOUT_DIR
-from ..config import STORE_DIR     # NOQA
 from ..config import LOG_DIR       # NOQA
 
 from ..config import REDIS_HOST    # NOQA
 from ..config import REDIS_DB      # NOQA
 
 # data is read from here
+from ..config import STORE_DIR     # NOQA
 CALIBRATE_DIR = join(BUILDOUT_DIR, 'var', 'calibrate')
 CONSISTENT_DIR = join(BUILDOUT_DIR, 'var', 'consistent')
 
@@ -50,6 +50,19 @@ DELIVERY_TIMES = (
     ('a', Timedelta(hours=12)),
     ('u', Timedelta(days=30)),
 )
+
+# -------------------------------------------
+# settings to be overridden in localconfig.py
+# -------------------------------------------
+
+# report script
+REPORT_SMTP_HOST = ''
+REPORT_SENDER = ''
+REPORT_RECIPIENTS = []
+
+# nowcast FTP connection
+FTP_NOWCAST = dict(host='', user='', password='', path='')
+
 
 # Import local settings
 try:

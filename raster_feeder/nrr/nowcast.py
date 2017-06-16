@@ -23,13 +23,12 @@ import tempfile
 import h5py
 import numpy as np
 import redis
-import turn
 from osgeo import osr
 
 from raster_store import cache
-from raster_store import load
 from raster_store import regions
 
+from ..common import rotate
 from . import config
 
 WKT = osr.GetUserInputAsWKT(str(config.PROJECTION))
@@ -119,16 +118,13 @@ def rotate_nowcast_stores(region):
     """
     # paths
     base = join(config.STORE_DIR, '5min')
-    locker = turn.Locker(host=config.REDIS_HOST, db=config.REDIS_DB)
-    with locker.lock(resource='5min', label='nowcast'):
-        old = load(join(base, 'nowcast1'))
-        new = load(join(base, 'nowcast2'))
-        if new:
-            old, new = new, old
-        new.update([region])
-        if old:
-            start, stop = old.period
-            old.delete(start=start, stop=stop)
+    rotate(
+        path1=join(base, 'nowcast1'),
+        path2=join(base, 'nowcast2'),
+        region=region,
+        resource='5min',
+        label='rotate',
+    )
 
 
 def command(verbose):
