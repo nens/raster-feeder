@@ -181,14 +181,8 @@ def rotate_harmonie():
 
     # rotate the stores
     for name, region in regions.items():
-        group_path = join(config.STORE_DIR, name)
-        rotate(
-            path1=join(group_path, name + '1'),
-            path2=join(group_path, name + '2'),
-            region=region,
-            resource=name,
-            label='rotate',
-        )
+        path = join(config.STORE_DIR, name)
+        rotate(path=path, region=region, resource=name)
 
 
 def get_parser():

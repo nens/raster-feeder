@@ -58,7 +58,7 @@ def create_tumbler(path, depth, **kwargs):
     json.dump({'Group': store_confs}, open(conf_path, 'w'), indent=2)
 
 
-def rotate(path, region, resource, label):
+def rotate(path, region, resource, label='rotate'):
     """
     Load region in the the currently empty store, then clear the other one.
 

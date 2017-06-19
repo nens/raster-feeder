@@ -65,16 +65,16 @@ def extract_region(path):
 
         precipitation = nc.variables['precipitation']
         native_data = precipitation[0, :, ::-1]
-        no_data_value = precipitation._FillValue
+        no_data_value = precipitation._FillValue.item()
 
     native_projection = osr.GetUserInputAsWKT(str(config.NATIVE_PROJECTION))
     kwargs = {
         'geo_transform': config.NATIVE_GEO_TRANSFORM,
         'projection': native_projection,
-        'no_data_value': no_data_value.item(),
+        'no_data_value': no_data_value,
     }
+    warped_projection = osr.GetUserInputAsWKT(str(config.WARPED_PROJECTION))
     with datasets.Dataset(native_data, **kwargs) as native_dataset:
-        warped_projection = osr.GetUserInputAsWKT(str(config.WARPED_PROJECTION))
         warped = gdal.AutoCreateWarpedVRT(
             native_dataset,
             native_projection,
@@ -88,7 +88,7 @@ def extract_region(path):
         time=time,
         bands=(0, config.DEPTH),
         fillvalue=no_data_value,
-        projection=str(config.WARPED_PROJECTION),
+        projection=osr.GetUserInputAsWKT(str(config.WARPED_PROJECTION)),
         data=data,
         geo_transform=config.WARPED_GEO_TRANSFORM,
     )
@@ -109,7 +109,7 @@ def rotate_steps():
     # rotate the stores
     name = config.STORE_NAME
     path = join(config.STORE_DIR, name)
-    rotate(path=path, region=region, resource=name, label='rotate')
+    rotate(path=path, region=region, resource=name)
 
 
 def get_parser():
