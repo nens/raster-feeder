@@ -49,9 +49,11 @@ setup(name='raster_feeder',
               'nrr-init = raster_feeder.nrr.init:main',
               'nrr-merge = raster_feeder.nrr.merge:main',
               'nrr-move = raster_feeder.nrr.move:main',
-              'nrr-nowcast = raster_feeder.nrr.nowcast:main',
               'nrr-report = raster_feeder.nrr.report:main',
               'nrr-store = raster_feeder.nrr.store:main',
+              # NOWCAST
+              'nowcast-init = raster_feeder.nowcast.init:main',
+              'nowcast-rotate = raster_feeder.nowcast.rotate:main',
               # HARMONIE
               'harmonie-init = raster_feeder.harmonie.init:main',
               'harmonie-rotate = raster_feeder.harmonie.rotate:main',

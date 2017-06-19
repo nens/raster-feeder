@@ -12,7 +12,6 @@ from __future__ import division
 
 from datetime import datetime as Datetime
 from datetime import timedelta as Timedelta
-
 from os.path import join
 import argparse
 
@@ -23,12 +22,12 @@ from ..common import create_tumbler
 def init_steps():
     """ Create HARMONIE stores for configured parameters. """
     create_tumbler(
-        path=join(config.STORE_DIR, config.STORE_NAME),
+        path=join(config.STORE_DIR, config.NAME),
         depth=config.DEPTH,
         dtype='f4',
         delta=Timedelta(hours=1),
-        projection=config.PROJECTION,
-        geo_transform=config.GEO_TRANSFORM,
+        projection=config.WARPED_PROJECTION,
+        geo_transform=config.WARPED_GEO_TRANSFORM,
         origin=Datetime(year=2000, month=1, day=1),
     )
 

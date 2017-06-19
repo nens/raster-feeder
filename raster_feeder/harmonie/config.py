@@ -16,12 +16,6 @@ from os.path import join
 from ..config import BUILDOUT_DIR  # NOQA
 from ..config import LOG_DIR       # NOQA
 
-from ..config import REDIS_HOST    # NOQA
-from ..config import REDIS_DB      # NOQA
-
-# default nodatavalue
-NODATAVALUE = -9999
-
 # parameters, names, depths, see http://projects.knmi.nl/
 # datacentrum/catalogus/catalogus/content/nl-nwp-harm-grid-p1.htm
 PARAMETERS = (

@@ -91,7 +91,7 @@ def rotate_steps():
         return
 
     # rotate the stores
-    name = config.STORE_NAME
+    name = config.NAME
     path = join(config.STORE_DIR, name)
     rotate(path=path, region=region, resource=name)
 

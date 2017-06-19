@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
 """
-Stores latest harmonie in a rotating raster store group.
+Stores latest data in a rotating raster store group.
 """
 
 from __future__ import print_function
@@ -94,12 +94,12 @@ def download(current=None):
     return result
 
 
-# def download(current=None):
-    # """ Dummy downloader for debugging purposes. """
-    # # return open file object
-    # path = 'harm36_v1_ned_surface_2017060600.tgz'
-    # logger.info('Using dummy file "{}".'.format(path))
-    # return open(path)
+def download(current=None):
+    """ Dummy downloader for debugging purposes. """
+    # return open file object
+    path = 'harm36_v1_ned_surface_2017060600.tgz'
+    logger.info('Using dummy file "{}".'.format(path))
+    return open(path)
 
 
 def extract_regions(fileobj):

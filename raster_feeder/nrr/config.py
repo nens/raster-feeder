@@ -21,7 +21,6 @@ from ..config import REDIS_HOST    # NOQA
 from ..config import REDIS_DB      # NOQA
 
 # data is read from here
-from ..config import STORE_DIR     # NOQA
 CALIBRATE_DIR = join(BUILDOUT_DIR, 'var', 'calibrate')
 CONSISTENT_DIR = join(BUILDOUT_DIR, 'var', 'consistent')
 
@@ -60,9 +59,8 @@ REPORT_SMTP_HOST = ''
 REPORT_SENDER = ''
 REPORT_RECIPIENTS = []
 
-# nowcast FTP connection
-FTP_NOWCAST = dict(host='', user='', password='', path='')
-
+# raster store location
+STORE_DIR = join(BUILDOUT_DIR, 'var', 'store')
 
 # Import local settings
 try:

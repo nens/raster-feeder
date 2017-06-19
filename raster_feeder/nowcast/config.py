@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*<F7>-
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
 """
-This is the STEPS configuration file. It allows for a 'STEPS'
+This is the NOWCAST configuration file. It allows for a 'NOWCAST'
 localconfig, too, which should be put in the same directory as this module.
 """
 
@@ -17,25 +17,25 @@ from ..config import BUILDOUT_DIR  # NOQA
 from ..config import LOG_DIR       # NOQA
 
 # storage name
-NAME = 'steps'
+NAME = 'nowcast'
 
-# storage temporal depth
-DEPTH = 12
+# storage origin must be same as NRR 5min for fast group access
+ORIGIN = {'year': 2000, 'month': 1, 'day': 1, 'hour': 8, 'minute': 5}
+DELTA = {'minutes': 5}
+DEPTH = 37
 
-# proj inferred from sample netcdf
-NATIVE_GEO_TRANSFORM = -257.0, 2.0, 0.0, 255.0, 0.0, -2.0
-NATIVE_PROJECTION = '+proj=gnom +lat_0=-34.264 +lon_0=150.874 +units=km'
-
-# geographical orientation, geo_transform from auto-warped dataset using
-# proj from above
-WARPED_GEO_TRANSFORM = 148.004, 0.0199286, 0.0, -31.9456, 0.0, -0.0199286
-WARPED_PROJECTION = 'EPSG:4326'
+# geo
+GEO_TRANSFORM = -110000, 1000, 0, 700000, 0, -1000
+PROJECTION = 'EPSG:28992'
 
 # -------------------------------------------
 # settings to be overridden in localconfig.py
 # -------------------------------------------
 
 STORE_DIR = join(BUILDOUT_DIR, 'var', 'store')
+
+# FTP connection
+FTP = dict(host='', user='', password='', path='')
 
 # Import local settings
 try:
