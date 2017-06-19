@@ -36,7 +36,6 @@ done.
 @contextlib.contextmanager
 def download(current=None):
     """ Dummy downloader for debugging purposes. """
-    # return open file object
     path = 'steps_epf60_SydM-nc_20170519_1700.nc'
     # path = 'steps_precip10_SydM-nc_20170519_0550.nc'
     logger.info('Using dummy file "{}".'.format(path))
