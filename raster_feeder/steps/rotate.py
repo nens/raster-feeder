@@ -61,9 +61,9 @@ def extract_region(path):
         # time = [netCDF4.num2date(time_data, units=time_units)]
 
         precipitation = nc.variables['precipitation']
-        data = precipitation[0, :, ::-1]
+        data = precipitation[0]
         # import numpy as np
-        # data = precipitation[::-1][np.newaxis]
+        # data = precipitation[:][np.newaxis]
         no_data_value = precipitation._FillValue.item()
 
     return regions.Region.from_mem(
