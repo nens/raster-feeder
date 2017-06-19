@@ -17,13 +17,9 @@ import logging
 import sys
 
 import netCDF4
-# import numpy as np
-
 from osgeo import osr
-from osgeo import gdal
 
 from raster_store import regions
-from raster_store import datasets
 
 from ..common import rotate
 from . import config
@@ -46,15 +42,14 @@ def download(current=None):
     yield path
 
 
-def extract_region(path):
+def extract_region_no_warp(path):
     """
     Return latest steps data as raster store region.
 
     :param path: path to netCDF4 file.
 
-    Due to the ease of the gdal warped vrt, gdal is used for the data part.
-    However, due to the ease of use of the netCDF4 calendar functions, netCDF4
-    is used for the time part.
+    Note that the region is not in the target store projection, but the raster
+    store takes care of that.
     """
     with netCDF4.Dataset(path) as nc:
         # time
@@ -64,33 +59,16 @@ def extract_region(path):
         time = netCDF4.num2date(time_data, units=time_units)
 
         precipitation = nc.variables['precipitation']
-        native_data = precipitation[0, :, ::-1]
+        data = precipitation[0, :, ::-1]
         no_data_value = precipitation._FillValue.item()
 
-    native_projection = osr.GetUserInputAsWKT(str(config.NATIVE_PROJECTION))
-    kwargs = {
-        'geo_transform': config.NATIVE_GEO_TRANSFORM,
-        'projection': native_projection,
-        'no_data_value': no_data_value,
-    }
-    warped_projection = osr.GetUserInputAsWKT(str(config.WARPED_PROJECTION))
-    with datasets.Dataset(native_data, **kwargs) as native_dataset:
-        warped = gdal.AutoCreateWarpedVRT(
-            native_dataset,
-            native_projection,
-            warped_projection,
-            gdal.GRA_NearestNeighbour,
-            0.125,  # same as gdalwarp commandline utility
-        )
-        data = warped.ReadAsArray()
-
     return regions.Region.from_mem(
+        data=data,
         time=time,
         bands=(0, config.DEPTH),
         fillvalue=no_data_value,
-        projection=osr.GetUserInputAsWKT(str(config.WARPED_PROJECTION)),
-        data=data,
-        geo_transform=config.WARPED_GEO_TRANSFORM,
+        geo_transform=config.NATIVE_GEO_TRANSFORM,
+        projection=osr.GetUserInputAsWKT(str(config.NATIVE_PROJECTION))
     )
 
 
@@ -101,7 +79,7 @@ def rotate_steps():
     # retrieve updated data
     try:
         with download() as path:
-            region = extract_region(path)
+            region = extract_region_no_warp(path)
     except:
         logger.exception('Error:')
         return
