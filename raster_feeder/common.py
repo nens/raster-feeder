@@ -25,6 +25,8 @@ def create_tumbler(path, depth, **kwargs):
     :param path: path to group (str)
     :param depth: temporal depth of storages (int)
     :param kwargs: store creation keyword arguments (dict)
+
+
     """
     if not exists(path):
         os.mkdir(path)
@@ -40,10 +42,9 @@ def create_tumbler(path, depth, **kwargs):
         # skip existing
         store_path = join(path, store_name)
         if not exists(store_path):
-
             print('Create store "%s".' % store_path)
 
-            # create
+            # create store
             create_kwargs = {'path': store_path}
             create_kwargs.update(kwargs)
             store = stores.Store.create(**create_kwargs)
@@ -52,7 +53,7 @@ def create_tumbler(path, depth, **kwargs):
             store.create_storage((depth, 1))
             store.create_storage((depth, depth))
 
-    # group file, for use by store script
+    # group config
     conf_path = path + '.json'
     print('Update config file "%s".' % conf_path)
     json.dump({'Group': store_confs}, open(conf_path, 'w'), indent=2)

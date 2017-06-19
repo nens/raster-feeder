@@ -80,5 +80,4 @@ TODO
 ----
 
 - Generic FTP downloader in common module.
-- Generic rotating group init function in common module.
 - Remove nowcast from 5min and place in separate init.
