@@ -22,9 +22,13 @@ def create_tumbler(path, depth, **kwargs):
     """
     Create a group with stores suitable for rotation.
 
-    :param path: path to group (str)
-    :param depth: temporal depth of storages (int)
-    :param kwargs: store creation keyword arguments (dict)
+    :param path: path to group to be created
+    :param depth: temporal depth of storages
+    :param kwargs: store creation keyword arguments
+
+    :type path: str
+    :type depth: int
+    :type kwargs: dict
 
 
     """
