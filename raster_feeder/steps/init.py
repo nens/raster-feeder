@@ -19,18 +19,17 @@ from . import config
 from ..common import create_tumbler
 
 
-def init_harmonie():
+def init_steps():
     """ Create HARMONIE stores for configured parameters. """
-    for parameter in config.PARAMETERS:
-        create_tumbler(
-            path=join(config.STORE_DIR, parameter['group']),
-            depth=parameter['steps'],
-            dtype='f4',
-            delta=Timedelta(hours=1),
-            projection=config.PROJECTION,
-            geo_transform=config.GEO_TRANSFORM,
-            origin=Datetime(year=2000, month=1, day=1),
-        )
+    create_tumbler(
+        path=join(config.STORE_DIR, config.NAME),
+        depth=config.DEPTH,
+        dtype='f4',
+        delta=Timedelta(hours=1),
+        projection=config.WARPED_PROJECTION,
+        geo_transform=config.WARPED_GEO_TRANSFORM,
+        origin=Datetime(year=2000, month=1, day=1),
+    )
 
 
 def get_parser():
@@ -44,4 +43,4 @@ def get_parser():
 def main():
     """ Call command with args from parser. """
     get_parser().parse_args()
-    init_harmonie()
+    init_steps()

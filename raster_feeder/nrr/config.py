@@ -15,7 +15,6 @@ from datetime import timedelta as Timedelta
 
 # central config imports
 from ..config import BUILDOUT_DIR
-from ..config import STORE_DIR     # NOQA
 from ..config import LOG_DIR       # NOQA
 
 from ..config import REDIS_HOST    # NOQA
@@ -50,6 +49,18 @@ DELIVERY_TIMES = (
     ('a', Timedelta(hours=12)),
     ('u', Timedelta(days=30)),
 )
+
+# -------------------------------------------
+# settings to be overridden in localconfig.py
+# -------------------------------------------
+
+# report script
+REPORT_SMTP_HOST = ''
+REPORT_SENDER = ''
+REPORT_RECIPIENTS = []
+
+# raster store location
+STORE_DIR = join(BUILDOUT_DIR, 'var', 'store')
 
 # Import local settings
 try:

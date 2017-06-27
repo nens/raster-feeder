@@ -11,6 +11,12 @@ Changelog of raster-feeder
 
 - Enable average aggregations in nrr.
 
+- Add subpackage for 'steps' forecasts.
+
+- Refactor forecast store initialization and rotation to common module.
+
+- Refactor to make nowcast a separate forecast product.
+
 
 0.5 (2016-12-23)
 ----------------

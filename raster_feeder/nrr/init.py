@@ -65,31 +65,10 @@ KWARGS = {'dtype': 'f4',
           'h5opts': {'scaleoffset': 2, 'compression': 'lzf'}}
 
 ORDERING = {
-    '5min': ('nowcast2', 'nowcast1', 'final',
-             'merge', 'real2', 'real1', 'near', 'after', 'ultimate'),
+    '5min': ('final', 'merge', 'real2', 'real1', 'near', 'after', 'ultimate'),
     'hour': ('final', 'merge', 'real', 'near', 'after', 'ultimate'),
     'day': ('final', 'merge', 'real', 'near', 'after', 'ultimate'),
 }
-
-
-def add_nowcast_stores(base):
-    # nowcast stores
-    depth = 37
-    for name in ['nowcast1', 'nowcast2']:
-        path = join(config.STORE_DIR, base, name)
-        if exists(path):
-            continue
-        kwargs = {'path': path,
-                  'delta': datetime.timedelta(minutes=5)}
-        kwargs.update(KWARGS)
-        kwargs['origin'] = ORIGINS['5min']
-        logger.info('Creating %s', path)
-        store = stores.Store.create(**kwargs)
-        store.create_storage((depth, 1))
-        store.create_storage((depth, depth))
-        store.create_aggregation('average', depths=(depth, 1))
-        store.create_aggregation('average', depths=(depth, depth))
-        store.set_default_aggregation('average')
 
 
 def command():
@@ -130,9 +109,6 @@ def command():
                 # base storage
                 continue
             store.create_storage(depths=time_depths)
-
-        if group_name == '5min':
-            add_nowcast_stores(group_path)
 
         # group file, for use by store script
         logger.info('Update config for {}.'.format(group_name))
