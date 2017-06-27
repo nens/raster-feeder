@@ -17,7 +17,7 @@ from ..config import BUILDOUT_DIR  # NOQA
 from ..config import LOG_DIR       # NOQA
 
 # storage name
-NAME = 'nowcast'
+NAME = 'nowcast-nrr'
 
 # storage origin must be same as NRR 5min for fast group access
 ORIGIN = {'year': 2000, 'month': 1, 'day': 1, 'hour': 8, 'minute': 5}
