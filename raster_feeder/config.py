@@ -27,6 +27,7 @@ REDIS_DB = 0
 # Lizard API credentials
 LIZARD_USERNAME = 'override'
 LIZARD_PASSWORD = 'override'
+LIZARD_TEMPLATE = 'override'
 
 # Import local settings
 try:

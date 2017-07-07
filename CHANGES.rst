@@ -13,6 +13,8 @@ Changelog of raster-feeder
 
 - Enable average aggregations in nrr.
 
+- Bumped numpy to 1.12.0
+
 
 0.5 (2016-12-23)
 ----------------

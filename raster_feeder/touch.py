@@ -3,15 +3,17 @@
 """
 Update Lizard API for modified raster stores.
 """
+from os.path import join
+
 import argparse
 import logging
+import sys
 
 import requests
 
-from .config import LIZARD_USERNAME, LIZARD_PASSWORD
+from . import config
 
 logger = logging.getLogger(__name__)
-RASTERS_SET_META_URL_TEMPLATE = 'https://demo.lizard.net/api/v2/rasters/{raster_uuid}/set_meta/'  # noqa
 
 
 def get_parser():
@@ -20,26 +22,54 @@ def get_parser():
     parser.add_argument(
         'raster_uuids',
         nargs='+',
-        type=str,
         metavar='RASTER_UUID',
         help="Lizard raster endpoint UUID",
+    )
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
     )
     return parser
 
 
 def touch_lizard(raster_uuid):
     """Update the raster store metadata using the Lizard API."""
-    url = RASTERS_SET_META_URL_TEMPLATE.format(raster_uuid=raster_uuid)
-    headers = {'username': LIZARD_USERNAME, 'password': LIZARD_PASSWORD}
+    url = config.LIZARD_TEMPLATE.format(raster_uuid=raster_uuid)
+    headers = {
+        'username': config.LIZARD_USERNAME,
+        'password': config.LIZARD_PASSWORD,
+    }
 
     resp = requests.post(url, headers=headers)
+    short_uuid = raster_uuid.split('-')[0]
     if resp.ok:
-        logger.info("Metadata update succeeded: %s", resp.json())
+        logger.info(
+            "Metadata update succeeded for %s: %s",
+            short_uuid,
+            resp.json(),
+        )
     else:
-        logger.error("Metadata update failed: %s", resp.json())
+        logger.error(
+            "Metadata update failed for %s: %s",
+            short_uuid,
+            resp.json(),
+        )
 
 
 def main():
-    args = get_parser().parse_args()
-    for raster_uuid in args.raster_uuids:
+    # logging
+    kwargs = vars(get_parser().parse_args())
+    if kwargs['verbose']:
+        logging.basicConfig(**{
+            'stream': sys.stderr,
+            'level': logging.INFO,
+        })
+    else:
+        logging.basicConfig(**{
+            'level': logging.INFO,
+            'format': '%(asctime)s %(levelname)s %(message)s',
+            'filename': join(config.LOG_DIR, 'touch_lizard.log')
+        })
+
+    for raster_uuid in kwargs['raster_uuids']:
         touch_lizard(raster_uuid)

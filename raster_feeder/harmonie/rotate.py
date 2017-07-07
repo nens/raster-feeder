@@ -232,7 +232,6 @@ def main():
             'format': '%(asctime)s %(levelname)s %(message)s',
             'filename': join(config.LOG_DIR, 'harmonie_rotate.log')
         })
-    logging.basicConfig(**kwargs)
 
     # run
     rotate_harmonie(**kwargs)
