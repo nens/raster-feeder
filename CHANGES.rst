@@ -13,7 +13,12 @@ Changelog of raster-feeder
 
 - Enable average aggregations in nrr.
 
-- Bumped numpy to 1.12.0
+- Bumped numpy to 1.12.0.
+
+- Fix logging for touch lizard, and add a short uuid to it.
+
+- Make the meta setting template url configurable.
+
 
 
 0.5 (2016-12-23)
