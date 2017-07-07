@@ -17,9 +17,6 @@ BUILDOUT_DIR = abspath(join(dirname(__file__), '..'))
 # log directories
 LOG_DIR = join(BUILDOUT_DIR, 'var', 'log')
 
-# where to put the stores
-STORE_DIR = join(BUILDOUT_DIR, 'var', 'store')
-
 # redis host for mtime cache and turn locking system
 REDIS_HOST = 'localhost'
 REDIS_DB = 0

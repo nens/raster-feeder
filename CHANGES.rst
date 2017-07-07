@@ -13,12 +13,17 @@ Changelog of raster-feeder
 
 - Enable average aggregations in nrr.
 
+- Add subpackage for 'steps' forecasts.
+
+- Refactor forecast store initialization and rotation to common module.
+
+- Refactor to make nowcast a separate forecast product.
+
 - Bumped numpy to 1.12.0.
 
 - Fix logging for touch lizard, and add a short uuid to it.
 
 - Make the meta setting template url configurable.
-
 
 
 0.5 (2016-12-23)

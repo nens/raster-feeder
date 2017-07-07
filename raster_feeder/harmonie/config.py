@@ -10,16 +10,11 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
+from os.path import join
+
 # central config imports
 from ..config import BUILDOUT_DIR  # NOQA
-from ..config import STORE_DIR     # NOQA
 from ..config import LOG_DIR       # NOQA
-
-from ..config import REDIS_HOST    # NOQA
-from ..config import REDIS_DB      # NOQA
-
-# default nodatavalue
-NODATAVALUE = -9999
 
 # parameters, names, depths, see http://projects.knmi.nl/
 # datacentrum/catalogus/catalogus/content/nl-nwp-harm-grid-p1.htm
@@ -46,7 +41,17 @@ PROJECTION = 'EPSG:4326'
 # remote file name strftime() format
 FORMAT = 'harm36_v1_ned_surface_%Y%m%d%H.tgz'
 
-# Import local settings
+# -------------------------------------------
+# settings to be overridden in localconfig.py
+# -------------------------------------------
+
+# FTP connection
+FTP = dict(host='', user='', password='', path='')
+
+# raster store location
+STORE_DIR = join(BUILDOUT_DIR, 'var', 'store')
+
+# import local settings
 try:
     from .localconfig import *  # NOQA
 except ImportError:
