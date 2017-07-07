@@ -108,6 +108,9 @@ incorporated in relevant cronjob lines::
 
     $ bin/touch-lizard <uuid>
 
+Forecast subpackages also offer a TOUCH_LIZARD setting that can be overridden
+in the localconfig to specify uuids to touch right after rotation.
+
 
 TODO
 ----

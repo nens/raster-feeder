@@ -9,7 +9,9 @@ import json
 import logging
 import os
 
+import requests
 import turn
+
 from raster_store import load
 from raster_store import stores
 from . import config
@@ -102,3 +104,27 @@ def rotate(path, region, resource, label='rotate'):
             old.delete(start=start, stop=stop)
 
     logger.info('Rotation of %s completed.' % resource)
+
+
+def touch_lizard(raster_uuid):
+    """Update the raster store metadata using the Lizard API."""
+    url = config.LIZARD_TEMPLATE.format(raster_uuid=raster_uuid)
+    headers = {
+        'username': config.LIZARD_USERNAME,
+        'password': config.LIZARD_PASSWORD,
+    }
+
+    resp = requests.post(url, headers=headers)
+    short_uuid = raster_uuid.split('-')[0]
+    if resp.ok:
+        logger.info(
+            "Metadata update succeeded for %s: %s",
+            short_uuid,
+            resp.json(),
+        )
+    else:
+        logger.error(
+            "Metadata update failed for %s: %s",
+            short_uuid,
+            resp.json(),
+        )

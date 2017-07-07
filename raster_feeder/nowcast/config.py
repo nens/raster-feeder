@@ -37,6 +37,9 @@ STORE_DIR = join(BUILDOUT_DIR, 'var', 'store')
 # FTP connection
 FTP = dict(host='', user='', password='', path='')
 
+# Lizard RasterStore UUIDs to touch
+TOUCH_LIZARD = []
+
 # Import local settings
 try:
     from .localconfig import *  # NOQA

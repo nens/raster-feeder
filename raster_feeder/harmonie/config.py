@@ -51,6 +51,9 @@ FTP = dict(host='', user='', password='', path='')
 # raster store location
 STORE_DIR = join(BUILDOUT_DIR, 'var', 'store')
 
+# Lizard RasterStore UUIDs to touch
+TOUCH_LIZARd = []
+
 # import local settings
 try:
     from .localconfig import *  # NOQA
