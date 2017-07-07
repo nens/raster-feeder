@@ -100,6 +100,15 @@ To have the stores automatically rotate at predetermined times, use crontab::
     # 20 *      *   *       /srv/raster-feeder/bin/steps-rotate
 
 
+Informing Lizard of changes to stores
+-------------------------------------
+Lizard RasterStore-objects will not be aware of changes by scripts defined
+here. Therefore a script is available to do exactly that, which may be
+incorporated in relevant cronjob lines::
+
+    $ bin/touch-lizard <uuid>
+
+
 TODO
 ----
 

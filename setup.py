@@ -17,6 +17,7 @@ install_requires = [
     'pygrib',
     'raster-store',
     'redis',
+    'requests',
     'scipy',
     'setuptools',
     'turn',
@@ -60,5 +61,7 @@ setup(name='raster_feeder',
               # STEPS
               'steps-init = raster_feeder.steps.init:main',
               'steps-rotate = raster_feeder.steps.rotate:main',
+              # MISC
+              'touch-lizard = raster_feeder.touch:main',
           ]},
       )

@@ -5,6 +5,8 @@ Changelog of raster-feeder
 0.6 (unreleased)
 ----------------
 
+- Added ``touch-lizard`` script to update the raster in Lizard.
+
 - Added HARMONIE scripts.
 
 - Updated raster-store to fix the flushes.
@@ -16,6 +18,12 @@ Changelog of raster-feeder
 - Refactor forecast store initialization and rotation to common module.
 
 - Refactor to make nowcast a separate forecast product.
+
+- Bumped numpy to 1.12.0.
+
+- Fix logging for touch lizard, and add a short uuid to it.
+
+- Make the meta setting template url configurable.
 
 
 0.5 (2016-12-23)
