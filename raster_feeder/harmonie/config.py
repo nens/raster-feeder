@@ -52,7 +52,7 @@ FTP = dict(host='', user='', password='', path='')
 STORE_DIR = join(BUILDOUT_DIR, 'var', 'store')
 
 # Lizard RasterStore UUIDs to touch
-TOUCH_LIZARd = []
+TOUCH_LIZARD = []
 
 # import local settings
 try:
