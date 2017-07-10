@@ -25,6 +25,8 @@ Changelog of raster-feeder
 
 - Make the meta setting template url configurable.
 
+- Call touch_lizard from within rotate scripts.
+
 
 0.5 (2016-12-23)
 ----------------

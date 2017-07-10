@@ -28,6 +28,7 @@ from raster_store import load
 from raster_store import regions
 
 from ..common import rotate
+from ..common import touch_lizard
 from . import config
 
 logger = logging.getLogger(__name__)
@@ -183,6 +184,10 @@ def rotate_harmonie():
     for name, region in regions.items():
         path = join(config.STORE_DIR, name)
         rotate(path=path, region=region, resource=name)
+
+    # touch lizard
+    for raster_uuid in config.TOUCH_LIZARD:
+        touch_lizard(raster_uuid)
 
 
 def get_parser():

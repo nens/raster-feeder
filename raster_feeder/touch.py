@@ -9,8 +9,7 @@ import argparse
 import logging
 import sys
 
-import requests
-
+from . import common
 from . import config
 
 logger = logging.getLogger(__name__)
@@ -32,30 +31,6 @@ def get_parser():
     return parser
 
 
-def touch_lizard(raster_uuid):
-    """Update the raster store metadata using the Lizard API."""
-    url = config.LIZARD_TEMPLATE.format(raster_uuid=raster_uuid)
-    headers = {
-        'username': config.LIZARD_USERNAME,
-        'password': config.LIZARD_PASSWORD,
-    }
-
-    resp = requests.post(url, headers=headers)
-    short_uuid = raster_uuid.split('-')[0]
-    if resp.ok:
-        logger.info(
-            "Metadata update succeeded for %s: %s",
-            short_uuid,
-            resp.json(),
-        )
-    else:
-        logger.error(
-            "Metadata update failed for %s: %s",
-            short_uuid,
-            resp.json(),
-        )
-
-
 def main():
     # logging
     kwargs = vars(get_parser().parse_args())
@@ -72,4 +47,4 @@ def main():
         })
 
     for raster_uuid in kwargs['raster_uuids']:
-        touch_lizard(raster_uuid)
+        common.touch_lizard(raster_uuid)
