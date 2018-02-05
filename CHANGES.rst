@@ -27,6 +27,8 @@ Changelog of raster-feeder
 
 - Call touch_lizard from within rotate scripts.
 
+- Implemented member selection based on statistics in steps.
+
 
 0.5 (2016-12-23)
 ----------------

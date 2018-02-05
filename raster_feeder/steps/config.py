@@ -20,7 +20,7 @@ from ..config import LOG_DIR       # NOQA
 NAME = 'steps'
 
 # storage temporal depth
-DEPTH = 12
+DEPTH = 78
 
 # proj inferred from sample netcdf
 NATIVE_GEO_TRANSFORM = -257.0, 2.0, 0.0, 255.0, 0.0, -2.0
@@ -35,7 +35,14 @@ WARPED_PROJECTION = 'EPSG:4326'
 # settings to be overridden in localconfig.py
 # -------------------------------------------
 
+# FTP connection
+FTP = dict(host='', user='', password='', path='')
+
+# raster store location
 STORE_DIR = join(BUILDOUT_DIR, 'var', 'store')
+
+# Lizard RasterStore UUIDs to touch
+TOUCH_LIZARD = []
 
 # Import local settings
 try:

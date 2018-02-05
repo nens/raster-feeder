@@ -9,7 +9,7 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
-from os.path import join
+from os.path import basename, join
 
 import argparse
 import contextlib
@@ -17,6 +17,7 @@ import logging
 import sys
 
 import netCDF4
+import numpy as np
 from osgeo import osr
 
 from raster_store import regions
@@ -36,8 +37,9 @@ done.
 @contextlib.contextmanager
 def download(current=None):
     """ Dummy downloader for debugging purposes. """
-    path = 'steps_epf60_SydM-nc_20170519_1700.nc'
-    # path = 'steps_precip10_SydM-nc_20170519_0550.nc'
+    path = 'IDR311EN.201802051210.nc'
+    path = 'IDR311EN.201802051300.nc'
+    path = 'IDR311EN.201802050920.nc'
     logger.info('Using dummy file "{}".'.format(path))
     yield path
 
@@ -57,20 +59,35 @@ def extract_region(path):
         time_units = valid_time.units
         time_data = valid_time[:]
         time = netCDF4.num2date(time_data, units=time_units)
-        # time = [netCDF4.num2date(time_data, units=time_units)]
 
+        # select variable
         precipitation = nc.variables['precipitation']
-        data = precipitation[0]
-        # import numpy as np
-        # data = precipitation[:][np.newaxis]
         no_data_value = precipitation._FillValue.item()
+
+        # read and put zeros at fillvalue
+        values = precipitation[:]
+        values[values == no_data_value] = 0
+        values.shape = values.shape[0], values[0].size
+
+        # ensemble member selection
+        sums = values.sum(1)
+        p75 = np.percentile(sums, 75)
+        member = np.abs(sums - p75).argmin()
+        logger.info('Member sums %s; selecting member %s.', sums, member)
+
+        # extract member from original data with original fill values
+        data = precipitation[member]
+
+    # prepare meta messages
+    template = 'Member {member} from {filename}.'
+    filename = basename(path)
+    meta = config.DEPTH * [template.format(member=member, filename=filename)]
 
     return regions.Region.from_mem(
         data=data,
-        # data=data.filled(no_data_value),
         time=time,
+        meta=meta,
         bands=(0, config.DEPTH),
-        # bands=(0, 1),
         fillvalue=no_data_value,
         geo_transform=config.NATIVE_GEO_TRANSFORM,
         projection=osr.GetUserInputAsWKT(str(config.NATIVE_PROJECTION))
@@ -85,7 +102,7 @@ def rotate_steps():
     try:
         with download() as path:
             region = extract_region(path)
-    except:
+    except Exception:
         logger.exception('Error:')
         return
 
