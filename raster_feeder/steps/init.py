@@ -25,7 +25,7 @@ def init_steps():
         path=join(config.STORE_DIR, config.NAME),
         depth=config.DEPTH,
         dtype='f4',
-        delta=Timedelta(hours=1),
+        delta=Timedelta(minutes=10),
         projection=config.WARPED_PROJECTION,
         geo_transform=config.WARPED_GEO_TRANSFORM,
         origin=Datetime(year=2000, month=1, day=1),

@@ -13,13 +13,18 @@ from os.path import basename, join
 
 import argparse
 import contextlib
+import ftplib
+import json
 import logging
+import shutil
 import sys
+import tempfile
 
 import netCDF4
 import numpy as np
 from osgeo import osr
 
+from raster_store import load
 from raster_store import regions
 
 from ..common import rotate
@@ -27,21 +32,37 @@ from . import config
 
 logger = logging.getLogger(__name__)
 
-"""
-in rotate, create vrt and read it as array, then create region.
-call rotate
-done.
-"""
-
 
 @contextlib.contextmanager
-def download(current=None):
-    """ Dummy downloader for debugging purposes. """
-    path = 'IDR311EN.201802051210.nc'
-    path = 'IDR311EN.201802051300.nc'
-    path = 'IDR311EN.201802050920.nc'
-    logger.info('Using dummy file "{}".'.format(path))
-    yield path
+def mkdtemp(*args, **kwargs):
+    """ Self-cleaning tempdir. """
+    dtemp = tempfile.mkdtemp(*args, **kwargs)
+    try:
+        yield dtemp
+    finally:
+        shutil.rmtree(dtemp)
+
+
+class Server(object):
+    def __init__(self):
+        """ Connects and switches to  """
+        self.connection = ftplib.FTP(
+            host=config.FTP['host'],
+            user=config.FTP['user'],
+            passwd=config.FTP['password'],
+        )
+        self.connection.cwd(config.FTP['path'])
+
+    def get_latest_match(self):
+        """ Return name of update or None. """
+        match = config.PATTERN.match
+        return sorted(filter(match, self.connection.nlst()))[-1]
+
+    def retrieve_to_path(self, name, path):
+        """ Write remote file to local path. """
+        logger.info('Downloading {} from FTP.'.format(name))
+        with open(path, 'w') as f:
+            self.connection.retrbinary('RETR ' + name, f.write)
 
 
 def extract_region(path):
@@ -54,41 +75,50 @@ def extract_region(path):
     store takes care of that.
     """
     with netCDF4.Dataset(path) as nc:
-        # time
-        valid_time = nc.variables['valid_time']
-        time_units = valid_time.units
-        time_data = valid_time[:]
-        time = netCDF4.num2date(time_data, units=time_units)
+        # combine base and valid times
+        variable = nc.variables['base_time']
+        units = variable.units
+        time = [netCDF4.num2date(variable[:], units=units)]
 
-        # select variable
-        precipitation = nc.variables['precipitation']
-        no_data_value = precipitation._FillValue.item()
+        variable = nc.variables['valid_time']
+        units = variable.units
+        time.extend(netCDF4.num2date(variable[:], units=units).tolist())
 
-        # read and put zeros at fillvalue
-        values = precipitation[:]
-        values[values == no_data_value] = 0
-        values.shape = values.shape[0], values[0].size
+        # read precipitation
+        variable = nc.variables['precipitation']
+        prcp = variable[:]
+        fillvalue = variable._FillValue.item()
 
-        # ensemble member selection
-        sums = values.sum(1)
-        p75 = np.percentile(sums, 75)
-        member = np.abs(sums - p75).argmin()
-        logger.info('Member sums %s; selecting member %s.', sums, member)
+    # replace fillvalues with zeros for member selection
+    mask = prcp == fillvalue
+    prcp[mask] = 0
 
-        # extract member from original data with original fill values
-        data = precipitation[member]
+    # ensemble member selection
+    sums = prcp.reshape(len(prcp), -1).sum(1)
+    p75 = np.percentile(sums, 75)
+    member = np.abs(sums - p75).argmin()
+    logger.info('Member sums %s; selecting member %s.', sums, member)
+
+    # put the fillvalues back in after the statistics
+    prcp[mask] = fillvalue
+
+    # extract member with a zero prepended
+    data = np.zeros(
+        (config.DEPTH,) + prcp.shape[2:],
+        dtype=prcp.dtype,
+    )
+    data[1:] = prcp[member]
 
     # prepare meta messages
-    template = 'Member {member} from {filename}.'
-    filename = basename(path)
-    meta = config.DEPTH * [template.format(member=member, filename=filename)]
+    metadata = json.dumps({'file': basename(path), 'member': member})
+    meta = config.DEPTH * [metadata]
 
     return regions.Region.from_mem(
         data=data,
         time=time,
         meta=meta,
         bands=(0, config.DEPTH),
-        fillvalue=no_data_value,
+        fillvalue=fillvalue,
         geo_transform=config.NATIVE_GEO_TRANSFORM,
         projection=osr.GetUserInputAsWKT(str(config.NATIVE_PROJECTION))
     )
@@ -98,9 +128,25 @@ def rotate_steps():
     """
     Rotate steps stores.
     """
+    # determine current store period
+    period = load(join(config.STORE_DIR, config.NAME)).period
+    if period is None:
+        current = None
+    else:
+        current = period[0]
+
     # retrieve updated data
+    server = Server()
+    latest = server.get_latest_match()
+    if current and latest == current.strftime(config.FORMAT):
+        logger.info('No update available, exiting.')
+        return
+
+    # download and process the file
     try:
-        with download() as path:
+        with mkdtemp() as tdir:
+            path = join(tdir, latest)
+            server.retrieve_to_path(name=latest, path=path)
             region = extract_region(path)
     except Exception:
         logger.exception('Error:')
