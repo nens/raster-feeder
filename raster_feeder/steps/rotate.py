@@ -75,14 +75,10 @@ def extract_region(path):
     store takes care of that.
     """
     with netCDF4.Dataset(path) as nc:
-        # combine base and valid times
-        variable = nc.variables['base_time']
-        units = variable.units
-        time = [netCDF4.num2date(variable[:], units=units)]
-
+        # read timesteps
         variable = nc.variables['valid_time']
         units = variable.units
-        time.extend(netCDF4.num2date(variable[:], units=units).tolist())
+        time = netCDF4.num2date(variable[:], units=units).tolist()
 
         # read precipitation
         variable = nc.variables['precipitation']
@@ -97,17 +93,14 @@ def extract_region(path):
     sums = prcp.reshape(len(prcp), -1).sum(1)
     p75 = np.percentile(sums, 75)
     member = np.abs(sums - p75).argmin()
-    logger.info('Member sums %s; selecting member %s.', sums, member)
+    logger.info('Member sums are %s.', sums)
+    logger.info('Selecting member %s.', member)
 
     # put the fillvalues back in after the statistics
     prcp[mask] = fillvalue
 
-    # extract member with a zero prepended
-    data = np.zeros(
-        (config.DEPTH,) + prcp.shape[2:],
-        dtype=prcp.dtype,
-    )
-    data[1:] = prcp[member]
+    # select member
+    data = prcp[member]
 
     # prepare meta messages
     metadata = json.dumps({'file': basename(path), 'member': member})

@@ -21,7 +21,7 @@ from ..config import LOG_DIR       # NOQA
 NAME = 'steps'
 
 # storage temporal depth (add a frame with zero precipitation)
-DEPTH = 79
+DEPTH = 78
 
 # proj inferred from sample netcdf
 NATIVE_GEO_TRANSFORM = -257.0, 2.0, 0.0, 255.0, 0.0, -2.0
