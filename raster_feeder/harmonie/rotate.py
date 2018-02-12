@@ -170,7 +170,7 @@ def rotate_harmonie():
     # retrieve updated data
     try:
         fileobj = download(current)
-    except:
+    except Exception:
         logger.exception('Error:')
         return
     if fileobj is None:
