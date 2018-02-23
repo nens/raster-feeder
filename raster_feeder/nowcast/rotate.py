@@ -101,7 +101,7 @@ def rotate_nowcast():
     # retrieve updated data
     try:
         region = get_nowcast_region()
-    except:
+    except Exception:
         logger.exception('Error:')
         return
 

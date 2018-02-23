@@ -95,14 +95,6 @@ def download(current=None):
     return result
 
 
-# def download(current=None):
-    # """ Dummy downloader for debugging purposes. """
-    # # return open file object
-    # path = 'harm36_v1_ned_surface_2017060600.tgz'
-    # logger.info('Using dummy file "{}".'.format(path))
-    # return open(path)
-
-
 def extract_regions(fileobj):
     """
     Return latest harmonie data as raster store region or None.
@@ -140,7 +132,18 @@ def extract_regions(fileobj):
             time[n].append(message.analDate + Timedelta(hours=hours))
 
             # data is upside down
-            data[n].append(message['values'][::-1])
+            data[n].append(message['values'][::-1].astype('f4'))
+
+    # convert data lists to arrays
+    for n in data:
+        data[n] = np.array(data[n], dtype='f4')
+
+    # populate the prcp time and data from cr
+    time['harmonie-prcp'] = time['harmonie-cr']
+    data['harmonie-prcp'] = data['harmonie-cr'].copy()
+
+    # apply inverse cumsum operation on prcp data
+    data['harmonie-prcp'][1:] -= data['harmonie-prcp'][:-1].copy()
 
     # return a region per parameter
     fillvalue = np.finfo('f4').max.item()
@@ -151,7 +154,7 @@ def extract_regions(fileobj):
         bands=(0, len(time[n])),
         fillvalue=fillvalue,
         projection=projection,
-        data=np.array(data[n]),
+        data=data[n],
         geo_transform=config.GEO_TRANSFORM,
     ) for n in data}
 

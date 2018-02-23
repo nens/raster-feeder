@@ -20,19 +20,24 @@ from ..config import LOG_DIR       # NOQA
 # datacentrum/catalogus/catalogus/content/nl-nwp-harm-grid-p1.htm
 PARAMETERS = (
     {
-        'group': 'harmonie-inr',  # store group name
-        'level': 456,             # rain intensity
-        'steps': 49,              # available at first step (0 - 48 hr)
+        'group': 'harmonie-inr',   # store group name
+        'level': 456,              # rain intensity
+        'steps': 49,               # available at first step (0 - 48 hr)
     },
     {
-        'group': 'harmonie-cr',   # store group name
-        'level': 457,             # rain cumulative sum
-        'steps': 48,              # starts at second step (1 - 48 hr)
+        'group': 'harmonie-cr',    # store group name
+        'level': 457,              # rain cumulative sum
+        'steps': 48,               # starts at second step (1 - 48 hr)
+    },
+    {
+        'group': 'harmonie-prcp',  # store group name
+        'level': 777,              # intensity derived from cumulative sum
+        'steps': 48,               # starts at second step (1 - 48 hr)
     },
 )
 
 # group from which to take the currently stored period
-PERIOD_REFERENCE = 'harmonie-inr'
+PERIOD_REFERENCE = 'harmonie-inr'  # because it actually starts at step 0
 
 # geographical orientation
 GEO_TRANSFORM = -0.0185, 0.037, 0, 55.8885, 0, -0.023

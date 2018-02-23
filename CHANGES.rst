@@ -29,6 +29,8 @@ Changelog of raster-feeder
 
 - Implemented member selection based on statistics in steps.
 
+- Add 'prcp' flavor of harmonie calculating intensity from cumulatives.
+
 
 0.5 (2016-12-23)
 ----------------

@@ -139,5 +139,5 @@ def main():
 
     try:
         return command(**kwargs)
-    except:
+    except Exception:
         logger.exception('An exception has occurred.')

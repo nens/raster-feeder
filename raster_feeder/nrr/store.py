@@ -341,5 +341,5 @@ def main():
     # run
     try:
         command(**kwargs)
-    except:
+    except Exception:
         logger.exception('An exception occurred:')
