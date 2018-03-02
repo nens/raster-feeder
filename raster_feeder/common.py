@@ -126,5 +126,5 @@ def touch_lizard(raster_uuid):
         logger.error(
             "Metadata update failed for %s: %s",
             short_uuid,
-            resp.json(),
+            resp.status_code,
         )
