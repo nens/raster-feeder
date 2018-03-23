@@ -139,7 +139,7 @@ def rotate_steps():
         logger.info('No source files found on server, exiting.')
         return
 
-    if current and latest == current.strftime(config.FORMAT):
+    if current and latest <= current.strftime(config.FORMAT):
         logger.info('No update available, exiting.')
         return
 
