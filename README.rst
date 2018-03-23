@@ -94,10 +94,10 @@ To create the group of rotating stores (per product)::
 To have the stores automatically rotate at predetermined times, use crontab::
 
     # Rotate forecast stores
-    # m     h      dom mon dow command
-    */5     *      *   *   *   /srv/raster-feeder/bin/nowcast-rotate
-    19      5-23/6 *   *   *   /srv/raster-feeder/bin/harmonie-rotate
-    7-59/10 *      *   *   *   /srv/raster-feeder/bin/steps-rotate
+    # m    h      dom mon dow command
+    */5    *      *   *   *   /srv/raster-feeder/bin/nowcast-rotate
+    19     5-23/6 *   *   *   /srv/raster-feeder/bin/harmonie-rotate
+    2-59/5 *      *   *   *   /srv/raster-feeder/bin/steps-rotate
 
 
 Informing Lizard of changes to stores
