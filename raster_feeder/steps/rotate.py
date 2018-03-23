@@ -57,7 +57,10 @@ class Server(object):
     def get_latest_match(self):
         """ Return name of update or None. """
         match = config.PATTERN.match
-        return sorted(filter(match, self.connection.nlst()))[-1]
+        try:
+            return sorted(filter(match, self.connection.nlst()))[-1]
+        except IndexError:
+            return
 
     def retrieve_to_path(self, name, path):
         """ Write remote file to local path. """
@@ -132,7 +135,11 @@ def rotate_steps():
     # retrieve updated data
     server = Server()
     latest = server.get_latest_match()
-    if current and latest == current.strftime(config.FORMAT):
+    if latest is None:
+        logger.info('No source files found on server, exiting.')
+        return
+
+    if current and latest <= current.strftime(config.FORMAT):
         logger.info('No update available, exiting.')
         return
 
