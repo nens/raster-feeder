@@ -22,17 +22,32 @@ PARAMETERS = (
     {
         'group': 'harmonie-inr',   # store group name
         'level': 456,              # rain intensity
+        'code': 61,
         'steps': 49,               # available at first step (0 - 48 hr)
     },
     {
         'group': 'harmonie-cr',    # store group name
         'level': 457,              # rain cumulative sum
+        'code': 61,
         'steps': 48,               # starts at second step (1 - 48 hr)
     },
     {
         'group': 'harmonie-prcp',  # store group name
-        'level': 777,              # intensity derived from cumulative sum
+        'level': None,             # intensity derived from cumulative sum
+        'code': None,
         'steps': 48,               # starts at second step (1 - 48 hr)
+    },
+    {
+        'group': 'harmonie-temp',
+        'level': 2,                # air temperature at 2 m in Kelvin
+        'code': 11,
+        'steps': 49,               # available at first step (0 - 48 hr)
+    },
+    {
+        'group': 'harmonie-swr',
+        'level': 0,                # net shortwave radiation in J / m2
+        'code': 111,
+        'steps': 49,               # available at first step (0 - 48 hr)
     },
 )
 

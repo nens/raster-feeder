@@ -106,10 +106,9 @@ def extract_regions(fileobj):
     """
     # group names and levels
     names = tuple(p['group'] for p in config.PARAMETERS)
-    levels = tuple(p['level'] for p in config.PARAMETERS)
 
     # create a lookup-table for group names by level
-    lut = dict(zip(levels, names))
+    lut = {(p['level'], p['code']): p['group'] for p in config.PARAMETERS}
 
     # prepare containers for the result values
     data = {n: [] for n in names}
@@ -119,12 +118,9 @@ def extract_regions(fileobj):
     logger.info('Extract data from tarfile.')
     for gribdata in unpack_tarfile(fileobj):
         for message in parse_gribdata(gribdata):
-            if message['indicatorOfParameter'] != 61:  # parameter code
-                continue
-            level = message['level']
             try:
-                n = lut[level]
-            except IndexError:
+                n = lut[(message['level'], message['indicatorOfParameter'])]
+            except KeyError:
                 continue
 
             # time
