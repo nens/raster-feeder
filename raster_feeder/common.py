@@ -13,6 +13,7 @@ import requests
 import turn
 import ftplib
 import io
+import re
 
 from raster_store import load
 from raster_store import stores
@@ -142,6 +143,13 @@ class FTPServer(object):
     def listdir(self):
         """ Return file listing of current working directory. """
         return self.connection.nlst()
+
+    def get_latest_match(self, re_pattern):
+        match = re.compile(re_pattern).match
+        try:
+            return sorted(filter(match, self.connection.nlst()))[-1]
+        except IndexError:
+            return
 
     def _retrieve_to_stream(self, name, stream):
         """ Write remote file to local path. """

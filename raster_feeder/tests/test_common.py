@@ -41,9 +41,15 @@ class TestFTPServer(unittest.TestCase):
         with FTPServer(**self.login) as _:
             pass
 
-    def test_list(self):
+    def test_get_match(self):
         with FTPServer(**self.login) as server:
             self.assertIn(self.name, server.listdir())
+
+            match = server.get_latest_match(self.name)
+            self.assertEqual(match, self.name)
+
+            match = server.get_latest_match('nomatch')
+            self.assertIsNone(match)
 
     def test_download_to_stream(self):
         with FTPServer(**self.login) as server:
