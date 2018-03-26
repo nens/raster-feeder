@@ -24,13 +24,17 @@ NAME = 'steps'
 DEPTH = 78
 
 # proj inferred from sample netcdf
-NATIVE_GEO_TRANSFORM = -257.0, 2.0, 0.0, 255.0, 0.0, -2.0
+NATIVE_GEO_TRANSFORM = -256.0, 2.0, 0.0, 256.0, 0.0, -2.0
 NATIVE_PROJECTION = '+proj=gnom +lat_0=-34.264 +lon_0=150.874 +units=km'
 
-# geographical orientation, geo_transform from auto-warped dataset using
-# proj from above
-WARPED_GEO_TRANSFORM = 148.004, 0.0199286, 0.0, -31.9456, 0.0, -0.0199286
-WARPED_PROJECTION = 'EPSG:4326'
+# the target bbox transformed into indices of source:
+# 306074.77698, 6253527.45723, 319874.77698, 6265927.45723 (EPSG32756)
+# 2.78678, 16.82551, 46.8323, 59.56076 (native proj)
+NATIVE_STATISTICS_BBOX = 129, 137, 98, 105  # x1, x2, y1, y2
+
+# we keep the target project the same
+WARPED_GEO_TRANSFORM = NATIVE_GEO_TRANSFORM
+WARPED_PROJECTION = NATIVE_PROJECTION
 
 # remote filename strftime() format and selection pattern
 FORMAT = 'IDR311EN.%Y%m%d%H%M.nc'

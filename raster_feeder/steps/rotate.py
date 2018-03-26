@@ -89,19 +89,19 @@ def extract_region(path):
         prcp = variable[:]
         fillvalue = variable._FillValue.item()
 
+    # copy out a region of interest for member selection
+    x1, x2, y1, y2 = config.NATIVE_STATISTICS_BBOX
+    prcp_roi = prcp[:, :, y1:y2 + 1, x1:x2 + 1].copy()
+
     # replace fillvalues with zeros for member selection
-    mask = prcp == fillvalue
-    prcp[mask] = 0
+    prcp_roi[prcp_roi == fillvalue] = 0
 
     # ensemble member selection
-    sums = prcp.reshape(len(prcp), -1).sum(1)
+    sums = prcp_roi.reshape(len(prcp_roi), -1).sum(1)
     p75 = np.percentile(sums, 75)
     member = np.abs(sums - p75).argmin()
     logger.info('Member sums are %s.', sums)
     logger.info('Selecting member %s.', member)
-
-    # put the fillvalues back in after the statistics
-    prcp[mask] = fillvalue
 
     # select member
     data = prcp[member]

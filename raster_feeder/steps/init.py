@@ -20,7 +20,7 @@ from ..common import create_tumbler
 
 
 def init_steps():
-    """ Create HARMONIE stores for configured parameters. """
+    """ Create STEPS stores for configured parameters. """
     create_tumbler(
         path=join(config.STORE_DIR, config.NAME),
         depth=config.DEPTH,
