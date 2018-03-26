@@ -23,7 +23,7 @@ install_requires = [
     'turn',
     ],
 
-tests_require = [
+tests_require = ['mock'
     ]
 
 setup(name='raster_feeder',
