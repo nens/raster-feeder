@@ -11,6 +11,8 @@ import os
 
 import requests
 import turn
+import ftplib
+import io
 
 from raster_store import load
 from raster_store import stores
@@ -128,3 +130,41 @@ def touch_lizard(raster_uuid):
             short_uuid,
             resp.status_code,
         )
+
+
+class FTPServer(object):
+    def __init__(self, host, user=None, password=None, path=None):
+        """ Connects and switches to  """
+        self.connection = ftplib.FTP(host=host, user=user, passwd=password)
+        if path is not None:
+            self.connection.cwd(path)
+
+    def listdir(self):
+        """ Return file listing of current working directory. """
+        return self.connection.nlst()
+
+    def _retrieve_to_stream(self, name, stream):
+        """ Write remote file to local path. """
+        logger.info('Downloading {} from FTP.'.format(name))
+        self.connection.retrbinary('RETR ' + name, stream.write)
+
+    def retrieve_to_path(self, name, path):
+        """ Write remote file to local path. """
+        with open(path, 'w') as f:
+            self._retrieve_to_stream(name, f)
+
+    def retrieve_to_stream(self, name):
+        """ Write remote file to memory stream. """
+        f = io.BytesIO()
+        self._retrieve_to_stream(name, f)
+        f.seek(0)
+        return f
+
+    def close(self):
+        self.connection.quit()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
