@@ -22,6 +22,11 @@ from raster_store.regions import Region
 from raster_store import load, caches
 
 
+def round3(numbers):
+    """ Return list with numbers rounded to 3 decimal places. """
+    return [round(item, 3) for item in numbers]
+
+
 class TestServer(unittest.TestCase):
     def setUp(self):
         self.connection = Mock()
@@ -53,7 +58,7 @@ class TestServer(unittest.TestCase):
 
 class TestExtract(unittest.TestCase):
     def setUp(self):
-        self.path = os.path.abspath('../../var/IDR311EN.201803231000.nc')
+        self.path = os.path.abspath('IDR311EN.201803231010.nc')
         if not os.path.exists(self.path):
             self.skipTest('NetCDF testfile for steps raindata not found.')
 
@@ -95,4 +100,4 @@ class TestStore(unittest.TestCase):
                                  153.73245038454615, -31.936832031023386)
 
         self.assertEqual(store.geometry.GetEnvelope(), expected_extent_native)
-        self.assertEqual(store.extent, expected_extent_wgs84)
+        self.assertEqual(round3(store.extent), round3(expected_extent_wgs84))
