@@ -35,7 +35,7 @@ PROJECTION = '+proj=gnom +lat_0=-34.264 +lon_0=150.874 +units=km'
 # 2.78678, 16.82551, 46.8323, 59.56076 (x1, x2, y1, y2)
 #
 # using the native GEO_TRANSFORM, this gives the following array indices:
-STATISTICS_ROI = 129, 137, 98, 105  # (x1, x2, y1, y2)
+STATISTICS_ROI = slice(98, 105), slice(129, 137)  # i (=y index), j (=x index)
 
 # remote filename strftime() format and selection pattern
 FORMAT = 'IDR311EN.%Y%m%d%H%M.nc'

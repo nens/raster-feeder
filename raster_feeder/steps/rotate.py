@@ -90,8 +90,7 @@ def extract_region(path):
         fillvalue = variable._FillValue.item()
 
     # copy out a region of interest for member selection
-    x1, x2, y1, y2 = config.STATISTICS_ROI
-    prcp_roi = prcp[:, :, y1:y2 + 1, x1:x2 + 1].copy()
+    prcp_roi = prcp[(None, None) + config.STATISTICS_ROI].copy()
 
     # replace fillvalues with zeros for member selection
     prcp_roi[prcp_roi == fillvalue] = 0
