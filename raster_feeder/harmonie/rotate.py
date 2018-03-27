@@ -33,6 +33,33 @@ from . import config
 logger = logging.getLogger(__name__)
 
 
+def makkink(swr, temp):
+    # see https://nl.wikipedia.org/wiki/Referentie-gewasverdamping
+
+    lambd = 2.45e6  # verdampingswarmte van water bij 20 degC
+    C1 = 0.65 # constante, zie De Bruin (1981)
+    C2 = 0.  # constante, zie De Bruin (1981)
+    gamma = 0.66  # pscychrometerconstante  in mbar / degC
+
+    a = 6.1078 # mbar
+    b = 17.294
+    c = 237.73 # degC
+
+    # temperature is in Kelvin
+    T = temp - 272.15
+    s = a * b * c / (c + T**2) * np.exp(b * T / (c + T))
+
+    # swr is integrated, but we need the instantaneous value
+    swr_diff = np.empty_like(T)
+    swr_diff[1:48] = np.diff(swr, axis=0)
+    # extrapolate the edges
+    swr_diff[0] = swr_diff[1]
+    swr_diff[48] = swr_diff[47]
+
+    Eref = C1 * (s / (s + gamma)) * swr_diff + C2
+    return Eref / lambd
+
+
 def parse_gribdata(gribdata):
     """
     Return generator of message objects.
@@ -139,6 +166,10 @@ def extract_regions(fileobj):
 
     # apply inverse cumsum operation on prcp data
     data['harmonie-prcp'][1:] -= data['harmonie-prcp'][:-1].copy()
+
+    data['harmonie-zlto'] = makkink(data['harmonie-swr'],
+                                    data['harmonie-temp'])
+    time['harmonie-zlto'] = time['harmonie-temp']
 
     # return a region per parameter
     fillvalue = np.finfo('f4').max.item()

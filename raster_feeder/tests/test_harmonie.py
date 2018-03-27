@@ -12,6 +12,9 @@ import io
 from datetime import datetime
 from mock import patch, DEFAULT, MagicMock
 
+import numpy as np
+from numpy.testing import assert_almost_equal
+
 from raster_feeder.tests.common import MockFTPServer
 from raster_feeder.harmonie.rotate import extract_regions, rotate_harmonie
 from raster_feeder.harmonie import config
@@ -137,3 +140,8 @@ class TestExtract(unittest.TestCase):
             # check the actual data
             self.assertEquals(region.box.data.shape[0], params['steps'])
             self.assertEquals(region.box.data.shape[1:], (300, 300))
+
+        # test the relation between prcp and cr
+        assert_almost_equal(np.cumsum(regions['harmonie-prcp'].box.data, 0),
+                            regions['harmonie-cr'].box.data, decimal=3)
+
