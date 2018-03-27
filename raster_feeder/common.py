@@ -147,7 +147,7 @@ class FTPServer(object):
     def get_latest_match(self, re_pattern):
         match = re.compile(re_pattern).match
         try:
-            return sorted(filter(match, self.connection.nlst()))[-1]
+            return sorted(filter(match, self.listdir()))[-1]
         except IndexError:
             return
 
@@ -155,6 +155,8 @@ class FTPServer(object):
         """ Write remote file to local path. """
         logger.info('Downloading {} from FTP.'.format(name))
         self.connection.retrbinary('RETR ' + name, stream.write)
+        stream.seek(0)
+        return stream
 
     def retrieve_to_path(self, name, path):
         """ Write remote file to local path. """
@@ -163,10 +165,7 @@ class FTPServer(object):
 
     def retrieve_to_stream(self, name):
         """ Write remote file to memory stream. """
-        f = io.BytesIO()
-        self._retrieve_to_stream(name, f)
-        f.seek(0)
-        return f
+        return self._retrieve_to_stream(name, io.BytesIO())
 
     def close(self):
         self.connection.quit()

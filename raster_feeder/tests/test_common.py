@@ -8,23 +8,9 @@ from __future__ import division
 
 import os
 import unittest
-import tempfile
-import shutil
 
 from raster_feeder.common import FTPServer
-
-
-class TemporaryDirectory(object):
-    """
-    Context manager for tempfile.mkdtemp().
-    This class is available in python +v3.2.
-    """
-    def __enter__(self):
-        self.dir_name = tempfile.mkdtemp()
-        return self.dir_name
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        shutil.rmtree(self.dir_name)
+from raster_feeder.tests.common import TemporaryDirectory
 
 
 class TestFTPServer(unittest.TestCase):
