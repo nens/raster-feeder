@@ -24,13 +24,18 @@ NAME = 'steps'
 DEPTH = 78
 
 # proj inferred from sample netcdf
-NATIVE_GEO_TRANSFORM = -257.0, 2.0, 0.0, 255.0, 0.0, -2.0
-NATIVE_PROJECTION = '+proj=gnom +lat_0=-34.264 +lon_0=150.874 +units=km'
+GEO_TRANSFORM = -256.0, 2.0, 0.0, 256.0, 0.0, -2.0
+PROJECTION = '+proj=gnom +lat_0=-34.264 +lon_0=150.874 +units=km'
 
-# geographical orientation, geo_transform from auto-warped dataset using
-# proj from above
-WARPED_GEO_TRANSFORM = 148.004, 0.0199286, 0.0, -31.9456, 0.0, -0.0199286
-WARPED_PROJECTION = 'EPSG:4326'
+# the statistics are be performed on a region of interest (roi)
+# given in 'EPSG:32756' as follows:
+# 306074.77698, 319874.77698, 6253527.45723, 6265927.45723 (x1, x2, y1, y2)
+#
+# in the native gnomonic PROJECTION this transforms to to:
+# 2.78678, 16.82551, 46.8323, 59.56076 (x1, x2, y1, y2)
+#
+# using the native GEO_TRANSFORM, this gives the following array indices:
+STATISTICS_ROI = slice(98, 105), slice(129, 137)  # i (=y index), j (=x index)
 
 # remote filename strftime() format and selection pattern
 FORMAT = 'IDR311EN.%Y%m%d%H%M.nc'

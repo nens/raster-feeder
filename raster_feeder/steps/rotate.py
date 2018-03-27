@@ -89,19 +89,19 @@ def extract_region(path):
         prcp = variable[:]
         fillvalue = variable._FillValue.item()
 
+    # copy out a region of interest for member selection
+    y_slice, x_slice = config.STATISTICS_ROI
+    prcp_roi = prcp[:, :, y_slice, x_slice].copy()
+
     # replace fillvalues with zeros for member selection
-    mask = prcp == fillvalue
-    prcp[mask] = 0
+    prcp_roi[prcp_roi == fillvalue] = 0
 
     # ensemble member selection
-    sums = prcp.reshape(len(prcp), -1).sum(1)
+    sums = prcp_roi.reshape(len(prcp_roi), -1).sum(1)
     p75 = np.percentile(sums, 75)
     member = np.abs(sums - p75).argmin()
     logger.info('Member sums are %s.', sums)
     logger.info('Selecting member %s.', member)
-
-    # put the fillvalues back in after the statistics
-    prcp[mask] = fillvalue
 
     # select member
     data = prcp[member]
@@ -116,8 +116,8 @@ def extract_region(path):
         meta=meta,
         bands=(0, config.DEPTH),
         fillvalue=fillvalue,
-        geo_transform=config.NATIVE_GEO_TRANSFORM,
-        projection=osr.GetUserInputAsWKT(str(config.NATIVE_PROJECTION))
+        geo_transform=config.GEO_TRANSFORM,
+        projection=osr.GetUserInputAsWKT(str(config.PROJECTION))
     )
 
 
