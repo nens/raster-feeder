@@ -90,7 +90,7 @@ def extract_region(path):
         fillvalue = variable._FillValue.item()
 
     # copy out a region of interest for member selection
-    x1, x2, y1, y2 = config.NATIVE_STATISTICS_BBOX
+    x1, x2, y1, y2 = config.STATISTICS_ROI
     prcp_roi = prcp[:, :, y1:y2 + 1, x1:x2 + 1].copy()
 
     # replace fillvalues with zeros for member selection
@@ -116,8 +116,8 @@ def extract_region(path):
         meta=meta,
         bands=(0, config.DEPTH),
         fillvalue=fillvalue,
-        geo_transform=config.NATIVE_GEO_TRANSFORM,
-        projection=osr.GetUserInputAsWKT(str(config.NATIVE_PROJECTION))
+        geo_transform=config.GEO_TRANSFORM,
+        projection=osr.GetUserInputAsWKT(str(config.PROJECTION))
     )
 
 

@@ -79,12 +79,12 @@ class TestStore(unittest.TestCase):
     def test_extent(self):
         init_steps()
 
-        proj = osr.GetUserInputAsWKT(str(config.NATIVE_PROJECTION))
+        proj = osr.GetUserInputAsWKT(str(config.PROJECTION))
         region = Region.from_mem(data=np.empty((config.DEPTH, 256, 256),
                                                dtype='f4'),
                                  time=[datetime.datetime.now()],
                                  bands=(0, config.DEPTH), fillvalue=0.,
-                                 geo_transform=config.NATIVE_GEO_TRANSFORM,
+                                 geo_transform=config.GEO_TRANSFORM,
                                  projection=proj)
 
         store = load(os.path.join(self.raster_path, 'steps/steps1'))
