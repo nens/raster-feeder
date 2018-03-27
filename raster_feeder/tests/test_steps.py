@@ -53,7 +53,7 @@ class TestServer(unittest.TestCase):
 
 class TestExtract(unittest.TestCase):
     def setUp(self):
-        self.path = os.path.abspath('../../var/IDR311EN.201803231000.nc')
+        self.path = 'IDR311EN.201803231010.nc'
         if not os.path.exists(self.path):
             self.skipTest('NetCDF testfile for steps raindata not found.')
 
@@ -95,4 +95,4 @@ class TestStore(unittest.TestCase):
                                  153.73245038454615, -31.936832031023386)
 
         self.assertEqual(store.geometry.GetEnvelope(), expected_extent_native)
-        self.assertEqual(store.extent, expected_extent_wgs84)
+        np.testing.assert_allclose(store.extent, expected_extent_wgs84)
