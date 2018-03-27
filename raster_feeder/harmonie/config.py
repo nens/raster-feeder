@@ -44,16 +44,16 @@ PARAMETERS = (
         'steps': 49,               # available at first step (0 - 48 hr)
     },
     {
-        'group': 'harmonie-swr',
-        'level': 0,                # net shortwave radiation in J / m2
-        'code': 111,
+        'group': 'harmonie-rad',
+        'level': 0,                # global radiation flux in W / m2
+        'code': 117,
         'steps': 48,               # starts at second step (1 - 48 hr)
     },
     {
         'group': 'harmonie-zlto',
         'level': None,             # Referentiegewasverdamping volgens Makkink
         'code': None,
-        'steps': 49,
+        'steps': 48,
     }
 )
 

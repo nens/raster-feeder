@@ -144,7 +144,7 @@ class TestStore(unittest.TestCase):
         proj = osr.GetUserInputAsWKT(str(config.PROJECTION))
         region = Region.from_mem(data=np.empty((config.DEPTH, 256, 256),
                                                dtype='f4'),
-                                 time=[datetime.datetime.now()],
+                                 time=[datetime.now()],
                                  bands=(0, config.DEPTH), fillvalue=0.,
                                  geo_transform=config.GEO_TRANSFORM,
                                  projection=proj)

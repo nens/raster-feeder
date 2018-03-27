@@ -13,10 +13,11 @@ from datetime import datetime
 from mock import patch, DEFAULT, MagicMock
 
 import numpy as np
-from numpy.testing import assert_almost_equal
+from numpy.testing import assert_allclose
 
 from raster_feeder.tests.common import MockFTPServer
-from raster_feeder.harmonie.rotate import extract_regions, rotate_harmonie
+from raster_feeder.harmonie.rotate import extract_regions, rotate_harmonie, \
+    vapor_pressure_slope, makkink
 from raster_feeder.harmonie import config
 from raster_store.stores import Store
 
@@ -142,6 +143,15 @@ class TestExtract(unittest.TestCase):
             self.assertEquals(region.box.data.shape[1:], (300, 300))
 
         # test the relation between prcp and cr
-        assert_almost_equal(np.cumsum(regions['harmonie-prcp'].box.data, 0),
-                            regions['harmonie-cr'].box.data, decimal=3)
+        assert_allclose(np.cumsum(regions['harmonie-prcp'].box.data, 0),
+                        regions['harmonie-cr'].box.data, atol=0.001)
 
+
+class TestMakkink(unittest.TestCase):
+    def test_vapor_pressure_slope(self):
+        # test values from wiki table (in mbar, we do kPa)
+        # https://nl.wikipedia.org/wiki/Referentie-gewasverdamping
+        temperature = np.array([-5, 0, 10, 20, 30, 40])
+        expected = np.array([0.32, 0.45, 0.83, 1.45, 2.44, 3.94]) / 10.
+        actual = vapor_pressure_slope(temperature + 273.15)
+        assert_allclose(actual, expected, atol=0.005)

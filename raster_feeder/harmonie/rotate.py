@@ -33,31 +33,38 @@ from . import config
 logger = logging.getLogger(__name__)
 
 
-def makkink(swr, temp):
+def vapor_pressure_slope(temperature):
+    """Slope of the vapor pressure curve in kPa / deg C, KNMI formula
+
+    :param temperature: Temperature in Kelvin
+    """
+    T = temperature - 273.15
+    eps = 0.6107 * 10 ** (7.5 * T / (237.3 + T))
+    s = 7.5 * 237.3 / (237.3 + T) ** 2 * np.log(10) * eps
+    return s
+
+
+def makkink(radiation, temperature):
+    """
+    Computation of "referentie-gasverdamping" in meters per day.
+
+    Source: FutureWater, J.M. Schuurmans & P. Droogers (2009), Penman-Monteith
+    referentieverdamping: Inventarisatie beschikbaarheid en mogelijkheden tot
+    regionalisatie.
+
+    :param radiation: Global radiation flux in W / m2
+    :param temperature: Temperature in Kelvin
+    """
     # see https://nl.wikipedia.org/wiki/Referentie-gewasverdamping
 
-    lambd = 2.45e6  # verdampingswarmte van water bij 20 degC
-    C1 = 0.65 # constante, zie De Bruin (1981)
-    C2 = 0.  # constante, zie De Bruin (1981)
-    gamma = 0.66  # pscychrometerconstante  in mbar / degC
+    lambd = 2.45e6  # heat of evaproation of water at 20 degC [J / kg]
+    rho = 1e3       # specific weight of water [kg / m3]
+    gamma = 0.066   # pscychrometric constant [kPa / degC]
 
-    a = 6.1078 # mbar
-    b = 17.294
-    c = 237.73 # degC
+    s = vapor_pressure_slope(temperature)  # [kPa / degC]
 
-    # temperature is in Kelvin
-    T = temp - 272.15
-    s = a * b * c / (c + T**2) * np.exp(b * T / (c + T))
-
-    # swr is integrated, but we need the instantaneous value
-    swr_diff = np.empty_like(T)
-    swr_diff[1:48] = np.diff(swr, axis=0)
-    # extrapolate the edges
-    swr_diff[0] = swr_diff[1]
-    swr_diff[48] = swr_diff[47]
-
-    Eref = C1 * (s / (s + gamma)) * swr_diff + C2
-    return Eref / lambd
+    ET_ref = 0.65 * (s / (s + gamma)) * radiation  # [W / m2]
+    return ET_ref / (rho * lambd) * 3600 * 24  # [m / d]
 
 
 def parse_gribdata(gribdata):
@@ -167,9 +174,9 @@ def extract_regions(fileobj):
     # apply inverse cumsum operation on prcp data
     data['harmonie-prcp'][1:] -= data['harmonie-prcp'][:-1].copy()
 
-    data['harmonie-zlto'] = makkink(data['harmonie-swr'],
-                                    data['harmonie-temp'])
-    time['harmonie-zlto'] = time['harmonie-temp']
+    data['harmonie-zlto'] = makkink(data['harmonie-rad'],
+                                    data['harmonie-temp'][1:])
+    time['harmonie-zlto'] = time['harmonie-rad']
 
     # return a region per parameter
     fillvalue = np.finfo('f4').max.item()
