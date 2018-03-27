@@ -47,8 +47,8 @@ PARAMETERS = (
         'group': 'harmonie-swr',
         'level': 0,                # net shortwave radiation in J / m2
         'code': 111,
-        'steps': 49,               # available at first step (0 - 48 hr)
-    },
+        'steps': 48,               # starts at second step (1 - 48 hr)
+    }
 )
 
 # group from which to take the currently stored period
@@ -60,6 +60,7 @@ PROJECTION = 'EPSG:4326'
 
 # remote file name strftime() format
 FORMAT = 'harm36_v1_ned_surface_%Y%m%d%H.tgz'
+PATTERN = 'harm36_v1_ned_surface_[0-9]{10}\.tgz'
 
 # -------------------------------------------
 # settings to be overridden in localconfig.py

@@ -27,8 +27,7 @@ from osgeo import osr
 from raster_store import load
 from raster_store import regions
 
-from ..common import rotate
-from ..common import touch_lizard
+from ..common import rotate, touch_lizard, FTPServer
 from . import config
 
 logger = logging.getLogger(__name__)
@@ -168,12 +167,25 @@ def rotate_harmonie():
 
     # retrieve updated data
     try:
-        fileobj = download(current)
+        server = FTPServer(**config.FTP)
+        latest = server.get_latest_match(config.PATTERN)
     except Exception:
-        logger.exception('Error:')
+        logger.exception('Error connecting to {}'.format(config.FTP['host']))
         return
-    if fileobj is None:
+
+    if latest is None:
+        logger.info('No source files found on server, exiting.')
+        return
+
+    if current and latest <= current.strftime(config.FORMAT):
         logger.info('No update available, exiting.')
+        return
+
+    # download and process the file
+    try:
+        fileobj = server.retrieve_to_stream(name=latest)
+    except Exception:
+        logger.exception('Error retrieving {}'.format(latest))
         return
 
     # extract regions

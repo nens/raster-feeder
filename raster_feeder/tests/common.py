@@ -35,4 +35,5 @@ class MockFTPServer(FTPServer):
     def _retrieve_to_stream(self, name, stream):
         self.files[name].seek(0)
         stream.write(self.files[name].read())
+        stream.seek(0)
         return stream
