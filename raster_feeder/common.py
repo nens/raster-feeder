@@ -62,6 +62,8 @@ def create_tumbler(path, depth, **kwargs):
             store.create_storage((depth, 1))
             store.create_storage((depth, depth))
 
+            store.create_aggregation('topleft', (depth, 1))
+
     # group config
     conf_path = path + '.json'
     print('Update config file "%s".' % conf_path)
