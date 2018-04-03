@@ -16,8 +16,8 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 from raster_feeder.tests.common import MockFTPServer
-from raster_feeder.harmonie.rotate import extract_regions, rotate_harmonie, \
-    vapor_pressure_slope, makkink
+from raster_feeder.harmonie.rotate import extract_regions, rotate_harmonie
+from raster_feeder.harmonie.rotate import vapor_pressure_slope, makkink
 from raster_feeder.harmonie import config
 from raster_store.stores import Store
 
@@ -153,5 +153,16 @@ class TestMakkink(unittest.TestCase):
         # https://nl.wikipedia.org/wiki/Referentie-gewasverdamping
         temperature = np.array([-5, 0, 10, 20, 30, 40])
         expected = np.array([0.32, 0.45, 0.83, 1.45, 2.44, 3.94]) / 10.
-        actual = vapor_pressure_slope(temperature + 273.15)
+        actual = vapor_pressure_slope(temperature)
         assert_allclose(actual, expected, atol=0.005)
+
+    def test_makkink(self):
+        N = 100
+        radiation, temperature = np.random.random((2, N)) * 40
+
+        s = vapor_pressure_slope(temperature)
+        expected = 0.65 * s / (s + 0.066) * radiation
+        expected /= 2.45e6 * 1e3         # [m / s]
+        expected *= 1000. * 3600. * 24.  # [mm / d]
+
+        assert_allclose(makkink(radiation, temperature), expected)

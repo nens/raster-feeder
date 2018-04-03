@@ -36,11 +36,15 @@ logger = logging.getLogger(__name__)
 def vapor_pressure_slope(temperature):
     """Slope of the vapor pressure curve in kPa / deg C, KNMI formula
 
-    :param temperature: Temperature in Kelvin
+    Source: FutureWater, J.M. Schuurmans & P. Droogers (2009), Penman-Monteith
+    referentieverdamping: Inventarisatie beschikbaarheid en mogelijkheden tot
+    regionalisatie.
+
+    :param temperature: Temperature in degrees Celsius
     """
-    T = temperature - 273.15
+    T = temperature
     eps = 0.6107 * 10 ** (7.5 * T / (237.3 + T))
-    s = 7.5 * 237.3 / (237.3 + T) ** 2 * np.log(10) * eps
+    s = (7.5 * 237.3) / ((237.3 + T) ** 2) * np.log(10) * eps
     return s
 
 
@@ -53,18 +57,18 @@ def makkink(radiation, temperature):
     regionalisatie.
 
     :param radiation: Global radiation flux in W / m2
-    :param temperature: Temperature in Kelvin
+    :param temperature: Temperature in degrees Celsius
     """
     # see https://nl.wikipedia.org/wiki/Referentie-gewasverdamping
 
     lambd = 2.45e6  # heat of evaproation of water at 20 degC [J / kg]
     rho = 1e3       # specific weight of water [kg / m3]
-    gamma = 0.066   # pscychrometric constant [kPa / degC]
+    gamma = 0.066   # psychrometric constant [kPa / degC]
 
     s = vapor_pressure_slope(temperature)  # [kPa / degC]
 
     ET_ref = 0.65 * (s / (s + gamma)) * radiation  # [W / m2]
-    return ET_ref / (rho * lambd) * 3600 * 24  # [m / d]
+    return ET_ref / (rho * lambd) * (1000. * 3600. * 24.)  # [mm / d]
 
 
 def parse_gribdata(gribdata):
@@ -98,34 +102,6 @@ def unpack_tarfile(fileobj):
     with tarfile.open(fileobj=fileobj, mode="r:gz") as archive:
         for member in archive:
             yield archive.extractfile(member).read()
-
-
-def download(current=None):
-    """
-    Return file object or None of no update is available.
-
-    :param current: Datetime of current available data
-    """
-    # connect
-    logger.info('Connecting to "{}".'.format(config.FTP['host']))
-    connection = ftplib.FTP(
-        host=config.FTP['host'],
-        user=config.FTP['user'],
-        passwd=config.FTP['password'],
-    )
-    connection.cwd(config.FTP['path'])
-
-    # check for update
-    latest = sorted(connection.nlst())[-1]
-    if current and latest == current.strftime(config.FORMAT):
-        result = None
-    else:
-        logger.info('Downloading {} from FTP.'.format(latest))
-        result = io.BytesIO()
-        connection.retrbinary('RETR ' + latest, result.write)
-        result.seek(0)
-    connection.quit()
-    return result
 
 
 def extract_regions(fileobj):
@@ -174,9 +150,9 @@ def extract_regions(fileobj):
     # apply inverse cumsum operation on prcp data
     data['harmonie-prcp'][1:] -= data['harmonie-prcp'][:-1].copy()
 
-    data['harmonie-zlto'] = makkink(data['harmonie-rad'],
-                                    data['harmonie-temp'][1:])
-    time['harmonie-zlto'] = time['harmonie-rad']
+    data['harmonie-evap'] = makkink(data['harmonie-rad'],
+                                    data['harmonie-temp'][1:] - 273.15)
+    time['harmonie-evap'] = time['harmonie-rad']
 
     # return a region per parameter
     fillvalue = np.finfo('f4').max.item()

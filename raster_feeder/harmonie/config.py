@@ -50,7 +50,7 @@ PARAMETERS = (
         'steps': 48,               # starts at second step (1 - 48 hr)
     },
     {
-        'group': 'harmonie-zlto',
+        'group': 'harmonie-evap',
         'level': None,             # Referentiegewasverdamping volgens Makkink
         'code': None,
         'steps': 48,
