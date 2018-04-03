@@ -39,7 +39,7 @@ STATISTICS_ROI = slice(98, 105), slice(129, 137)  # i (=y index), j (=x index)
 
 # remote filename strftime() format and selection pattern
 FORMAT = 'IDR311EN.%Y%m%d%H%M.nc'
-PATTERN = re.compile('IDR311EN\.[0-9]{12}\.nc')
+PATTERN = 'IDR311EN\.[0-9]{12}\.nc'
 
 # -------------------------------------------
 # settings to be overridden in localconfig.py

@@ -11,44 +11,106 @@ import shutil
 import unittest
 import tempfile
 import numpy as np
-import datetime
-from mock import patch, Mock
+from datetime import datetime
+from mock import patch, MagicMock, DEFAULT
 import osr
+import io
 
+from raster_feeder.tests.common import MockFTPServer
 from raster_feeder.steps import config
-from raster_feeder.steps.rotate import Server, extract_region
+from raster_feeder.steps.rotate import extract_region, rotate_steps
 from raster_feeder.steps.init import init_steps
 from raster_store.regions import Region
 from raster_store import load, caches
+from raster_store.stores import Store
 
 
-class TestServer(unittest.TestCase):
-    def setUp(self):
-        self.connection = Mock()
-        self.listing = []
-        self.connection.nlst.return_value = self.listing
-        self.connection.retrbinary.return_value = None
-        self.ftp = patch('ftplib.FTP', autospec=True,
-                         return_value=self.connection)
-        self.ftp.start()
+@patch.multiple('raster_feeder.steps.rotate', FTPServer=DEFAULT, load=DEFAULT,
+                rotate=DEFAULT, touch_lizard=DEFAULT, extract_region=DEFAULT)
+class TestRotateSteps(unittest.TestCase):
+    def setUp(self, **patches):
+        self.mock_ftp = MockFTPServer(dict())
+        self.mock_store = MagicMock(Store)
+        self.empty_stream = io.BytesIO()
 
-    def tearDown(self):
-        self.ftp.stop()
+    def test_pick_correct(self, **patches):
+        patches['FTPServer'].return_value = self.mock_ftp
+        patches['load'].return_value = self.mock_store
+        self.mock_store.period = None
 
-    def test_get_match(self):
         correct = 'IDR311EN.201803231000.nc'
+        self.mock_ftp.files = {correct: self.empty_stream,
+                               'IDR311AR.201803241000.nc': None}
+        rotate_steps()
 
-        server = Server()
-        self.assertIsNone(server.get_latest_match())
+        extract_region_patch = patches['extract_region']
+        self.assertEquals(extract_region_patch.call_count, 1)
+        self.assertIn(correct, extract_region_patch.call_args[0][0])
 
-        self.listing.append(correct)
-        self.assertEqual(server.get_latest_match(), correct)
+    def test_pick_newest(self, **patches):
+        patches['FTPServer'].return_value = self.mock_ftp
+        patches['load'].return_value = self.mock_store
+        self.mock_store.period = None
 
-        self.listing.append('IDR311AR.201803231000.nc')
-        self.assertEqual(server.get_latest_match(), correct)
+        correct = 'IDR311EN.201803231000.nc'
+        self.mock_ftp.files = {'IDR311AR.201803221000.nc': None,
+                               correct: self.empty_stream}
+        rotate_steps()
 
-        self.listing.append('IDR311EN.201803221000.nc')
-        self.assertEqual(server.get_latest_match(), correct)
+        extract_region_patch = patches['extract_region']
+        self.assertEquals(extract_region_patch.call_count, 1)
+        self.assertIn(correct, extract_region_patch.call_args[0][0])
+
+    def test_no_files(self, **patches):
+        patches['FTPServer'].return_value = self.mock_ftp
+        patches['load'].return_value = self.mock_store
+        self.mock_store.period = None
+
+        self.mock_ftp.files = {}
+        rotate_steps()
+
+        extract_region_patch = patches['extract_region']
+        self.assertEquals(extract_region_patch.call_count, 0)
+
+    def test_file_already_done(self, **patches):
+        patches['FTPServer'].return_value = self.mock_ftp
+        patches['load'].return_value = self.mock_store
+        self.mock_store.period = (datetime(2018, 3, 23, 10, 0),
+                                  datetime(2018, 3, 25, 10, 0))
+
+        correct = 'IDR311EN.201803231000.nc'
+        self.mock_ftp.files = {correct: self.empty_stream}
+        rotate_steps()
+
+        extract_region_patch = patches['extract_region']
+        self.assertEquals(extract_region_patch.call_count, 0)
+
+    def test_file_is_newer(self, **patches):
+        patches['FTPServer'].return_value = self.mock_ftp
+        patches['load'].return_value = self.mock_store
+        self.mock_store.period = (datetime(2018, 3, 23, 10, 0),
+                                  datetime(2018, 3, 25, 10, 0))
+
+        correct = 'IDR311EN.201803231100.nc'
+        self.mock_ftp.files = {correct: self.empty_stream}
+        rotate_steps()
+
+        extract_region_patch = patches['extract_region']
+        self.assertEquals(extract_region_patch.call_count, 1)
+        self.assertIn(correct, extract_region_patch.call_args[0][0])
+
+    def test_file_is_older(self, **patches):
+        patches['FTPServer'].return_value = self.mock_ftp
+        patches['load'].return_value = self.mock_store
+        self.mock_store.period = (datetime(2018, 3, 23, 10, 0),
+                                  datetime(2018, 3, 25, 10, 0))
+
+        correct = 'IDR311EN.201803230900.nc'
+        self.mock_ftp.files = {correct: self.empty_stream}
+        rotate_steps()
+
+        extract_region_patch = patches['extract_region']
+        self.assertEquals(extract_region_patch.call_count, 0)
 
 
 class TestExtract(unittest.TestCase):
@@ -82,7 +144,7 @@ class TestStore(unittest.TestCase):
         proj = osr.GetUserInputAsWKT(str(config.PROJECTION))
         region = Region.from_mem(data=np.empty((config.DEPTH, 256, 256),
                                                dtype='f4'),
-                                 time=[datetime.datetime.now()],
+                                 time=[datetime.now()],
                                  bands=(0, config.DEPTH), fillvalue=0.,
                                  geo_transform=config.GEO_TRANSFORM,
                                  projection=proj)

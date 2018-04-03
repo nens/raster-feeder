@@ -22,18 +22,39 @@ PARAMETERS = (
     {
         'group': 'harmonie-inr',   # store group name
         'level': 456,              # rain intensity
+        'code': 61,
         'steps': 49,               # available at first step (0 - 48 hr)
     },
     {
         'group': 'harmonie-cr',    # store group name
         'level': 457,              # rain cumulative sum
+        'code': 61,
         'steps': 48,               # starts at second step (1 - 48 hr)
     },
     {
         'group': 'harmonie-prcp',  # store group name
-        'level': 777,              # intensity derived from cumulative sum
+        'level': None,             # intensity derived from cumulative sum
+        'code': None,
         'steps': 48,               # starts at second step (1 - 48 hr)
     },
+    {
+        'group': 'harmonie-temp',
+        'level': 2,                # air temperature at 2 m in Kelvin
+        'code': 11,
+        'steps': 49,               # available at first step (0 - 48 hr)
+    },
+    {
+        'group': 'harmonie-rad',
+        'level': 0,                # global radiation flux in W / m2
+        'code': 117,
+        'steps': 48,               # starts at second step (1 - 48 hr)
+    },
+    {
+        'group': 'harmonie-evap',
+        'level': None,             # Referentiegewasverdamping volgens Makkink
+        'code': None,
+        'steps': 48,
+    }
 )
 
 # group from which to take the currently stored period
@@ -45,6 +66,7 @@ PROJECTION = 'EPSG:4326'
 
 # remote file name strftime() format
 FORMAT = 'harm36_v1_ned_surface_%Y%m%d%H.tgz'
+PATTERN = 'harm36_v1_ned_surface_[0-9]{10}\.tgz'
 
 # -------------------------------------------
 # settings to be overridden in localconfig.py
