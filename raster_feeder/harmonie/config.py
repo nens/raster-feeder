@@ -50,15 +50,15 @@ PARAMETERS = (
         'steps': 48,               # starts at second step (1 - 48 hr)
     },
     {
-        'group': 'harmonie-inrad',
-        'level': 0,                # global radiation flux in W / m2
-        'code': 117,
-        'steps': 49,               # starts at first step (0 - 48 hr)
+        'group': 'harmonie-rad',
+        'level': None,             # global radiation flux in W / m2
+        'code': None,              # derived from cumulative sum
+        'steps': 48,               # starts at second step (1 - 48 hr)
     },
     {
         'group': 'harmonie-evap',
         'level': None,             # Referentiegewasverdamping volgens Makkink
-        'code': None,
+        'code': None,              # each hour, in mm / day (24 hours)
         'steps': 48,
     }
 )

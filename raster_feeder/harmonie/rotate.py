@@ -150,6 +150,12 @@ def extract_regions(fileobj):
     # apply inverse cumsum operation on prcp data
     data['harmonie-prcp'][1:] -= data['harmonie-prcp'][:-1].copy()
 
+    # apply inverse cumsum operation on cumulative radiation data
+    time['harmonie-rad'] = time['harmonie-crad']
+    data['harmonie-rad'] = data['harmonie-crad'].copy()
+    data['harmonie-rad'][1:] = np.diff(data['harmonie-crad'], axis=0)
+    data['harmonie-rad'] /= 3600.  # [J / h / m2] to [J / s / m2] (= [W / m2])
+
     data['harmonie-evap'] = makkink(data['harmonie-rad'],
                                     data['harmonie-temp'][1:] - 273.15)
     time['harmonie-evap'] = time['harmonie-rad']

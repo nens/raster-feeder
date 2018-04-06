@@ -144,7 +144,10 @@ class TestExtract(unittest.TestCase):
 
         # test the relation between prcp and cr
         assert_allclose(np.cumsum(regions['harmonie-prcp'].box.data, 0),
-                        regions['harmonie-cr'].box.data, atol=0.001)
+                        regions['harmonie-cr'].box.data, rtol=0.001)
+        # test the relation between rad and crad
+        assert_allclose(np.cumsum(regions['harmonie-rad'].box.data, 0) * 3600,
+                        regions['harmonie-crad'].box.data, rtol=0.001)
 
 
 class TestMakkink(unittest.TestCase):
@@ -158,11 +161,17 @@ class TestMakkink(unittest.TestCase):
 
     def test_makkink(self):
         N = 100
-        radiation, temperature = np.random.random((2, N)) * 40
+        radiation = np.random.random(N) * 1000  # range 0 - 1000 W / m2
+        temperature = np.random.random(N) * 30  # range 0 - 30 degC
 
         s = vapor_pressure_slope(temperature)
         expected = 0.65 * s / (s + 0.066) * radiation
         expected /= 2.45e6 * 1e3         # [m / s]
         expected *= 1000. * 3600. * 24.  # [mm / d]
 
-        assert_allclose(makkink(radiation, temperature), expected)
+        actual = makkink(radiation, temperature)
+
+        assert_allclose(actual, expected)
+
+        # in the order of 1-10 mm / day
+        assert_allclose(actual.mean(), 5., atol=4)
