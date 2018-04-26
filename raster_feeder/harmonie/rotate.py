@@ -50,7 +50,7 @@ def vapor_pressure_slope(temperature):
 
 def makkink(radiation, temperature):
     """
-    Computation of "referentie-gasverdamping" in meters per day.
+    Computation of "referentie-gewasverdamping" in mm / h.
 
     Source: FutureWater, J.M. Schuurmans & P. Droogers (2009), Penman-Monteith
     referentieverdamping: Inventarisatie beschikbaarheid en mogelijkheden tot
@@ -68,7 +68,7 @@ def makkink(radiation, temperature):
     s = vapor_pressure_slope(temperature)  # [kPa / degC]
 
     ET_ref = 0.65 * (s / (s + gamma)) * radiation  # [W / m2]
-    return ET_ref / (rho * lambd) * (1000. * 3600. * 24.)  # [mm / d]
+    return ET_ref / (rho * lambd) * (1000. * 3600.)  # [mm / h]
 
 
 def parse_gribdata(gribdata):

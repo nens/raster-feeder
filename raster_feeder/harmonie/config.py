@@ -58,7 +58,7 @@ PARAMETERS = (
     {
         'group': 'harmonie-evap',
         'level': None,             # Referentiegewasverdamping volgens Makkink
-        'code': None,              # each hour, in mm / day (24 hours)
+        'code': None,              # each hour, in mm / hour
         'steps': 48,
     }
 )
