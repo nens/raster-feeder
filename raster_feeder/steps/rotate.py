@@ -13,16 +13,16 @@ from os.path import basename, join
 
 import argparse
 import contextlib
-import ftplib
 import json
 import logging
 import shutil
 import sys
 import tempfile
+import math
 
 import netCDF4
 import numpy as np
-from osgeo import osr
+from osgeo import osr, ogr, gdal
 
 from raster_store import load
 from raster_store import regions
@@ -31,6 +31,9 @@ from ..common import rotate, touch_lizard, FTPServer
 from . import config
 
 logger = logging.getLogger(__name__)
+
+EPSG32756 = osr.SpatialReference()
+EPSG32756.ImportFromEPSG(32756)
 
 
 @contextlib.contextmanager
@@ -60,11 +63,47 @@ def extract_region(path):
 
         # read precipitation
         variable = nc.variables['precipitation']
-        prcp = variable[:]
+        prcp = variable[:]  # shape: (10, 74, 512, 512)
         fillvalue = variable._FillValue.item()
 
-    # copy out a region of interest for member selection
-    y_slice, x_slice = config.STATISTICS_ROI
+    # transform the region of interest to indices in the array
+
+    # create the geometry
+    x1, y1, x2, y2 = config.ROI_ESPG32756
+    ring = ogr.Geometry(ogr.wkbLinearRing)
+    poly = ogr.Geometry(ogr.wkbPolygon)
+    ring.AddPoint(x1, y1)
+    ring.AddPoint(x2, y1)
+    ring.AddPoint(x2, y2)
+    ring.AddPoint(x1, y2)
+    ring.AddPoint(x1, y1)
+    poly.AddGeometry(ring)
+    poly.AssignSpatialReference(EPSG32756)
+
+    # transform the geometry to native projection
+    target = osr.SpatialReference()
+    target.ImportFromProj4(str(config.PROJECTION))
+    poly.TransformTo(target)
+    x1_proj, x2_proj, y1_proj, y2_proj = poly.GetEnvelope()
+
+    # transform the envelope to indices
+    inv_geo_transform = gdal.InvGeoTransform(config.GEO_TRANSFORM)
+    x1_px, y1_px = gdal.ApplyGeoTransform(inv_geo_transform, x1_proj, y1_proj)
+    x2_px, y2_px = gdal.ApplyGeoTransform(inv_geo_transform, x2_proj, y2_proj)
+
+    # swap the indices if necessary
+    if x1_px > x2_px:
+        x1_px, x2_px = x2_px, x1_px
+    if y1_px > y2_px:
+        y1_px, y2_px = y2_px, y1_px
+
+    # don't set the step to -1 as we are only using the ROI for statistics
+    x_slice = slice(int(x1_px), int(math.ceil(x2_px)) + 1)
+    y_slice = slice(int(y1_px), int(math.ceil(y2_px)) + 1)
+
+    # slice the region of interest from the array
+    logger.info('Taking slice (y %d%d, x %d:%d) for member selection',
+                y_slice.start, y_slice.stop, x_slice.start, x_slice.stop)
     prcp_roi = prcp[:, :, y_slice, x_slice].copy()
 
     # replace fillvalues with zeros for member selection

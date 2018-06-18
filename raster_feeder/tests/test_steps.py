@@ -24,6 +24,9 @@ from raster_store.regions import Region
 from raster_store import load, caches
 from raster_store.stores import Store
 
+TEST_DATA_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                              '../../var/data'))
+
 
 @patch.multiple('raster_feeder.steps.rotate', FTPServer=DEFAULT, load=DEFAULT,
                 rotate=DEFAULT, touch_lizard=DEFAULT, extract_region=DEFAULT)
@@ -38,7 +41,7 @@ class TestRotateSteps(unittest.TestCase):
         patches['load'].return_value = self.mock_store
         self.mock_store.period = None
 
-        correct = 'IDR311EN.201803231000.nc'
+        correct = 'IDR311EN.RF3.20180323100000.nc'
         self.mock_ftp.files = {correct: self.empty_stream,
                                'IDR311AR.201803241000.nc': None}
         rotate_steps()
@@ -52,8 +55,8 @@ class TestRotateSteps(unittest.TestCase):
         patches['load'].return_value = self.mock_store
         self.mock_store.period = None
 
-        correct = 'IDR311EN.201803231000.nc'
-        self.mock_ftp.files = {'IDR311AR.201803221000.nc': None,
+        correct = 'IDR311EN.RF3.20180323100000.nc'
+        self.mock_ftp.files = {'IDR311EN.RF3.20180322100000.nc': None,
                                correct: self.empty_stream}
         rotate_steps()
 
@@ -78,7 +81,7 @@ class TestRotateSteps(unittest.TestCase):
         self.mock_store.period = (datetime(2018, 3, 23, 10, 0),
                                   datetime(2018, 3, 25, 10, 0))
 
-        correct = 'IDR311EN.201803231000.nc'
+        correct = 'IDR311EN.RF3.20180323100000.nc'
         self.mock_ftp.files = {correct: self.empty_stream}
         rotate_steps()
 
@@ -91,7 +94,7 @@ class TestRotateSteps(unittest.TestCase):
         self.mock_store.period = (datetime(2018, 3, 23, 10, 0),
                                   datetime(2018, 3, 25, 10, 0))
 
-        correct = 'IDR311EN.201803231100.nc'
+        correct = 'IDR311EN.RF3.20180323110000.nc'
         self.mock_ftp.files = {correct: self.empty_stream}
         rotate_steps()
 
@@ -105,7 +108,7 @@ class TestRotateSteps(unittest.TestCase):
         self.mock_store.period = (datetime(2018, 3, 23, 10, 0),
                                   datetime(2018, 3, 25, 10, 0))
 
-        correct = 'IDR311EN.201803230900.nc'
+        correct = 'IDR311EN.RF3.20180323090000.nc'
         self.mock_ftp.files = {correct: self.empty_stream}
         rotate_steps()
 
@@ -115,9 +118,12 @@ class TestRotateSteps(unittest.TestCase):
 
 class TestExtract(unittest.TestCase):
     def setUp(self):
-        self.path = 'IDR311EN.201803231010.nc'
-        if not os.path.exists(self.path):
+        matched = [f for f in os.listdir(TEST_DATA_PATH)
+                   if f.startswith('IDR311EN.RF3')]
+        if len(matched) == 0:
             self.skipTest('NetCDF testfile for steps raindata not found.')
+        else:
+            self.path = os.path.join(TEST_DATA_PATH, matched[0])
 
     def test_smoke(self):
         extract_region(self.path)
@@ -142,7 +148,7 @@ class TestStore(unittest.TestCase):
         init_steps()
 
         proj = osr.GetUserInputAsWKT(str(config.PROJECTION))
-        region = Region.from_mem(data=np.empty((config.DEPTH, 256, 256),
+        region = Region.from_mem(data=np.empty((config.DEPTH, 512, 512),
                                                dtype='f4'),
                                  time=[datetime.now()],
                                  bands=(0, config.DEPTH), fillvalue=0.,
@@ -153,8 +159,6 @@ class TestStore(unittest.TestCase):
         store.update([region])
 
         expected_extent_native = (-256.0, 256.0, -256.0, 256.0)
-        expected_extent_wgs84 = (148.01554961545378, -36.52832899894018,
-                                 153.73245038454615, -31.936832031023386)
-
+        expected_extent_wgs84 = (148.047113, -35.536657, 153.700887, -30.951083)
         self.assertEqual(store.geometry.GetEnvelope(), expected_extent_native)
         np.testing.assert_allclose(store.extent, expected_extent_wgs84)

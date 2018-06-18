@@ -11,6 +11,9 @@ import shutil
 
 from raster_feeder.common import FTPServer
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 
 class TemporaryDirectory(object):
     """

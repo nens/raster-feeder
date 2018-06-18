@@ -11,7 +11,6 @@ from __future__ import absolute_import
 from __future__ import division
 
 from os.path import join
-import re
 
 # central config imports
 from ..config import BUILDOUT_DIR  # NOQA
@@ -23,23 +22,16 @@ NAME = 'steps'
 # storage temporal depth (add a frame with zero precipitation)
 DEPTH = 78
 
-# proj inferred from sample netcdf
-GEO_TRANSFORM = -256.0, 2.0, 0.0, 256.0, 0.0, -2.0
-PROJECTION = '+proj=gnom +lat_0=-34.264 +lon_0=150.874 +units=km'
-
-# the statistics are be performed on a region of interest (roi)
-# given in 'EPSG:32756' as follows:
-# 306074.77698, 319874.77698, 6253527.45723, 6265927.45723 (x1, x2, y1, y2)
-#
-# in the native gnomonic PROJECTION this transforms to to:
-# 2.78678, 16.82551, 46.8323, 59.56076 (x1, x2, y1, y2)
-#
-# using the native GEO_TRANSFORM, this gives the following array indices:
-STATISTICS_ROI = slice(98, 105), slice(129, 137)  # i (=y index), j (=x index)
+GEO_TRANSFORM = -256.0, 1.0, 0.0, 256.0, 0.0, -1.0
+# Proj4 string
+PROJECTION = '+proj=aea +lat_1=-18 +lat_2=-36 +lat_0=-33.264 +lon_0=150.874 +ellps=GRS80 +units=km'
+# Region of interest in EPSG:32756
+ROI_ESPG32756 = 306074.77698, 6253527.45723, 319874.77698, 6265927.45723
+# should result in ROI indices x 258:274, y 307:322
 
 # remote filename strftime() format and selection pattern
-FORMAT = 'IDR311EN.%Y%m%d%H%M.nc'
-PATTERN = 'IDR311EN\.[0-9]{12}\.nc'
+FORMAT = 'IDR311EN.RF3.%Y%m%d%H%M%S.nc'
+PATTERN = 'IDR311EN\.RF3\.[0-9]{14}\.nc'
 
 # -------------------------------------------
 # settings to be overridden in localconfig.py
