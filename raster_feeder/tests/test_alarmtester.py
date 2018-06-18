@@ -8,16 +8,12 @@ from __future__ import division
 
 import os
 import unittest
-import io
 import shutil
 import tempfile
 from datetime import datetime
-from mock import patch, DEFAULT, MagicMock
+from mock import patch
 
-import numpy as np
-from numpy.testing import assert_allclose
-
-import raster_feeder
+import raster_feeder  # NOQA
 from raster_feeder.alarmtester.config import NAME
 from raster_feeder.alarmtester.init import init_alarmtester
 from raster_feeder.alarmtester.rotate import rotate_alarmtester
