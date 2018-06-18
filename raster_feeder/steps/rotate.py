@@ -65,7 +65,7 @@ def extract_region(path):
 
         # NetCDF performs linear scaling and masking automatically
         nc.set_auto_maskandscale(True)
-        prcp = variable[:]
+        prcp = variable[:].astype('f4')
         fillvalue = np.finfo(prcp.dtype).max
 
         # NetCDF will produce a MaskedArray if there are masked pixels
