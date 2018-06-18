@@ -9,12 +9,11 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
-from os.path import basename, join
-
 import argparse
 import contextlib
 import json
 import logging
+import os
 import shutil
 import sys
 import tempfile
@@ -63,8 +62,15 @@ def extract_region(path):
 
         # read precipitation
         variable = nc.variables['precipitation']
-        prcp = variable[:]  # shape: (10, 74, 512, 512)
-        fillvalue = variable._FillValue.item()
+
+        # NetCDF performs linear scaling and masking automatically
+        nc.set_auto_maskandscale(True)
+        prcp = variable[:]
+        fillvalue = np.finfo(prcp.dtype).max
+
+        # NetCDF will produce a MaskedArray if there are masked pixels
+        if isinstance(prcp, np.ma.MaskedArray):
+            prcp = prcp.filled(fillvalue)
 
     # transform the region of interest to indices in the array
 
@@ -120,7 +126,7 @@ def extract_region(path):
     data = prcp[member]
 
     # prepare meta messages
-    metadata = json.dumps({'file': basename(path), 'member': member})
+    metadata = json.dumps({'file': os.path.basename(path), 'member': member})
     meta = config.DEPTH * [metadata]
 
     return regions.Region.from_mem(
@@ -139,7 +145,7 @@ def rotate_steps():
     Rotate steps stores.
     """
     # determine current store period
-    period = load(join(config.STORE_DIR, config.NAME)).period
+    period = load(os.path.join(config.STORE_DIR, config.NAME)).period
     if period is None:
         current = None
     else:
@@ -159,7 +165,7 @@ def rotate_steps():
     # download and process the file
     try:
         with mkdtemp() as tdir:
-            path = join(tdir, latest)
+            path = os.path.join(tdir, latest)
             server.retrieve_to_path(name=latest, path=path)
             region = extract_region(path)
     except Exception:
@@ -168,7 +174,7 @@ def rotate_steps():
 
     # rotate the stores
     name = config.NAME
-    path = join(config.STORE_DIR, name)
+    path = os.path.join(config.STORE_DIR, name)
     rotate(path=path, region=region, resource=name)
 
     # touch lizard
@@ -201,7 +207,7 @@ def main():
         logging.basicConfig(**{
             'level': logging.INFO,
             'format': '%(asctime)s %(levelname)s %(message)s',
-            'filename': join(config.LOG_DIR, 'steps_rotate.log')
+            'filename': os.path.join(config.LOG_DIR, 'steps_rotate.log')
         })
     logging.basicConfig(**kwargs)
 

@@ -125,8 +125,9 @@ class TestExtract(unittest.TestCase):
         else:
             self.path = os.path.join(TEST_DATA_PATH, matched[0])
 
-    def test_smoke(self):
-        extract_region(self.path)
+    def test_bands(self):
+        region = extract_region(self.path)
+        self.assertEqual(region.box.data.shape[0], config.DEPTH)
 
 
 class TestStore(unittest.TestCase):

@@ -10,7 +10,7 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
-from os.path import join
+import os
 
 # central config imports
 from ..config import BUILDOUT_DIR  # NOQA
@@ -20,7 +20,7 @@ from ..config import LOG_DIR       # NOQA
 NAME = 'steps'
 
 # storage temporal depth (add a frame with zero precipitation)
-DEPTH = 78
+DEPTH = 74
 
 GEO_TRANSFORM = -256.0, 1.0, 0.0, 256.0, 0.0, -1.0
 # Proj4 string
@@ -41,7 +41,7 @@ PATTERN = 'IDR311EN\.RF3\.[0-9]{14}\.nc'
 FTP = dict(host='', user='', password='', path='')
 
 # raster store location
-STORE_DIR = join(BUILDOUT_DIR, 'var', 'store')
+STORE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'store')
 
 # Lizard RasterStore UUIDs to touch
 TOUCH_LIZARD = []
