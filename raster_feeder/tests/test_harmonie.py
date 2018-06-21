@@ -166,12 +166,12 @@ class TestMakkink(unittest.TestCase):
 
         s = vapor_pressure_slope(temperature)
         expected = 0.65 * s / (s + 0.066) * radiation
-        expected /= 2.45e6 * 1e3         # [m / s]
-        expected *= 1000. * 3600. * 24.  # [mm / d]
+        expected /= 2.45e6 * 1e3   # [m / s]
+        expected *= 1000. * 3600.  # [mm / d]
 
         actual = makkink(radiation, temperature)
 
         assert_allclose(actual, expected)
 
         # in the order of 1-10 mm / day
-        assert_allclose(actual.mean(), 5., atol=4)
+        assert_allclose(actual.mean(), 0.2, atol=0.2)
