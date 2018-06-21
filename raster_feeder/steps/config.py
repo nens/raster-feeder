@@ -22,6 +22,8 @@ NAME = 'steps'
 # storage temporal depth (add a frame with zero precipitation)
 DEPTH = 74
 
+# geo_transform as 6-tuple
+# the second element should be positive and the last element negative
 GEO_TRANSFORM = -256.0, 1.0, 0.0, 256.0, 0.0, -1.0
 # Proj4 string
 PROJECTION = '+proj=aea +lat_1=-18 +lat_2=-36 +lat_0=-33.264 +lon_0=150.874 +ellps=GRS80 +units=km'

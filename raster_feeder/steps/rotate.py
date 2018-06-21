@@ -97,15 +97,9 @@ def extract_region(path):
     x1_px, y1_px = gdal.ApplyGeoTransform(inv_geo_transform, x1_proj, y1_proj)
     x2_px, y2_px = gdal.ApplyGeoTransform(inv_geo_transform, x2_proj, y2_proj)
 
-    # swap the indices if necessary
-    if x1_px > x2_px:
-        x1_px, x2_px = x2_px, x1_px
-    if y1_px > y2_px:
-        y1_px, y2_px = y2_px, y1_px
-
-    # don't set the step to -1 as we are only using the ROI for statistics
-    x_slice = slice(int(x1_px), int(math.ceil(x2_px)) + 1)
-    y_slice = slice(int(y1_px), int(math.ceil(y2_px)) + 1)
+    # swap the y indices as the y resolution is always negative
+    x_slice = slice(int(x1_px), int(math.ceil(x2_px)))
+    y_slice = slice(int(y2_px), int(math.ceil(y1_px)))
 
     # slice the region of interest from the array
     logger.info('Taking slice (y %d%d, x %d:%d) for member selection',
