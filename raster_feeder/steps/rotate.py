@@ -128,7 +128,7 @@ def extract_region(path):
         time=time,
         meta=meta,
         bands=(0, config.DEPTH),
-        fillvalue=fillvalue,
+        fillvalue=fillvalue.item(),
         geo_transform=config.GEO_TRANSFORM,
         projection=osr.GetUserInputAsWKT(str(config.PROJECTION))
     )
