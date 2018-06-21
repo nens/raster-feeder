@@ -93,7 +93,7 @@ def extract_region(path):
     x1_proj, x2_proj, y1_proj, y2_proj = poly.GetEnvelope()
 
     # transform the envelope to indices
-    inv_geo_transform = gdal.InvGeoTransform(config.GEO_TRANSFORM)
+    inv_geo_transform = gdal.InvGeoTransform(config.GEO_TRANSFORM)[1]
     x1_px, y1_px = gdal.ApplyGeoTransform(inv_geo_transform, x1_proj, y1_proj)
     x2_px, y2_px = gdal.ApplyGeoTransform(inv_geo_transform, x2_proj, y2_proj)
 
