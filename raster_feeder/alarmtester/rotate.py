@@ -50,7 +50,7 @@ def rotate_alarmtester():
     region = regions.Region.from_mem(
         time=time,
         bands=(0, config.DEPTH),
-        fillvalue=np.finfo('f4').max,
+        fillvalue=np.finfo('f4').max.item(),
         projection=osr.GetUserInputAsWKT(str(config.PROJECTION)),
         data=data,
         geo_transform=config.GEO_TRANSFORM,
