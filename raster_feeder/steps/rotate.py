@@ -102,7 +102,7 @@ def extract_region(path):
     y_slice = slice(int(y2_px), int(math.ceil(y1_px)))
 
     # slice the region of interest from the array
-    logger.info('Taking slice (y %d%d, x %d:%d) for member selection',
+    logger.info('Taking slice (y %d:%d, x %d:%d) for member selection',
                 y_slice.start, y_slice.stop, x_slice.start, x_slice.stop)
     prcp_roi = prcp[:, :, y_slice, x_slice].copy()
 
