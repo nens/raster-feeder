@@ -81,12 +81,14 @@ one for the rotation of the stores using externally obtained data. Location of
 the target group and the connection details of the suppliers are to be entered
 in the respective localconfig.py of the subpackage.
 
+ALARMTESTER: Worldwide from -3 to 10 and back with 5-minute resolution.
 NOWCAST: 3 hour NRR extrapolation with 5-minute resolution.
 HARMONIE: 48 hour model forecast with 1-hour resolution.
 STEPS: 1 hour model forecast with 1-hour resolution.
 
 To create the group of rotating stores (per product)::
 
+    $ bin/alarmtester-init
     $ bin/nowcast-init
     $ bin/harmonie-init
     $ bin/steps-init
@@ -95,6 +97,7 @@ To have the stores automatically rotate at predetermined times, use crontab::
 
     # Rotate forecast stores
     # m    h      dom mon dow command
+    */5    *      *   *   *   /srv/raster-feeder/bin/alarmtester-rotate
     */5    *      *   *   *   /srv/raster-feeder/bin/nowcast-rotate
     19     5-23/6 *   *   *   /srv/raster-feeder/bin/harmonie-rotate
     2-59/5 *      *   *   *   /srv/raster-feeder/bin/steps-rotate
