@@ -32,10 +32,10 @@ def rotate_alarmtester():
     """
     Rotate alarm tester stores.
     """
-    # obtain origin two hours before now and rounded to 1 minute
+    # obtain origin two hours before now and rounded to 5 minutes
     now = Datetime.utcnow()
     origin = Datetime(now.year, now.month, now.day, now.hour - 2,
-                      now.minute)
+                      (now.minute // 5) * 5)
 
     # generate the timepoints from that
     time = [origin + i * Timedelta(minutes=5) for i in range(config.DEPTH)]
