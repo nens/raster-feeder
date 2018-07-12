@@ -97,10 +97,12 @@ To have the stores automatically rotate at predetermined times, use crontab::
 
     # Rotate forecast stores
     # m    h      dom mon dow command
-    */5    *      *   *   *   /srv/raster-feeder/bin/alarmtester-rotate
+    0      *      *   *   *   /srv/raster-feeder/bin/alarmtester-rotate
     */5    *      *   *   *   /srv/raster-feeder/bin/nowcast-rotate
     19     5-23/6 *   *   *   /srv/raster-feeder/bin/harmonie-rotate
     2-59/5 *      *   *   *   /srv/raster-feeder/bin/steps-rotate
+
+On staging, we use "*/5" for the alarmtester to be able to test every 5 minutes.
 
 
 Informing Lizard of changes to stores
