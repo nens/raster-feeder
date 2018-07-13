@@ -34,8 +34,8 @@ def rotate_alarmtester():
     """
     # obtain origin two hours before now and rounded to 5 minutes
     now = Datetime.utcnow()
-    origin = Datetime(now.year, now.month, now.day, now.hour - 2,
-                      (now.minute // 5) * 5)
+    origin = now - Timedelta(hours=2, minutes=now.minute % 5,
+                             seconds=now.second, microseconds=now.microsecond)
 
     # generate the timepoints from that
     time = [origin + i * Timedelta(minutes=5) for i in range(config.DEPTH)]
