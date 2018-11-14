@@ -54,7 +54,7 @@ make everything work::
     15     * *   *   *   /srv/raster-feeder/bin/nrr-store 1d -d -p n
     16     * *   *   *   /srv/raster-feeder/bin/nrr-store 7d -d -p a
     17     * *   *   *   /srv/raster-feeder/bin/nrr-store 7d -d -p u
-    
+
     # Optimize radar data in the raster store
     # m    h dom mon dow command
     08     * *   *   *   /srv/raster-feeder/bin/nrr-move 5min real1 real2
@@ -62,6 +62,7 @@ make everything work::
     11    23 *   *   *   /srv/raster-feeder/bin/nrr-move 5min merge final
     21    23 *   *   1   /srv/raster-feeder/bin/nrr-move hour merge final
     31    23 1   *   *   /srv/raster-feeder/bin/nrr-move day merge final
+
 
 A report script is included to check the filling state of the stores and to
 report in case of missing products::
@@ -100,9 +101,9 @@ To have the stores automatically rotate at predetermined times, use crontab::
     0      *      *   *   *   /srv/raster-feeder/bin/alarmtester-rotate
     */5    *      *   *   *   /srv/raster-feeder/bin/nowcast-rotate
     19     5-23/6 *   *   *   /srv/raster-feeder/bin/harmonie-rotate
-    2-59/5 *      *   *   *   /srv/raster-feeder/bin/steps-rotate
+    25-29,55-59 * *   *   *   /srv/raster-feeder/bin/steps-rotate  # aligned with model runs
 
-On staging, we use "*/5" for the alarmtester to be able to test every 5 minutes.
+On staging, we use "\*/5" for the alarmtester to be able to test every 5 minutes.
 
 
 Informing Lizard of changes to stores
