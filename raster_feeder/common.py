@@ -5,7 +5,7 @@ Common feeder logic.
 """
 
 from os.path import basename, exists, join
-import json
+
 import logging
 import os
 
@@ -17,6 +17,9 @@ import re
 
 from raster_store import load
 from raster_store import stores
+from geoblocks.raster import Group
+from geoblocks.raster import RasterStoreSource
+
 from . import config
 
 logger = logging.getLogger(__name__)
@@ -63,16 +66,8 @@ def create_tumbler(path, depth, **kwargs):
 
             store.create_aggregation('topleft', (depth, 1))
 
-    geoblocks_config = {
-        'name': 'endpoint',
-        'graph': {
-            'endpoint': ['geoblocks.raster.combine.Group', 'store1', 'store2'],
-            'store1': ['geoblocks.raster.sources.RasterStoreSource', paths[0]],
-            'store2': ['geoblocks.raster.sources.RasterStoreSource', paths[1]],
-        }
-    }
-    geoblocks_config_serialized = json.dumps(geoblocks_config, indent=2)
-    print('Geoblocks configuration:\n%s' % geoblocks_config_serialized)
+    geoblock = Group(RasterStoreSource(paths[0]), RasterStoreSource(paths[1]))
+    print('Geoblock configuration:\n%s' % geoblock.to_json(indent=2))
 
 
 def rotate(path, region, resource, label='rotate'):
