@@ -41,12 +41,11 @@ def create_tumbler(path, depth, **kwargs):
         os.mkdir(path)
 
     name = basename(path)
-    store_confs = []
+    paths = []
 
     for store_name in name + '1', name + '2':
         # append store conf entry
-        store_rel_path = join(name, store_name)
-        store_confs.append({'Store': {'path': store_rel_path}})
+        paths.append(join(path, store_name))
 
         # skip existing
         store_path = join(path, store_name)
@@ -64,10 +63,16 @@ def create_tumbler(path, depth, **kwargs):
 
             store.create_aggregation('topleft', (depth, 1))
 
-    # group config
-    conf_path = path + '.json'
-    print('Update config file "%s".' % conf_path)
-    json.dump({'Group': store_confs}, open(conf_path, 'w'), indent=2)
+    geoblocks_config = {
+        'name': 'endpoint',
+        'graph': {
+            'endpoint': ['geoblocks.raster.combine.Group', 'store1', 'store2'],
+            'store1': ['geoblocks.raster.sources.RasterStoreSource', paths[0]],
+            'store2': ['geoblocks.raster.sources.RasterStoreSource', paths[1]],
+        }
+    }
+    geoblocks_config_serialized = json.dumps(geoblocks_config, indent=2)
+    print('Geoblocks configuration:\n%s' % geoblocks_config_serialized)
 
 
 def rotate(path, region, resource, label='rotate'):
