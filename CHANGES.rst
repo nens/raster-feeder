@@ -31,6 +31,9 @@ Changelog of raster-feeder
 
 - Add 'prcp' flavor of harmonie calculating intensity from cumulatives.
 
+- Do not write 'group' json in create_tumbler, but print the geoblocks config
+  instead.
+
 
 0.5 (2016-12-23)
 ----------------

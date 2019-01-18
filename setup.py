@@ -16,6 +16,7 @@ install_requires = [
     'numpy',
     'pygrib',
     'raster-store',
+    'geoblocks',
     'redis',
     'requests',
     'scipy',
