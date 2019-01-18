@@ -5,7 +5,7 @@ Common feeder logic.
 """
 
 from os.path import basename, exists, join
-import json
+
 import logging
 import os
 
@@ -17,6 +17,9 @@ import re
 
 from raster_store import load
 from raster_store import stores
+from geoblocks.raster import Group
+from geoblocks.raster import RasterStoreSource
+
 from . import config
 
 logger = logging.getLogger(__name__)
@@ -41,12 +44,11 @@ def create_tumbler(path, depth, **kwargs):
         os.mkdir(path)
 
     name = basename(path)
-    store_confs = []
+    paths = []
 
     for store_name in name + '1', name + '2':
         # append store conf entry
-        store_rel_path = join(name, store_name)
-        store_confs.append({'Store': {'path': store_rel_path}})
+        paths.append(join(path, store_name))
 
         # skip existing
         store_path = join(path, store_name)
@@ -64,10 +66,8 @@ def create_tumbler(path, depth, **kwargs):
 
             store.create_aggregation('topleft', (depth, 1))
 
-    # group config
-    conf_path = path + '.json'
-    print('Update config file "%s".' % conf_path)
-    json.dump({'Group': store_confs}, open(conf_path, 'w'), indent=2)
+    geoblock = Group(RasterStoreSource(paths[0]), RasterStoreSource(paths[1]))
+    print('Geoblock configuration:\n%s' % geoblock.to_json(indent=2))
 
 
 def rotate(path, region, resource, label='rotate'):
