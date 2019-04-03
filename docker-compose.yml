@@ -1,0 +1,13 @@
+version: '3'
+services:
+  lib:
+    build: .
+    environment:
+      - DOCKER=True
+      - SHELL=/bin/bash
+    volumes:
+      - ./:/code
+      - ~/.netrc:/home/nens/.netrc  # github authentication
+    command: tail -F anything
+  redis:
+    image: redis:3-alpine
