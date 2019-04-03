@@ -4,8 +4,8 @@
 Common feeder logic.
 """
 
+from os import remove
 from os.path import basename, exists, join
-
 import logging
 import os
 
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 locker = turn.Locker(host=config.REDIS_HOST, db=config.REDIS_DB)
 
 
-def create_tumbler(path, depth, **kwargs):
+def create_tumbler(path, depth, average=False, **kwargs):
     """
     Create a group with stores suitable for rotation.
 
@@ -64,10 +64,20 @@ def create_tumbler(path, depth, **kwargs):
             store.create_storage((depth, 1))
             store.create_storage((depth, depth))
 
+            # create aggregations
             store.create_aggregation('topleft', (depth, 1))
+            if average:
+                store.create_aggregation('average', (depth, 1))
+                store.create_aggregation('average', (depth, depth))
 
     geoblock = Group(RasterStoreSource(paths[0]), RasterStoreSource(paths[1]))
     print('Geoblock configuration:\n%s' % geoblock.to_json(indent=2))
+
+    # group config
+    conf_path = path + '.json'
+    print('Update config file "%s".' % conf_path)
+    with open(conf_path, 'w') as jsonfile:
+        jsonfile.write(geoblock.to_json(indent=2))
 
 
 def rotate(path, region, resource, label='rotate'):
@@ -101,14 +111,31 @@ def rotate(path, region, resource, label='rotate'):
             old, new = new, old
 
         # put the region in the new store
-        new.update([region])
+        try:
+            new.update([region])
+        except Exception:
+            logger.exception('Update error during rotation.')
+            remove_lockfile(new)
+            return
 
         # delete the data from the old store
         if old:
             start, stop = old.period
-            old.delete(start=start, stop=stop)
+            try:
+                old.delete(start=start, stop=stop)
+            except Exception:
+                logger.exception('Delete error during rotation.')
+                remove_lockfile(old)
+                return
 
     logger.info('Rotation of %s completed.' % resource)
+
+
+def remove_lockfile(store):
+    """ Remove a stores lockfile if it exists without further hesitation. """
+    lockpath = join(store.path, 'store.lock')
+    if exists(lockpath):
+        remove(lockpath)
 
 
 def touch_lizard(raster_uuid):
