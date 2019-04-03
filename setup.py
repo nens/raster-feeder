@@ -10,13 +10,13 @@ long_description = '\n\n'.join([
 
 install_requires = [
     'ciso8601',
-    'gdal',
+    'geoblocks',
     'h5py>=2.3.1',
     'netCDF4',
     'numpy',
+    'pygdal',
     'pygrib',
     'raster-store',
-    'geoblocks',
     'redis',
     'requests',
     'scipy',
@@ -47,6 +47,8 @@ setup(name='raster_feeder',
       extras_require={'test': tests_require},
       entry_points={
           'console_scripts': [
+              # COMMON
+              'info = raster_feeder.info:main',
               # NRR
               'nrr-init = raster_feeder.nrr.init:main',
               'nrr-merge = raster_feeder.nrr.merge:main',
