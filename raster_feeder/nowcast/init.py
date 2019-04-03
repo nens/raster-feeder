@@ -24,6 +24,7 @@ def init_nowcast():
     create_tumbler(
         path=join(config.STORE_DIR, config.NAME),
         depth=config.DEPTH,
+        average=True,
         dtype='f4',
         delta=Timedelta(**config.DELTA),
         projection=config.PROJECTION,
