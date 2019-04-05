@@ -26,14 +26,15 @@ DEPTH = 74
 # the second element should be positive and the last element negative
 GEO_TRANSFORM = -256.0, 1.0, 0.0, 256.0, 0.0, -1.0
 # Proj4 string
-PROJECTION = '+proj=aea +lat_1=-18 +lat_2=-36 +lat_0=-33.264 +lon_0=150.874 +ellps=GRS80 +units=km'
+PROJECTION = ('+proj=aea +lat_1=-18 +lat_2=-36 '
+              '+lat_0=-33.264 +lon_0=150.874 +ellps=GRS80 +units=km')
 # Region of interest in EPSG:32756
 ROI_ESPG32756 = 306074.77698, 6253527.45723, 319874.77698, 6265927.45723
 # should result in ROI indices x 258:274, y 307:322
 
 # remote filename strftime() format and selection pattern
 FORMAT = 'IDR311EN.RF3.%Y%m%d%H%M%S.nc'
-PATTERN = 'IDR311EN\.RF3\.[0-9]{14}\.nc'
+PATTERN = r'IDR311EN\.RF3\.[0-9]{14}\.nc'  # raw because invalid unicode
 
 # -------------------------------------------
 # settings to be overridden in localconfig.py

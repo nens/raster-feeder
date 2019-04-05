@@ -7,17 +7,34 @@ separated into separate components that have its own directories, they share a
 a number of properties such as the use of the turn library for queueing and
 putting the data on the same shared storage. 
 
-Installation
-------------
+Development installation
+------------------------
+
+$ docker-compose build
+$ docker-compose up --no-start
+$ docker-compose up start
+$ docker-compose exec web bash
+
+(docker)$ buildout
+
+Server installation
+-------------------
 
 Global dependencies::
 
-    $ sudo apt install libnetcdf-dev libhdf5-serial-dev python-grib
+    $ sudo apt install libnetcdf-dev libhdf5-serial-dev python-grib python-pip
+    $ sudo pip install --upgrade setuptools zc.buildout
+
+
+Trick buildout sysegg into thinking pygdal is available::
+
+    $ sudo ln -s \
+           /usr/lib/python2.7/dist-packages/GDAL-1.10.1.egg-info \
+           /usr/lib/python2.7/dist-packages/pygdal-1.10.1.egg-info
 
 Setting up::
     
-    $ python bootstrap.py
-    $ bin/buildout
+    $ buildout
 
 
 Configuration files

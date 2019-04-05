@@ -160,6 +160,8 @@ class TestStore(unittest.TestCase):
         store.update([region])
 
         expected_extent_native = (-256.0, 256.0, -256.0, 256.0)
-        expected_extent_wgs84 = (148.047113, -35.536657, 153.700887, -30.951083)
+        expected_extent_wgs84 = (
+            148.047113, -35.536657, 153.700887, -30.951083,
+        )
         self.assertEqual(store.geometry.GetEnvelope(), expected_extent_native)
         np.testing.assert_allclose(store.extent, expected_extent_wgs84)

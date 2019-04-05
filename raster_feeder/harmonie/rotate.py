@@ -13,8 +13,6 @@ from datetime import timedelta as Timedelta
 from os.path import join
 
 import argparse
-import ftplib
-import io
 import logging
 import struct
 import sys

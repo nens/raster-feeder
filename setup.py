@@ -10,22 +10,21 @@ long_description = '\n\n'.join([
 
 install_requires = [
     'ciso8601',
-    'gdal',
+    'geoblocks',
     'h5py>=2.3.1',
+    'mock',
     'netCDF4',
     'numpy',
+    'pygdal',
     'pygrib',
     'raster-store',
-    'geoblocks',
     'redis',
     'requests',
     'scipy',
+    'sentry-sdk',
     'setuptools',
     'turn',
     ],
-
-tests_require = ['mock'
-    ]
 
 setup(name='raster_feeder',
       version=version,
@@ -43,10 +42,10 @@ setup(name='raster_feeder',
       include_package_data=True,
       zip_safe=False,
       install_requires=install_requires,
-      tests_require=tests_require,
-      extras_require={'test': tests_require},
       entry_points={
           'console_scripts': [
+              # COMMON
+              'info = raster_feeder.info:main',
               # NRR
               'nrr-init = raster_feeder.nrr.init:main',
               'nrr-merge = raster_feeder.nrr.merge:main',
