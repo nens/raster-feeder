@@ -22,7 +22,7 @@ import numpy as np
 from osgeo import osr
 from raster_store import regions
 
-from ..common import rotate, touch_lizard, FTPServer
+from ..common import rotate, touch_lizard
 from . import config
 
 logger = logging.getLogger(__name__)

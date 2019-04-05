@@ -72,7 +72,7 @@ PROJECTION = 'EPSG:4326'
 
 # remote file name strftime() format
 FORMAT = 'harm36_v1_ned_surface_%Y%m%d%H.tgz'
-PATTERN = 'harm36_v1_ned_surface_[0-9]{10}\.tgz'
+PATTERN = r'harm36_v1_ned_surface_[0-9]{10}\.tgz'
 
 # -------------------------------------------
 # settings to be overridden in localconfig.py

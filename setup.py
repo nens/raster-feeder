@@ -12,6 +12,7 @@ install_requires = [
     'ciso8601',
     'geoblocks',
     'h5py>=2.3.1',
+    'mock',
     'netCDF4',
     'numpy',
     'pygdal',
@@ -24,9 +25,6 @@ install_requires = [
     'setuptools',
     'turn',
     ],
-
-tests_require = ['mock'
-    ]
 
 setup(name='raster_feeder',
       version=version,
@@ -44,8 +42,6 @@ setup(name='raster_feeder',
       include_package_data=True,
       zip_safe=False,
       install_requires=install_requires,
-      tests_require=tests_require,
-      extras_require={'test': tests_require},
       entry_points={
           'console_scripts': [
               # COMMON

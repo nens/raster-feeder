@@ -2,6 +2,8 @@ version: '3'
 services:
   lib:
     build: .
+    depends_on:
+      - redis
     environment:
       - DOCKER=True
       - SHELL=/bin/bash
