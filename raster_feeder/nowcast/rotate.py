@@ -102,7 +102,7 @@ def rotate_nowcast():
     try:
         region = get_nowcast_region()
     except Exception:
-        logger.exception('Error:')
+        logger.exception('Error getting the nowcast data.')
         return
 
     # rotate the stores

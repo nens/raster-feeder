@@ -163,7 +163,8 @@ def rotate_steps():
             server.retrieve_to_path(name=latest, path=path)
             region = extract_region(path)
     except Exception:
-        logger.exception('Error:')
+        logger.exception('Error getting the steps data.')
+
         return
 
     # rotate the stores
