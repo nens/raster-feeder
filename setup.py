@@ -20,6 +20,7 @@ install_requires = [
     'redis',
     'requests',
     'scipy',
+    'sentry-sdk',
     'setuptools',
     'turn',
     ],

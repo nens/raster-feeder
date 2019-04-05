@@ -26,6 +26,9 @@ LIZARD_USERNAME = 'override'
 LIZARD_PASSWORD = 'override'
 LIZARD_TEMPLATE = 'override'
 
+# sentry
+SENTRY_DSN = None  # put in localconfig: 'https://<key>@sentry.io/<project>'
+
 # Import local settings
 try:
     from .localconfig import *  # NOQA
