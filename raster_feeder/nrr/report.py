@@ -23,6 +23,7 @@ import redis
 
 from raster_store import cache
 from raster_store import load
+from geoblocks.interfaces import GeoInterface
 
 from . import config
 from . import periods
@@ -52,7 +53,7 @@ products were not delivered in time. The following problems were reported:
 
 
 def get_metas(name, period):
-    store = load(os.path.join(config.STORE_DIR, name))
+    store = GeoInterface(load(os.path.join(config.STORE_DIR, name)))
     start = period.start.isoformat()
     stop = period.stop.isoformat()
     metas = store.get_meta(start=start, stop=stop)

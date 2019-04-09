@@ -27,6 +27,7 @@ from osgeo import osr
 from raster_store import regions
 from raster_store import load
 from raster_store import cache
+from geoblocks.interfaces import GeoInterface
 
 from . import config
 from . import periods
@@ -108,7 +109,7 @@ class Store(object):
         group_path = join(config.STORE_DIR, self.names['group'])
         store_path = join(group_path, self.names['store'])
         self.store = load(store_path)
-        self.group = load(group_path)
+        self.group = GeoInterface(load(group_path))
 
         # others
         self.helper = get_path_helper(timeframe, prodcode)
