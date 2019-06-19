@@ -11,9 +11,7 @@ Development installation
 ------------------------
 
 $ docker-compose build
-$ docker-compose up --no-start
-$ docker-compose up start
-$ docker-compose exec web bash
+$ docker-compose up
 
 (docker)$ buildout
 

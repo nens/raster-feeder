@@ -46,6 +46,10 @@ FTP = dict(host='', user='', password='', path='')
 # raster store location
 STORE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'store')
 
+# local store/source location.
+LOCAL_SOURCE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'local', 'source')
+LOCAL_STORE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'local', 'store')
+
 # Lizard RasterStore UUIDs to touch
 TOUCH_LIZARD = []
 

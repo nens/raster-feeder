@@ -19,6 +19,7 @@ import sys
 import tempfile
 import math
 
+import re
 import netCDF4
 import numpy as np
 from osgeo import osr, ogr, gdal
@@ -134,7 +135,7 @@ def extract_region(path):
     )
 
 
-def rotate_steps():
+def rotate_steps(kwargs):
     """
     Rotate steps stores.
     """
@@ -146,8 +147,20 @@ def rotate_steps():
         current = period[0]
 
     # retrieve updated data
-    server = FTPServer(**config.FTP)
-    latest = server.get_latest_match(config.PATTERN)
+    if kwargs.get('local-source'):
+        try:
+            only_files = [
+                f for f in os.listdir(config.LOCAL_SOURCE_DIR)
+                if os.path.isfile(os.path.join(config.LOCAL_SOURCE_DIR, f))
+            ]
+            match = re.compile(config.PATTERN).match
+            latest = sorted(filter(match, only_files))[-1]
+        except IndexError:
+            latest = None
+    else:
+        server = FTPServer(**config.FTP)
+        latest = server.get_latest_match(config.PATTERN)
+
     if latest is None:
         logger.info('No source files found on server, exiting.')
         return
@@ -158,18 +171,24 @@ def rotate_steps():
 
     # download and process the file
     try:
-        with mkdtemp() as tdir:
-            path = os.path.join(tdir, latest)
-            server.retrieve_to_path(name=latest, path=path)
-            region = extract_region(path)
+        if not kwargs.get('local-source'):
+            with mkdtemp() as tdir:
+                path = os.path.join(tdir, latest)
+                server.retrieve_to_path(name=latest, path=path)
+        else:
+            path = os.path.join(config.LOCAL_SOURCE_DIR, latest)
+        region = extract_region(path)
     except Exception:
         logger.exception('Error getting the steps data.')
-
         return
 
-    # rotate the stores
     name = config.NAME
-    path = os.path.join(config.STORE_DIR, name)
+    if kwargs.get('local-store'):
+        path = os.path.join(config.LOCAL_STORE_DIR, name)
+    else:
+        path = os.path.join(config.STORE_DIR, name)
+
+    # rotate the stores
     rotate(path=path, region=region, resource=name)
 
     # touch lizard
@@ -185,6 +204,16 @@ def get_parser():
     parser.add_argument(
         '-v', '--verbose',
         action='store_true',
+    )
+    parser.add_argument(
+        '-lsrc', '--local-source',
+        action='store_true',
+        help='Retrieve files from a local source.'
+    )
+    parser.add_argument(
+        '-lstr', '--local-store',
+        action='store_true',
+        help='Store files into a local folder.'
     )
     return parser
 
