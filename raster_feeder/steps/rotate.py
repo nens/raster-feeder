@@ -147,7 +147,7 @@ def rotate_steps(kwargs):
         current = period[0]
 
     # retrieve updated data
-    if kwargs.get('local-source'):
+    if kwargs.get('local_source'):
         try:
             only_files = [
                 f for f in os.listdir(config.LOCAL_SOURCE_DIR)
@@ -171,7 +171,7 @@ def rotate_steps(kwargs):
 
     # download and process the file
     try:
-        if not kwargs.get('local-source'):
+        if not kwargs.get('local_source'):
             with mkdtemp() as tdir:
                 path = os.path.join(tdir, latest)
                 server.retrieve_to_path(name=latest, path=path)
@@ -183,7 +183,7 @@ def rotate_steps(kwargs):
         return
 
     name = config.NAME
-    if kwargs.get('local-store'):
+    if kwargs.get('local_store'):
         path = os.path.join(config.LOCAL_STORE_DIR, name)
     else:
         path = os.path.join(config.STORE_DIR, name)

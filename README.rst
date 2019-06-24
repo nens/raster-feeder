@@ -137,3 +137,11 @@ TODO
 ----
 - Generic FTP downloader in common module, possibly after the steps server
   class.
+
+LOCAL SOURCES AND STORES
+------------------------
+
+TODO Description
+
+- Files must be placed in `/var/local/source/`.
+- A flag can move to procssed the process files to avoid conflicting just if task went well.
