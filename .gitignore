@@ -7,6 +7,9 @@
 raster_feeder/local*
 raster_feeder/*/local*
 
+# docker-compose override
+docker-compose.override.yml
+
 # Packages
 *.egg
 *.egg-info
