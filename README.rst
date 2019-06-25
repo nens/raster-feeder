@@ -144,4 +144,7 @@ LOCAL SOURCES AND STORES
 TODO Description
 
 - Files must be placed in `/var/local/source/`.
-- A flag can move to procssed the process files to avoid conflicting just if task went well.
+- To avoid problems with different platforms run as::
+
+    $ bin/python raster_feeder/utils/steps_rotate_local.py
+
