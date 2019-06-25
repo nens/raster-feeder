@@ -177,33 +177,6 @@ def rotate_steps():
         touch_lizard(raster_uuid)
 
 
-def rotate_steps_local():
-    """
-    Rotate steps stores.
-    """
-    # sort files by date
-    files = [
-        f for f in os.listdir(config.LOCAL_SOURCE_DIR)
-        if os.path.isfile(os.path.join(config.LOCAL_SOURCE_DIR, f))
-        if f.split('.')[-1] == 'nc'
-    ]
-
-    # process the files in order
-    for file in files:
-        try:
-            region = extract_region(os.path.join(config.LOCAL_SOURCE_DIR, file))
-            rotate(path=config.LOCAL_STORE_DIR, region=region, resource=config.NAME)
-        except Exception:
-            logger.exception('Error processing files.')
-            continue
-        finally:
-            os.rename(
-                os.path.join(config.LOCAL_SOURCE_DIR, file),
-                os.path.join(config.LOCAL_SOURCE_DIR, 'processed', file)
-            )
-            logger.info('File {} processed.'.format(file))
-
-
 def get_parser():
     """ Return argument parser. """
     parser = argparse.ArgumentParser(
@@ -212,11 +185,6 @@ def get_parser():
     parser.add_argument(
         '-v', '--verbose',
         action='store_true',
-    )
-    parser.add_argument(
-        '-lsrc', '--localsource',
-        action='store_true',
-        help='Retrieve files from a local source.'
     )
     return parser
 
@@ -238,7 +206,5 @@ def main():
         })
     logging.basicConfig(**kwargs)
 
-    if kwargs.get('localsource'):
-        rotate_steps_local()
-    else:
-        rotate_steps()
+    # run
+    rotate_steps(**kwargs)
