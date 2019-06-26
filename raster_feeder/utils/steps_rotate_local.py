@@ -24,6 +24,7 @@ import numpy as np
 from osgeo import osr, ogr, gdal
 
 from raster_store import load
+from raster_store.routines import create_storage
 from raster_store import regions
 
 from raster_feeder.common import rotate
@@ -149,19 +150,21 @@ def rotate_steps_local():
     ]
 
     # process the files in order
-    for file in files:
+    # run init
+    # delete steps2
+
+    for i, file in enumerate(sorted(files)):
         try:
+            # copy step1 
+            path = os.path.join(config.STORE_DIR, config.NAME, 'steps1')
+            raster_store = load(path)
+
             region = extract_region(os.path.join(config.LOCAL_SOURCE_DIR, file))
-            rotate(path=os.path.join(config.STORE_DIR, config.NAME), region=region, resource=config.NAME)
+            raster_store.update([region])
         except Exception:
             logger.exception('Error processing files.')
             continue
-        finally:
-            os.rename(
-                os.path.join(config.LOCAL_SOURCE_DIR, file),
-                os.path.join(config.LOCAL_SOURCE_DIR, 'processed', file)
-            )
-            logger.info('File {} processed.'.format(file))
+        break
 
 
 def get_parser():
