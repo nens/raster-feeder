@@ -172,7 +172,7 @@ def rotate_steps_local():
     for i, file in enumerate(sorted(files)):
         try:
             # name for raster -- this will be used in '.gif' file
-            file_timestamp = file.split('.')[0]
+            file_timestamp = file.split('.')[0] or 'XXXXX_{}'.format(i)
 
             # make a new raster from step1
             raster_path = os.path.join(config.STORE_DIR, config.NAME, file_timestamp)
