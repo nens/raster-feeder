@@ -29,6 +29,9 @@ from raster_store import regions
 
 from raster_feeder.common import rotate
 from raster_feeder.steps import config
+from raster_feeder.common import create_tumbler
+from datetime import datetime as Datetime
+from datetime import timedelta as Timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -141,30 +144,51 @@ def rotate_steps_local():
     """
     Rotate steps stores.
     """
+    # process the files in order --save state
+    # clean folder from steps-init operation
+    shutil.rmtree(os.path.join(config.STORE_DIR, config.NAME, 'steps1'))
+    shutil.rmtree(os.path.join(config.STORE_DIR, config.NAME, 'steps2'))
+
+    # run init - create a empty tumbler
+    create_tumbler(
+        path=join(config.STORE_DIR, config.NAME),
+        depth=config.DEPTH,
+        dtype='f4',
+        delta=Timedelta(minutes=10),
+        projection=config.PROJECTION,
+        geo_transform=config.GEO_TRANSFORM,
+        origin=Datetime(year=2000, month=1, day=1),
+    )
+    # delete steps2 - we do not need that
+    shutil.rmtree(os.path.join(config.STORE_DIR, config.NAME, 'steps2'))
 
     # sort files by date
-    files = [
+    files = sorted([
         f for f in os.listdir(config.LOCAL_SOURCE_DIR)
         if os.path.isfile(os.path.join(config.LOCAL_SOURCE_DIR, f))
         if f.split('.')[-1] == 'nc'
-    ]
-
-    # process the files in order
-    # run init
-    # delete steps2
+    ])
 
     for i, file in enumerate(sorted(files)):
         try:
-            # copy step1 
-            path = os.path.join(config.STORE_DIR, config.NAME, 'steps1')
-            raster_store = load(path)
+            # name for raster -- this will be used in '.gif' file
+            file_timestamp = file.split('.')[0]
 
-            region = extract_region(os.path.join(config.LOCAL_SOURCE_DIR, file))
+            # make a new raster from step1
+            raster_path = os.path.join(config.STORE_DIR, config.NAME, file_timestamp)
+            if os.path.isdir(raster_path):
+                shutil.rmtree(raster_path)
+            shutil.copytree(
+                os.path.join(config.STORE_DIR, config.NAME, 'steps1'),
+                raster_path
+            )
+            # update region
+            raster_store = load(raster_path)
+            region = extract_region(os.path.join(config.LOCAL_SOURCE_DIR, file_timestamp))
             raster_store.update([region])
         except Exception:
             logger.exception('Error processing files.')
             continue
-        break
 
 
 def get_parser():
