@@ -144,14 +144,19 @@ def rotate_steps_local():
     """
     Rotate steps stores.
     """
-    # process the files in order --save state
+    # process the files in order -- save state
     # clean folder from steps-init operation
-    shutil.rmtree(os.path.join(config.STORE_DIR, config.NAME, 'steps1'))
-    shutil.rmtree(os.path.join(config.STORE_DIR, config.NAME, 'steps2'))
+
+    import sys; sys.path[0:0] = ['/pycharm-helpers/pycharm-debug.egg', ]; import pydevd; pydevd.settrace('10.90.16.45', port=4445, stdoutToServer=True, stderrToServer=True, suspend=True)
+
+    if os.path.isdir(os.path.join(config.STORE_DIR, config.NAME, 'steps1')):
+        shutil.rmtree(os.path.join(config.STORE_DIR, config.NAME, 'steps1'))
+    if os.path.isdir(os.path.join(config.STORE_DIR, config.NAME, 'steps2')):
+        shutil.rmtree(os.path.join(config.STORE_DIR, config.NAME, 'steps2'))
 
     # run init - create a empty tumbler
     create_tumbler(
-        path=join(config.STORE_DIR, config.NAME),
+        path=os.path.join(config.STORE_DIR, config.NAME),
         depth=config.DEPTH,
         dtype='f4',
         delta=Timedelta(minutes=10),
@@ -159,6 +164,7 @@ def rotate_steps_local():
         geo_transform=config.GEO_TRANSFORM,
         origin=Datetime(year=2000, month=1, day=1),
     )
+
     # delete steps2 - we do not need that
     shutil.rmtree(os.path.join(config.STORE_DIR, config.NAME, 'steps2'))
 
@@ -175,15 +181,16 @@ def rotate_steps_local():
             file_timestamp = file.split('.')[0] or 'XXXXX_{}'.format(i)
 
             # make a new raster from step1
-            raster_path = os.path.join(config.STORE_DIR, config.NAME, file_timestamp)
-            if os.path.isdir(raster_path):
-                shutil.rmtree(raster_path)
+            rasterdir_path = os.path.join(config.LOCAL_STORE_DIR, file_timestamp)
+            if os.path.isdir(rasterdir_path):
+                shutil.rmtree(rasterdir_path)
             shutil.copytree(
                 os.path.join(config.STORE_DIR, config.NAME, 'steps1'),
-                raster_path
+                rasterdir_path
             )
+
             # update region
-            raster_store = load(raster_path)
+            raster_store = load(rasterdir_path)
             region = extract_region(os.path.join(config.LOCAL_SOURCE_DIR, file_timestamp))
             raster_store.update([region])
         except Exception:

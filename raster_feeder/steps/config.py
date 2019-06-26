@@ -48,7 +48,7 @@ STORE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'store')
 
 # local store/source location.
 LOCAL_SOURCE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'local', 'source')
-LOCAL_STORE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'local', 'store')
+LOCAL_STORE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'local', 'rasters')
 
 # Lizard RasterStore UUIDs to touch
 TOUCH_LIZARD = []
