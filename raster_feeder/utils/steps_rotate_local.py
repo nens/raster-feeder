@@ -170,10 +170,10 @@ def rotate_steps_local():
         if f.split('.')[-1] == 'nc'
     ])
 
-    for i, file in enumerate(sorted(files)):
+    for file in files:
         try:
             # name for raster -- this will be used in '.gif' file
-            file_timestamp = file.split('.')[0] or 'XXXXX_{}'.format(i)
+            file_timestamp = file.split('.')[0]
 
             # make a new raster from step1
             rasterdir_path = os.path.join(config.LOCAL_STORE_DIR, file_timestamp)
@@ -186,7 +186,7 @@ def rotate_steps_local():
 
             # update region
             raster_store = load(rasterdir_path)
-            region = extract_region(os.path.join(config.LOCAL_SOURCE_DIR, file_timestamp))
+            region = extract_region(os.path.join(config.LOCAL_SOURCE_DIR, file))
             raster_store.update([region])
         except Exception:
             logger.exception('Error processing files.')
