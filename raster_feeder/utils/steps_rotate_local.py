@@ -192,6 +192,56 @@ def rotate_steps_local():
             logger.exception('Error processing files.')
             continue
 
+def rotate_steps_local_single_raster():
+    """
+    Rotate steps stores.
+    """
+    # process the files in order -- save state
+    # clean folder from steps-init operation
+    if os.path.isdir(os.path.join(config.STORE_DIR, config.NAME, 'steps1')):
+        shutil.rmtree(os.path.join(config.STORE_DIR, config.NAME, 'steps1'))
+    if os.path.isdir(os.path.join(config.STORE_DIR, config.NAME, 'steps2')):
+        shutil.rmtree(os.path.join(config.STORE_DIR, config.NAME, 'steps2'))
+
+    # run init - create a empty tumbler
+    create_tumbler(
+        path=os.path.join(config.STORE_DIR, config.NAME),
+        depth=config.DEPTH,
+        dtype='f4',
+        delta=Timedelta(minutes=10),
+        projection=config.PROJECTION,
+        geo_transform=config.GEO_TRANSFORM,
+        origin=Datetime(year=2000, month=1, day=1),
+    )
+
+    # delete steps2 - we do not need that
+    shutil.rmtree(os.path.join(config.STORE_DIR, config.NAME, 'steps2'))
+
+    # sort files by date
+    files = sorted([
+        f for f in os.listdir(config.LOCAL_SOURCE_DIR)
+        if os.path.isfile(os.path.join(config.LOCAL_SOURCE_DIR, f))
+        if f.split('.')[-1] == 'nc'
+    ])
+
+    # make a new raster from step1
+    raster_name = files[0].split('.')[0].split('_')[1]
+    rasterdir_path = os.path.join(config.LOCAL_STORE_DIR, 'single_raster_{}'.format(raster_name))
+    if os.path.isdir(rasterdir_path):
+        shutil.rmtree(rasterdir_path)
+    shutil.copytree(
+        os.path.join(config.STORE_DIR, config.NAME, 'steps1'),
+        rasterdir_path
+    )
+    raster_store = load(rasterdir_path)
+
+    for file in files:
+        try:
+            region = extract_region(os.path.join(config.LOCAL_SOURCE_DIR, file))
+            raster_store.update([region])
+        except Exception:
+            logger.exception('Error processing files.')
+            continue
 
 def get_parser():
     """ Return argument parser. """
@@ -200,6 +250,10 @@ def get_parser():
     )
     parser.add_argument(
         '-v', '--verbose',
+        action='store_true',
+    )
+    parser.add_argument(
+        '-sr', '--singleraster',
         action='store_true',
     )
     return parser
@@ -222,8 +276,37 @@ def main():
         })
     logging.basicConfig(**kwargs)
 
-    rotate_steps_local()
+    if kwargs.get('singleraster'):
+        rotate_steps_local_single_raster()
+    else:
+        rotate_steps_local()
 
 
 if __name__ == '__main__':
     sys.exit(main())
+
+
+"""  
+1. - Create file docker-compose.override.yml and add: 
+
+version: '3'
+
+services:
+    lib:
+      volumes:
+        - /home/jose/Downloads/debug-eggs:/pycharm-helpers
+        - /home/jose/Desktop/Rainfields/ncfiles:/code/var/local/source
+        - /home/jose/Desktop/Rainfields/ncrasters:/code/var/local/rasters
+     
+        
+2. - Place nc files in local:
+   /home/jose/Desktop/Rainfields/ncfiles
+   
+3. - Select option write in a single raster or generate a raster per nc:
+
+  '-sr', '--singleraster'
+  
+4. - Make sure that this exists in your local
+    - /home/jose/Desktop/Rainfields/ncfiles:/code/var/local/source
+    - /home/jose/Desktop/Rainfields/ncrasters:/code/var/local/rasters          
+"""
