@@ -24,10 +24,8 @@ import numpy as np
 from osgeo import osr, ogr, gdal
 
 from raster_store import load
-from raster_store.routines import create_storage
 from raster_store import regions
 
-from raster_feeder.common import rotate
 from raster_feeder.steps import config
 from raster_feeder.common import create_tumbler
 from datetime import datetime as Datetime
@@ -146,9 +144,6 @@ def rotate_steps_local():
     """
     # process the files in order -- save state
     # clean folder from steps-init operation
-
-    import sys; sys.path[0:0] = ['/pycharm-helpers/pycharm-debug.egg', ]; import pydevd; pydevd.settrace('10.90.16.45', port=4445, stdoutToServer=True, stderrToServer=True, suspend=True)
-
     if os.path.isdir(os.path.join(config.STORE_DIR, config.NAME, 'steps1')):
         shutil.rmtree(os.path.join(config.STORE_DIR, config.NAME, 'steps1'))
     if os.path.isdir(os.path.join(config.STORE_DIR, config.NAME, 'steps2')):
