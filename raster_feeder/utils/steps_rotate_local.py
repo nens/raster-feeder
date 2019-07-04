@@ -297,14 +297,14 @@ services:
         - /home/jose/Downloads/debug-eggs:/pycharm-helpers
         - /home/jose/Desktop/Rainfields/ncfiles:/code/var/local/source
         - /home/jose/Desktop/Rainfields/ncrasters:/code/var/local/rasters
-     
         
 2. - Place nc files in local:
    /home/jose/Desktop/Rainfields/ncfiles
    
 3. - Select option write in a single raster or generate a raster per nc:
 
-  '-sr', '--singleraster'
+  -sr: single raster
+  -no argument: a raster per nc.
   
 4. - Make sure that this exists in your local
     - /home/jose/Desktop/Rainfields/ncfiles:/code/var/local/source
