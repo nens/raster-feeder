@@ -2,7 +2,7 @@ Changelog of raster-feeder
 ==========================
 
 
-0.6 (unreleased)
+0.6 (2019-07-24)
 ----------------
 
 - Added ``touch-lizard`` script to update the raster in Lizard.
