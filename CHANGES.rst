@@ -5,7 +5,7 @@ Changelog of raster-feeder
 0.7 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Bump raster-store to 4.0.5, removes moving from flushing.
 
 
 0.6 (2019-07-24)
