@@ -44,6 +44,10 @@ def fetch_latest_nowcast_h5():
 
     nlst = [n for n in connection.nlst()
             if n.startswith('RAD_TF0005_R_PROG_')]
+
+    if not nlst:
+        raise ValueError('No nowcast files found on FTP server.')
+
     target_name = sorted(nlst)[-1]
     target_path = join(tempfile.mkdtemp(), target_name)
     with open(target_path, 'w') as target_file:

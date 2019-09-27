@@ -7,6 +7,8 @@ Changelog of raster-feeder
 
 - Bump raster-store to 4.0.5, removes moving from flushing.
 
+- Added more meaningful error when nowcast files missing.
+
 
 0.6 (2019-07-24)
 ----------------
