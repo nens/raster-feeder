@@ -9,6 +9,8 @@ Changelog of raster-feeder
 
 - Added more meaningful error when nowcast files missing.
 
+- New Harmonie version.
+
 
 0.6 (2019-07-24)
 ----------------

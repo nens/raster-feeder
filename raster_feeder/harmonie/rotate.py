@@ -97,7 +97,7 @@ def unpack_tarfile(fileobj):
 
     :param fileobj: File object containing HARMONIE tarfile data.
     """
-    with tarfile.open(fileobj=fileobj, mode="r:gz") as archive:
+    with tarfile.open(fileobj=fileobj, mode="r") as archive:
         for member in archive:
             yield archive.extractfile(member).read()
 
@@ -112,10 +112,17 @@ def extract_regions(fileobj):
     assumed that the grib messages are in correct temporal order.
     """
     # group names and levels
-    names = tuple(p['group'] for p in config.PARAMETERS)
+    names = tuple(p['raster-store-group'] for p in config.PARAMETERS)
 
-    # create a lookup-table for group names by level
-    lut = {(p['level'], p['code']): p['group'] for p in config.PARAMETERS}
+    # create a lookup-table for group names keyed by tuple of some parameters
+    lut = {}
+    for p in config.PARAMETERS:
+        lut[
+            p['indicatorOfParameter'],
+            p['level'],
+            p['timeRangeIndicator'],
+            p['typeOfLevel'],
+        ] = p['raster-store-group']
 
     # prepare containers for the result values
     data = {n: [] for n in names}
@@ -125,16 +132,29 @@ def extract_regions(fileobj):
     logger.info('Extract data from tarfile.')
     for gribdata in unpack_tarfile(fileobj):
         for message in parse_gribdata(gribdata):
+            indicatorOfParameter = message['indicatorOfParameter']
+            timeRangeIndicator = message['timeRangeIndicator']
             try:
-                n = lut[(message['level'], message['indicatorOfParameter'])]
+                n = lut[
+                    indicatorOfParameter,
+                    message['level'],
+                    timeRangeIndicator,
+                    message['typeOfLevel'],
+                ]
             except KeyError:
                 continue
 
+            # there have been issues with the first message in CR, CS, CG they
+            # have different shape, bounds, time and should not be in these
+            # cumulative parameters anyway
+            if message['numberOfValues'] != 90000:
+                continue
+
             # time
-            hours = message['startStep']
+            hours = message['endStep']
             time[n].append(message.analDate + Timedelta(hours=hours))
 
-            # data is upside down
+            # data row order is inverted compared to target raster storage
             data[n].append(message['values'][::-1].astype('f4'))
 
     # convert data lists to arrays
