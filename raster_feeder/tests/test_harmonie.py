@@ -21,7 +21,6 @@ from raster_feeder.harmonie.rotate import vapor_pressure_slope, makkink
 from raster_feeder.harmonie import config
 from raster_store.stores import Store
 
-
 @patch.multiple('raster_feeder.harmonie.rotate', FTPServer=DEFAULT,
                 load=DEFAULT, rotate=DEFAULT, touch_lizard=DEFAULT,
                 extract_regions=DEFAULT)
@@ -32,7 +31,7 @@ class TestRotateHarmonie(unittest.TestCase):
         self.stream = io.BytesIO()
         self.stream.write(b'test')
         self.stream.seek(0)
-        self.correct_fn = 'harm36_v1_ned_surface_2018032606.tgz'
+        self.correct_fn = 'harm40_v1_p1_2018032606.tar'
 
     def test_pick_correct(self, **patches):
         patches['FTPServer'].return_value = self.mock_ftp
@@ -40,7 +39,7 @@ class TestRotateHarmonie(unittest.TestCase):
         self.mock_store.period = None
 
         self.mock_ftp.files = {self.correct_fn: self.stream,
-                               'harm35_v1_ned_surface_2018032706.tgz': None}
+                              'aton40_v1_p1_2018032606.tar': None}
         rotate_harmonie()
 
         extract_region_patch = patches['extract_regions']
@@ -52,7 +51,7 @@ class TestRotateHarmonie(unittest.TestCase):
         patches['load'].return_value = self.mock_store
         self.mock_store.period = None
 
-        self.mock_ftp.files = {'harm36_v1_ned_surface_2018032606.tgz': None,
+        self.mock_ftp.files = {'harm40_v1_p1_2018032606.tar': None,
                                self.correct_fn: self.stream}
         rotate_harmonie()
 
@@ -112,7 +111,7 @@ class TestRotateHarmonie(unittest.TestCase):
 class TestExtract(unittest.TestCase):
     def setUp(self):
         self.path = os.path.abspath('../../var/'
-                                    'harm36_v1_ned_surface_2018032606.tgz')
+                                    'harm40_v1_p1_2018032606.tar')
         if not os.path.exists(self.path):
             self.skipTest('Testfile for KNMI harmonie data not found.')
 

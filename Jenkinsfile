@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'nxt' }
+    agent any
     stages {
         stage("Checkout") {
             steps {
