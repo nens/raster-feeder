@@ -76,7 +76,6 @@ GEO_TRANSFORM = -0.0185, 0.037, 0, 55.8885, 0, -0.023
 PROJECTION = 'EPSG:4326'
 
 # remote file name strftime() format
-harm40_v1_p1_2019112018.tar
 FORMAT = 'harm40_v1_p1_%Y%m%d%H.tar'
 PATTERN = r'harm40_v1_p1_[0-9]{10}\.tar'
 
