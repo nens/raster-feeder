@@ -15,7 +15,11 @@ gdal.UseExceptions()
 osr.UseExceptions()
 
 # use one cache client for all raster store operations
-cache.client = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
+cache.client = redis.Redis(
+    host=config.REDIS_HOST,
+    db=config.REDIS_DB,
+    password=config.REDIS_PASSWORD
+)
 
 # sentry
 if config.SENTRY_DSN:

@@ -25,7 +25,11 @@ from . import config
 logger = logging.getLogger(__name__)
 
 # mtime caching
-cache.client = redis.Redis(host=config.REDIS_HOST, db=config.REDIS_DB)
+cache.client = redis.Redis(
+    host=config.REDIS_HOST,
+    db=config.REDIS_DB,
+    password=config.REDIS_PASSWORD
+)
 
 
 def get_store(time_name, store_name):
@@ -68,7 +72,11 @@ def move(time_name, source_name, target_name):
     target = get_store(time_name=time_name, store_name=target_name)
 
     # promote
-    locker = turn.Locker(host=config.REDIS_HOST, db=config.REDIS_DB)
+    locker = turn.Locker(
+        host=config.REDIS_HOST,
+        db=config.REDIS_DB,
+        password=config.REDIS_PASSWORD
+    )
     label = 'move: {} => {}'.format(source_name, target_name)
     template = "Move from '{}/{}' into '{}/{}'."
     message = template.format(time_name, source_name, time_name, target_name)
