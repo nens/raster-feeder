@@ -20,6 +20,7 @@ LOG_DIR = join(BUILDOUT_DIR, 'var', 'log')
 # redis host for mtime cache and turn locking system
 REDIS_HOST = 'localhost'
 REDIS_DB = 0
+REDIS_PASSWORD = None
 
 # Lizard API credentials
 LIZARD_USERNAME = 'override'

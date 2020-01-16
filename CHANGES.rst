@@ -11,6 +11,8 @@ Changelog of raster-feeder
 
 - New Harmonie version.
 
+- Add and use the REDIS_PASSWORD setting.
+
 
 0.6 (2019-07-24)
 ----------------

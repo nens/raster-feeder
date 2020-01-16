@@ -23,7 +23,11 @@ from geoblocks.raster import RasterStoreSource
 from . import config
 
 logger = logging.getLogger(__name__)
-locker = turn.Locker(host=config.REDIS_HOST, db=config.REDIS_DB)
+locker = turn.Locker(
+    host=config.REDIS_HOST,
+    db=config.REDIS_DB,
+    password=config.REDIS_PASSWORD
+)
 
 
 def create_tumbler(path, depth, average=False, **kwargs):

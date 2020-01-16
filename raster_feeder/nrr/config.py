@@ -19,6 +19,7 @@ from ..config import LOG_DIR       # NOQA
 
 from ..config import REDIS_HOST    # NOQA
 from ..config import REDIS_DB      # NOQA
+from ..config import REDIS_PASSWORD      # NOQA
 
 # data is read from here
 CALIBRATE_DIR = join(BUILDOUT_DIR, 'var', 'calibrate')
