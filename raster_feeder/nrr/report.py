@@ -23,7 +23,7 @@ import redis
 
 from raster_store import cache
 from raster_store import load
-from geoblocks.interfaces import GeoInterface
+from raster_store.interfaces import GeoInterface
 
 from . import config
 from . import periods

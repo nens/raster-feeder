@@ -11,7 +11,7 @@ import argparse
 import logging
 
 from raster_store import load
-from geoblocks.raster import Group
+from dask_geomodeling.raster import Group
 
 logger = logging.getLogger(__name__)
 

@@ -27,7 +27,7 @@ from osgeo import osr
 from raster_store import regions
 from raster_store import load
 from raster_store import cache
-from geoblocks.interfaces import GeoInterface
+from raster_store.interfaces import GeoInterface
 
 from . import config
 from . import periods

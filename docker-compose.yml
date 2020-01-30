@@ -1,4 +1,5 @@
 version: '3'
+
 services:
   lib:
     build: .
@@ -6,10 +7,12 @@ services:
       - redis
     environment:
       - DOCKER=True
+      - PYTHONUNBUFFERED=1
       - SHELL=/bin/bash
     volumes:
       - ./:/code
       - ~/.netrc:/home/nens/.netrc  # github authentication
+      - ~/.cache:/home/nens/.cache  # shared cache
     command: tail -F anything
   redis:
     image: redis:3-alpine

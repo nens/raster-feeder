@@ -17,8 +17,8 @@ import re
 
 from raster_store import load
 from raster_store import stores
-from geoblocks.raster import Group
-from geoblocks.raster import RasterStoreSource
+from dask_geomodeling.raster import Group
+from dask_geomodeling.raster import RasterStoreSource
 
 from . import config
 
