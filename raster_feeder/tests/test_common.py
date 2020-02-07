@@ -4,13 +4,14 @@
 import mock
 import os
 import unittest
-from nose.plugins.attrib import attr
+
+from pytest import mark
 
 from raster_feeder.common import FTPServer
 from raster_feeder.tests.common import TemporaryDirectory
 
 
-@attr('common')
+@mark.common
 class TestFTPServer(unittest.TestCase):
     def setUp(self):
         self.login = dict(host='speedtest.tele2.net', user='anonymous',

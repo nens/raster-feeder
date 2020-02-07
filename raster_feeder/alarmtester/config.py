@@ -6,11 +6,9 @@ and increases from -3 to 10 and back to -3, from -2 to 6 hours from now. Time
 resolution and refresh interval is 5 min. Proj: WGS84. Shape: (4, 2)
 """
 
-import os
-
 # central config imports
-from ..config import BUILDOUT_DIR  # NOQA
-from ..config import LOG_DIR       # NOQA
+from ..config import PACKAGE_DIR  # NOQA
+from ..config import LOG_DIR      # NOQA
 
 # hour, value tuples
 VALUES = [(-2, -3), (2, 10), (6, -3)]
@@ -30,7 +28,7 @@ PROJECTION = 'EPSG:4326'
 # -------------------------------------------
 
 # raster store location
-STORE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'store')
+STORE_DIR = PACKAGE_DIR / "var" / "store"
 
 # Lizard RasterStore UUIDs to touch
 TOUCH_LIZARD = []

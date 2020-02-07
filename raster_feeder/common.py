@@ -18,7 +18,7 @@ import re
 from raster_store import load
 from raster_store import stores
 from dask_geomodeling.raster import Group
-from dask_geomodeling.raster import RasterStoreSource
+from raster_store.blocks import RasterStoreSource
 
 from . import config
 
@@ -193,7 +193,7 @@ class FTPServer(object):
 
     def retrieve_to_path(self, name, path):
         """ Write remote file to local path. """
-        with open(path, 'w') as f:
+        with open(path, 'wb') as f:
             self._retrieve_to_stream(name, f)
 
     def retrieve_to_stream(self, name):

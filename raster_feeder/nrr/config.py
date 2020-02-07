@@ -5,20 +5,19 @@ This is the NRR configuration file. It allows for a 'NRR' localconfig, too,
 which should be put in the same directory as this module.
 """
 
-from os.path import join
 from datetime import timedelta as Timedelta
 
 # central config imports
-from ..config import BUILDOUT_DIR
-from ..config import LOG_DIR       # NOQA
+from ..config import PACKAGE_DIR  # NOQA
+from ..config import LOG_DIR      # NOQA
 
 from ..config import REDIS_HOST    # NOQA
 from ..config import REDIS_DB      # NOQA
 from ..config import REDIS_PASSWORD      # NOQA
 
 # data is read from here
-CALIBRATE_DIR = join(BUILDOUT_DIR, 'var', 'calibrate')
-CONSISTENT_DIR = join(BUILDOUT_DIR, 'var', 'consistent')
+CALIBRATE_DIR = PACKAGE_DIR / "var" / "calibrate"
+CONSISTENT_DIR = PACKAGE_DIR / "var" / "consistent"
 
 # Default nodatavalue
 NODATAVALUE = -9999
@@ -56,7 +55,7 @@ REPORT_SENDER = ''
 REPORT_RECIPIENTS = []
 
 # raster store location
-STORE_DIR = join(BUILDOUT_DIR, 'var', 'store')
+STORE_DIR = PACKAGE_DIR / "var" / "store"
 
 # Import local settings
 try:

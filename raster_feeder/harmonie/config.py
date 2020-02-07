@@ -5,11 +5,9 @@ This is the HARMONIE configuration file. It allows for a 'HARMONIE'
 localconfig, too, which should be put in the same directory as this module.
 """
 
-from os.path import join
-
 # central config imports
-from ..config import BUILDOUT_DIR  # NOQA
-from ..config import LOG_DIR       # NOQA
+from ..config import PACKAGE_DIR  # NOQA
+from ..config import LOG_DIR      # NOQA
 
 # parameters, names, depths, see http://projects.knmi.nl/datacentrum/
 # catalogus/catalogus/content/nl-nwp-harm40-grid-p1.html
@@ -82,7 +80,7 @@ PATTERN = r'harm40_v1_p1_[0-9]{10}\.tar'
 FTP = dict(host='', user='', password='', path='')
 
 # raster store location
-STORE_DIR = join(BUILDOUT_DIR, 'var', 'store')
+STORE_DIR = PACKAGE_DIR / "var" / "store"
 
 # Lizard RasterStore UUIDs to touch
 TOUCH_LIZARD = []

@@ -5,12 +5,11 @@ This is the global configuration file. It allows for a 'global' localconfig,
 too, which should be put in the same directory as this module.
 """
 
-from os.path import abspath, dirname, join
+import pathlib
 
-BUILDOUT_DIR = abspath(join(dirname(__file__), '..'))
-
-# log directories
-LOG_DIR = join(BUILDOUT_DIR, 'var', 'log')
+# directories
+PACKAGE_DIR = pathlib.Path(__file__).parent
+LOG_DIR = PACKAGE_DIR / "var" / "log"
 
 # redis host for mtime cache and turn locking system
 REDIS_HOST = 'redis'
