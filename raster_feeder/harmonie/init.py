@@ -18,7 +18,7 @@ def init_harmonie():
     """ Create HARMONIE stores for configured parameters. """
     for parameter in config.PARAMETERS:
         create_tumbler(
-            path=join(config.STORE_DIR, parameter['group']),
+            path=join(config.STORE_DIR, parameter['raster-store-group']),
             depth=parameter['steps'],
             dtype='f4',
             delta=Timedelta(hours=1),
