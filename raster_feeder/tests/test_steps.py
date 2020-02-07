@@ -7,7 +7,7 @@ import unittest
 import tempfile
 import numpy as np
 from datetime import datetime
-from mock import patch, MagicMock, DEFAULT
+from unittest.mock import patch, MagicMock, DEFAULT
 from osgeo import osr
 import io
 
@@ -113,10 +113,11 @@ class TestRotateSteps(unittest.TestCase):
         self.assertEqual(extract_region_patch.call_count, 0)
 
 
+
 @mark.skipif(not TESTDATA_PATH.exists(), reason='No testdata available.')
 class TestExtract(unittest.TestCase):
     def test_bands(self):
-        region = extract_region(TESTDATA_PATH)
+        region = extract_region(str(TESTDATA_PATH))
         self.assertEqual(region.box.data.shape[0], config.DEPTH)
 
 

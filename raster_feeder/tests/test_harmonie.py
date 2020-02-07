@@ -5,7 +5,7 @@ import os
 import unittest
 import io
 from datetime import datetime
-from mock import patch, DEFAULT, MagicMock
+from unittest.mock import patch, DEFAULT, MagicMock
 
 import numpy as np
 from numpy.testing import assert_allclose

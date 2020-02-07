@@ -6,7 +6,7 @@ import unittest
 import shutil
 import tempfile
 from datetime import datetime
-from mock import patch
+from unittest.mock import patch
 
 import raster_feeder  # NOQA
 from raster_feeder.alarmtester.config import NAME
