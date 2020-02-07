@@ -10,13 +10,13 @@ long_description = '\n\n'.join([
 
 install_requires = [
     'ciso8601',
-    'dask_geomodeling',
+    'dask-geomodeling',
     'h5py>=2.3.1',
     'mock',
     'netCDF4',
     'numpy',
-    'pygdal',
     'pygrib',
+    'pygdal==2.2.3.*',
     'raster-store',
     'redis',
     'requests',

@@ -18,7 +18,7 @@ BUILDOUT_DIR = abspath(join(dirname(__file__), '..'))
 LOG_DIR = join(BUILDOUT_DIR, 'var', 'log')
 
 # redis host for mtime cache and turn locking system
-REDIS_HOST = 'localhost'
+REDIS_HOST = 'redis'
 REDIS_DB = 0
 REDIS_PASSWORD = None
 

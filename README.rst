@@ -1,5 +1,5 @@
 raster-feeder
-==========================================
+=============
 
 This software defines a number of commandline scripts to retrieve and load
 raster data from a variety of sources into raster stores. Although largely
@@ -10,21 +10,47 @@ putting the data on the same shared storage.
 Development installation
 ------------------------
 
-$ docker-compose build
-$ docker-compose up --no-start
-$ docker-compose up start
-$ docker-compose exec web bash
+For development, you can use a docker-compose setup::
 
-(docker)$ buildout
+    $ docker-compose build --build-arg uid=`id -u` --build-arg gid=`id -g` lib
+    $ docker-compose up --no-start
+    $ docker-compose start
+    $ docker-compose exec lib bash
+
+Create & activate a virtualenv::
+
+    (docker)$ virtualenv --system-site-packages .venv
+    (docker)$ source bin/activate
+
+Install stuff and run the tests::
+
+    (docker)(virtualenv)$ pip install -r requirements.txt --index-url https://packages.lizard.net
+    (docker)(virtualenv)$ pytest
+
+Update packages::
+    
+    (docker)$ rm -rf .venv
+    (docker)$ virtualenv --system-site-packages .venv
+    (docker)$ source bin/activate
+    (docker)(virtualenv)$ pip install -e .[test] --index-url https://packages.lizard.net
+    (docker)(virtualenv)$ pip freeze > requirements.txt
+
 
 Server installation
 -------------------
 
 Global dependencies::
 
-    $ sudo apt install libnetcdf-dev libhdf5-serial-dev python-grib python-pip
-    $ sudo pip install --upgrade setuptools zc.buildout
+sudo apt-get update && apt-get install -y \
+    git \
+    locales \
+    libgdal-dev \
+    python3-pip \
+    python3-grib \
+    libhdf5-serial-dev \
+    && rm -rf /var/lib/apt/lists/*
 
+sudo pip3 install --upgrade pip virtualenv
 
 Trick buildout sysegg into thinking pygdal is available::
 
