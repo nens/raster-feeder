@@ -7,7 +7,8 @@ localconfig, too, which should be put in the same directory as this module.
 
 # central config imports
 from ..config import PACKAGE_DIR  # NOQA
-from ..config import LOG_DIR      # NOQA
+from ..config import STORE_DIR  # NOQA
+from ..config import LOG_DIR  # NOQA
 
 # parameters, names, depths, see http://projects.knmi.nl/datacentrum/
 # catalogus/catalogus/content/nl-nwp-harm40-grid-p1.html
@@ -78,9 +79,6 @@ PATTERN = r'harm40_v1_p1_[0-9]{10}\.tar'
 
 # FTP connection
 FTP = dict(host='', user='', password='', path='')
-
-# raster store location
-STORE_DIR = PACKAGE_DIR / "var" / "store"
 
 # Lizard RasterStore UUIDs to touch
 TOUCH_LIZARD = []

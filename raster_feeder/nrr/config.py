@@ -7,13 +7,15 @@ which should be put in the same directory as this module.
 
 from datetime import timedelta as Timedelta
 
-# central config imports
+# Central config imports
 from ..config import PACKAGE_DIR  # NOQA
-from ..config import LOG_DIR      # NOQA
+from ..config import STORE_DIR  # NOQA
+from ..config import LOG_DIR  # NOQA
 
-from ..config import REDIS_HOST    # NOQA
-from ..config import REDIS_DB      # NOQA
-from ..config import REDIS_PASSWORD      # NOQA
+# Redis
+from ..config import REDIS_PASSWORD  # NOQA
+from ..config import REDIS_HOST  # NOQA
+from ..config import REDIS_DB  # NOQA
 
 # data is read from here
 CALIBRATE_DIR = PACKAGE_DIR / "var" / "calibrate"
@@ -53,9 +55,6 @@ DELIVERY_TIMES = (
 REPORT_SMTP_HOST = ''
 REPORT_SENDER = ''
 REPORT_RECIPIENTS = []
-
-# raster store location
-STORE_DIR = PACKAGE_DIR / "var" / "store"
 
 # Import local settings
 try:

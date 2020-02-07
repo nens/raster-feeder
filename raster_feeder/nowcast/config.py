@@ -7,7 +7,8 @@ localconfig, too, which should be put in the same directory as this module.
 
 # central config imports
 from ..config import PACKAGE_DIR  # NOQA
-from ..config import LOG_DIR       # NOQA
+from ..config import STORE_DIR  # NOQA
+from ..config import LOG_DIR  # NOQA
 
 # storage name
 NAME = 'nowcast-nrr'
@@ -24,8 +25,6 @@ PROJECTION = 'EPSG:28992'
 # -------------------------------------------
 # settings to be overridden in localconfig.py
 # -------------------------------------------
-
-STORE_DIR = PACKAGE_DIR / "var" / "store"
 
 # FTP connection
 FTP = dict(host='', user='', password='', path='')

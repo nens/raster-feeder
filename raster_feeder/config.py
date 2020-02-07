@@ -8,8 +8,13 @@ too, which should be put in the same directory as this module.
 import pathlib
 
 # directories
-PACKAGE_DIR = pathlib.Path(__file__).parent
+PACKAGE_DIR = pathlib.Path(__file__).parent.parent
+STORE_DIR = PACKAGE_DIR / "var" / "store"
 LOG_DIR = PACKAGE_DIR / "var" / "log"
+
+# make sure they exist - there must be a better way
+STORE_DIR.mkdir(parents=True, exist_ok=True)
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 # redis host for mtime cache and turn locking system
 REDIS_HOST = 'redis'
