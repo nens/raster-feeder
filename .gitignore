@@ -1,31 +1,19 @@
-# From https://github.com/github/gitignore/blob/master/Python.gitignore
-
-# Pyc/pyo files.
-*.py[co]
+# Cache
+__pycache__
 
 # Local configs
 raster_feeder/local*
 raster_feeder/*/local*
 
-# Packages
-*.egg
-*.egg-info
-dist
-build
-eggs
-parts
-bin
+# Local directories
+testdata
 var
-sdist
-develop-eggs
-.installed.cfg
 
-# Installer logs
-pip-log.txt
+# Packages
+*.egg-info
 
-# Unit test / coverage reports
-.coverage
-.tox
+# Virtualenv
+.venv
 
 # Ignore generated config files
 .idea
