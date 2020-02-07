@@ -11,6 +11,7 @@ long_description = '\n\n'.join([
 install_requires = [
     'ciso8601',
     'dask-geomodeling',
+    'flake8',
     'h5py>=2.3.1',
     'mock',
     'netCDF4',
