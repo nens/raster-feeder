@@ -6,11 +6,6 @@ and increases from -3 to 10 and back to -3, from -2 to 6 hours from now. Time
 resolution and refresh interval is 5 min. Proj: WGS84. Shape: (4, 2)
 """
 
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from __future__ import division
-
 import os
 
 # central config imports

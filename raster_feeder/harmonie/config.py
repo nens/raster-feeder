@@ -5,11 +5,6 @@ This is the HARMONIE configuration file. It allows for a 'HARMONIE'
 localconfig, too, which should be put in the same directory as this module.
 """
 
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from __future__ import division
-
 from os.path import join
 
 # central config imports
