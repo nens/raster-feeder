@@ -26,11 +26,12 @@ def summary(group):
     """ Return summary text for a group of stores. """
     template = '{:10}: {} - {}, size {:6}, chunks {:>3}x{}'
     store_summaries = []
-    for store in group.args:
-        if store:
-            start, stop = store.period
+    for source in group.args:
+        if source:
+            start, stop = source.period
         else:
             start, stop = 2 * (19 * ' ',)
+        store = source.store
         store_summary = template.format(
             basename(store.path),
             start,

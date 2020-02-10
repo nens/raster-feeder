@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
 """
-Stores latest radar into store.
+Store latest radar into store.
 """
 
 from datetime import datetime as Datetime
@@ -92,8 +92,21 @@ def get_contents(path):
 
         # make json serializable already
         for k, v in meta.items():
+            # here we are, what to expect from all these metas :-(
             if hasattr(v, 'tolist'):
-                meta[k] = v.tolist()
+                if v.size == 1:
+                    meta[k] = [
+                        e.decode('ascii') 
+                        if hasattr(e, 'decode') 
+                        else e
+                        for e in v.tolist()
+                    ]
+                else:
+                    import ipdb
+                    ipdb.set_trace() 
+                    meta[k] = v.item()
+            elif hasattr(v, 'decode'):
+                meta[k] = v.decode('ascii')
         return dict(data=data, meta=meta, fillvalue=fillvalue)
 
 
@@ -179,6 +192,8 @@ class Store(object):
             meta.update({'stored': NOW,
                          'modified': source['mtime'],
                          'prodcode': self.prodcode})
+            import ipdb
+            ipdb.set_trace() 
             region.meta[band - start] = json.dumps(meta)
 
         message = 'Store {} source(s) into {}/{} ({} - {}).'
@@ -239,7 +254,7 @@ class Store(object):
                      if self.timeframe in utils.get_valid_timeframes(d))
         # grab first datetime if any, reset band index, meta accordingly
         try:
-            first = datetimes.next()
+            first = next(datetimes)
         except StopIteration:
             return
         self.reset(first)
@@ -286,7 +301,7 @@ def command(text, delivery, timeframes, prodcodes):
                 with locker.lock(resource=resource, label=label):
                     try:
                         # processor will yield if a store was updated
-                        processor.next()
+                        next(processor)
                     except StopIteration:
                         break
     logger.info('Store procedure completed.')
