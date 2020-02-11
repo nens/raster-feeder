@@ -90,21 +90,21 @@ def get_contents(path):
         fillvalue = 65535 * 0.01
         meta = dict(h5.attrs)
 
-        # make json serializable already
+        # make json serializable
         for k, v in meta.items():
-            # here we are, what to expect from all these metas :-(
-            if hasattr(v, 'tolist'):
-                if v.size == 1:
+            # numpy array
+            if hasattr(v, 'size'):
+                if v.size == 0:
+                    meta[k] = []
+                elif v.size == 1:
+                    meta[k] = v.item()
+                else:
                     meta[k] = [
-                        e.decode('ascii') 
-                        if hasattr(e, 'decode') 
-                        else e
+                        e.decode('ascii')
+                        if hasattr(e, 'decode') else e
                         for e in v.tolist()
                     ]
-                else:
-                    import ipdb
-                    ipdb.set_trace() 
-                    meta[k] = v.item()
+            # bytes
             elif hasattr(v, 'decode'):
                 meta[k] = v.decode('ascii')
         return dict(data=data, meta=meta, fillvalue=fillvalue)
@@ -192,8 +192,6 @@ class Store(object):
             meta.update({'stored': NOW,
                          'modified': source['mtime'],
                          'prodcode': self.prodcode})
-            import ipdb
-            ipdb.set_trace() 
             region.meta[band - start] = json.dumps(meta)
 
         message = 'Store {} source(s) into {}/{} ({} - {}).'

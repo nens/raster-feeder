@@ -93,18 +93,18 @@ make everything work::
 
     # Load radar data into the raster store
     # m    h dom mon dow command
-    4-59/5 * *   *   *   /srv/raster-feeder/bin/nrr-store 1h -d -p r
-    15     * *   *   *   /srv/raster-feeder/bin/nrr-store 1d -d -p n
-    16     * *   *   *   /srv/raster-feeder/bin/nrr-store 7d -d -p a
-    17     * *   *   *   /srv/raster-feeder/bin/nrr-store 7d -d -p u
+    4-59/5 * *   *   *   /srv/raster-feeder/.venv/bin/nrr-store 1h -d -p r
+    15     * *   *   *   /srv/raster-feeder/.venv/bin/nrr-store 1d -d -p n
+    16     * *   *   *   /srv/raster-feeder/.venv/bin/nrr-store 7d -d -p a
+    17     * *   *   *   /srv/raster-feeder/.venv/bin/nrr-store 7d -d -p u
 
     # Optimize radar data in the raster store
     # m    h dom mon dow command
-    08     * *   *   *   /srv/raster-feeder/bin/nrr-move 5min real1 real2
-    01    22 *   *   *   /srv/raster-feeder/bin/nrr-merge
-    11    23 *   *   *   /srv/raster-feeder/bin/nrr-move 5min merge final
-    21    23 *   *   1   /srv/raster-feeder/bin/nrr-move hour merge final
-    31    23 1   *   *   /srv/raster-feeder/bin/nrr-move day merge final
+    08     * *   *   *   /srv/raster-feeder/.venv/bin/nrr-move 5min real1 real2
+    01    22 *   *   *   /srv/raster-feeder/.venv/bin/nrr-merge
+    11    23 *   *   *   /srv/raster-feeder/.venv/bin/nrr-move 5min merge final
+    21    23 *   *   1   /srv/raster-feeder/.venv/bin/nrr-move hour merge final
+    31    23 1   *   *   /srv/raster-feeder/.venv/bin/nrr-move day merge final
 
 
 A report script is included to check the filling state of the stores and to
@@ -112,8 +112,8 @@ report in case of missing products::
     
     # Report on the status of the data in the raster stores
     # m    h dom mon dow command
-    0     12 *   *   *   /srv/raster-feeder/bin/nrr-report 7d -q
-    */15   * *   *   *   /srv/raster-feeder/bin/nrr-report 7d
+    0     12 *   *   *   /srv/raster-feeder/.venv/bin/nrr-report 7d -q
+    */15   * *   *   *   /srv/raster-feeder/.venv/bin/nrr-report 7d
 
 
 Forecasts
@@ -132,19 +132,19 @@ STEPS: 1 hour model forecast with 1-hour resolution.
 
 To create the group of rotating stores (per product)::
 
-    $ bin/alarmtester-init
-    $ bin/nowcast-init
-    $ bin/harmonie-init
-    $ bin/steps-init
+    $ .venv/bin/alarmtester-init
+    $ .venv/bin/nowcast-init
+    $ .venv/bin/harmonie-init
+    $ .venv/bin/steps-init
 
 To have the stores automatically rotate at predetermined times, use crontab::
 
     # Rotate forecast stores
     # m    h      dom mon dow command
-    0      *      *   *   *   /srv/raster-feeder/bin/alarmtester-rotate
-    */5    *      *   *   *   /srv/raster-feeder/bin/nowcast-rotate
-    19     5-23/6 *   *   *   /srv/raster-feeder/bin/harmonie-rotate
-    25-29,55-59 * *   *   *   /srv/raster-feeder/bin/steps-rotate  # aligned with model runs
+    0      *      *   *   *   /srv/raster-feeder/.venv/bin/alarmtester-rotate
+    */5    *      *   *   *   /srv/raster-feeder/.venv/bin/nowcast-rotate
+    19     5-23/6 *   *   *   /srv/raster-feeder/.venv/bin/harmonie-rotate
+    25-29,55-59 * *   *   *   /srv/raster-feeder/.venv/bin/steps-rotate  # aligned with model runs
 
 On staging, we use "\*/5" for the alarmtester to be able to test every 5 minutes.
 

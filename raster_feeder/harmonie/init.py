@@ -16,7 +16,7 @@ from ..common import create_tumbler
 
 def init_harmonie():
     """ Create HARMONIE stores for configured parameters. """
-    for parameter in config.PARAMETERS:
+    for parameter in config.PARAMETERS + config.DERIVED:
         create_tumbler(
             path=join(config.STORE_DIR, parameter['raster-store-group']),
             depth=parameter['steps'],

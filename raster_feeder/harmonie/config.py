@@ -62,6 +62,13 @@ PARAMETERS = (
     cumulative_radiation,
 )
 
+# those derived parameters need initialized stores, too:
+DERIVED = (
+    {'raster-store-group': 'harmonie-rad', 'steps': 48},
+    {'raster-store-group': 'harmonie-evap', 'steps': 48},
+    {'raster-store-group': 'harmonie-prcp', 'steps': 48},
+)
+
 # group from which to take the currently stored period
 PERIOD_REFERENCE = 'harmonie-inr'  # because it actually starts at step 0
 
