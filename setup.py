@@ -11,7 +11,7 @@ long_description = '\n\n'.join([
 install_requires = [
     'ciso8601',
     'dask-geomodeling',
-    'h5py==2.6.0',
+    'h5py==2.7.0',
     'netCDF4',
     'numpy',
     'pygrib',

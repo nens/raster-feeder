@@ -1,9 +1,10 @@
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
 # -*- coding: utf-8 -*-
 
-import mock
 import os
-import unittest
+
+from unittest import mock
+from unittest import TestCase
 
 from pytest import mark
 
@@ -12,7 +13,7 @@ from raster_feeder.tests.common import TemporaryDirectory
 
 
 @mark.common
-class TestFTPServer(unittest.TestCase):
+class TestFTPServer(TestCase):
     def setUp(self):
         self.login = dict(host='speedtest.tele2.net', user='anonymous',
                           password='')
