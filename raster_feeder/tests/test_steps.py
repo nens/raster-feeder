@@ -113,7 +113,6 @@ class TestRotateSteps(unittest.TestCase):
         self.assertEqual(extract_region_patch.call_count, 0)
 
 
-
 @mark.skipif(not TESTDATA_PATH.exists(), reason='No testdata available.')
 class TestExtract(unittest.TestCase):
     def test_bands(self):
