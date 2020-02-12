@@ -24,8 +24,7 @@ pipeline {
         }
         stage("Flake 8") {
             steps {
-                sh "if docker-compose run --rm lib .venv/bin/flake8
-                raster_feeder > flake8.txt; then echo 'flake8 is a success'; else cat flake8.txt; false; fi"
+                sh "if docker-compose run --rm lib .venv/bin/flake8 raster_feeder > flake8.txt; then echo 'flake8 is a success'; else cat flake8.txt; false; fi"
             }
         }
     }
