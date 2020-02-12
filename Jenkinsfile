@@ -17,7 +17,7 @@ pipeline {
         }
         stage("Test") {
             steps {
-                sh "docker-compose run --rm lib virtualenv .venv"
+                sh "docker-compose run --rm lib virtualenv .venv --system-site-packages"
                 sh "docker-compose run --rm lib .venv/bin/pip install -r requirements.txt --index-url https://packages.lizard.net"
                 sh "docker-compose run --rm lib .venv/bin/pytest"
             }
