@@ -56,7 +56,6 @@ pytest-cov==2.8.1
 python-dateutil==2.8.1
 pytz==2019.3
 pyxdg==0.25
--e git+git@github.com:nens/raster-feeder@2d74cf76679c903925f75105f131d7c7e2cc08c6#egg=raster_feeder
 raster-store==4.1.4
 redis==3.4.1
 requests==2.22.0
@@ -72,3 +71,4 @@ urllib3==1.25.8
 virtualenv==16.7.9
 wcwidth==0.1.8
 zipp==2.1.0
+-e .[test]

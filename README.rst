@@ -20,7 +20,7 @@ For development, you can use a docker-compose setup::
 Create & activate a virtualenv::
 
     (docker)$ virtualenv --system-site-packages .venv
-    (docker)$ source bin/activate
+    (docker)$ source .venv/bin/activate
 
 Install stuff and run the tests::
 
@@ -31,7 +31,7 @@ Update packages::
     
     (docker)$ rm -rf .venv
     (docker)$ virtualenv --system-site-packages .venv
-    (docker)$ source bin/activate
+    (docker)$ source .venv/bin/activate
     (docker)(virtualenv)$ pip install -e .[test] --index-url https://packages.lizard.net
     (docker)(virtualenv)$ pip freeze > requirements.txt
 
@@ -39,28 +39,20 @@ Update packages::
 Server installation
 -------------------
 
-Global dependencies::
+Global dependencies (apt)::
 
-sudo apt-get update && apt-get install -y \
-    git \
-    locales \
-    libgdal-dev \
-    python3-pip \
-    python3-grib \
-    libhdf5-serial-dev \
-    && rm -rf /var/lib/apt/lists/*
+    git
+    libgdal-dev
+    libhdf5-serial-dev
+    locales
+    python3-grib
+    python3-pip
 
-sudo pip3 install --upgrade pip virtualenv
-
-Trick buildout sysegg into thinking pygdal is available::
-
-    $ sudo ln -s \
-           /usr/lib/python2.7/dist-packages/GDAL-1.10.1.egg-info \
-           /usr/lib/python2.7/dist-packages/pygdal-1.10.1.egg-info
-
-Setting up::
-    
-    $ buildout
+Installation::
+    $ sudo pip3 install --upgrade pip virtualenv
+    $ virtualenv --system-site-packages .venv
+    $ source .venv/bin/activate
+    (virtualenv)$ pip install -r requirements.txt --index-url https://packages.lizard.net
 
 
 Configuration files
