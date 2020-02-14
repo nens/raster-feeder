@@ -12,11 +12,12 @@ ARG DEBIAN_FRONTEND=noninteractive
 # eng-image/dockerfile_best-practices/
 RUN apt-get update && apt-get install -y \
     git \
-    locales \
     libgdal-dev \
-    python3-pip \
-    python3-grib \
     libhdf5-serial-dev \
+    locales \
+    python3-gdal \
+    python3-grib \
+    python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
 RUN locale-gen en_US.UTF-8

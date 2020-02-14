@@ -13,6 +13,8 @@ Changelog of raster-feeder
 
 - Add and use the REDIS_PASSWORD setting.
 
+- Use python3, virtualenv, pytest.
+
 
 0.6 (2019-07-24)
 ----------------

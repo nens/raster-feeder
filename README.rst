@@ -17,23 +17,27 @@ For development, you can use a docker-compose setup::
     $ docker-compose start
     $ docker-compose exec lib bash
 
-Create & activate a virtualenv::
+(Re)create & activate a virtualenv::
 
+    (docker)$ rm -rf .venv
     (docker)$ virtualenv --system-site-packages .venv
     (docker)$ source .venv/bin/activate
 
-Install stuff and run the tests::
+Install dependencies & package and run tests::
 
     (docker)(virtualenv)$ pip install -r requirements.txt --index-url https://packages.lizard.net
+    (docker)(virtualenv)$ pip install -e .[test]
     (docker)(virtualenv)$ pytest
 
-Update packages::
+Update requirements.txt::
     
     (docker)$ rm -rf .venv
     (docker)$ virtualenv --system-site-packages .venv
     (docker)$ source .venv/bin/activate
-    (docker)(virtualenv)$ pip install -e .[test] --index-url https://packages.lizard.net
+    (docker)(virtualenv)$ pip install . --index-url https://packages.lizard.net
+    (docker)(virtualenv)$ pip uninstall raster-feeder --yes
     (docker)(virtualenv)$ pip freeze > requirements.txt
+
 
 
 Server installation
@@ -44,15 +48,17 @@ Global dependencies (apt)::
     git
     libgdal-dev
     libhdf5-serial-dev
-    locales
+    python3-gdal
     python3-grib
     python3-pip
 
 Installation::
+
     $ sudo pip3 install --upgrade pip virtualenv
     $ virtualenv --system-site-packages .venv
     $ source .venv/bin/activate
     (virtualenv)$ pip install -r requirements.txt --index-url https://packages.lizard.net
+    (virtualenv)$ pip install -e .
 
 
 Configuration files
