@@ -5,20 +5,19 @@ This is the global configuration file. It allows for a 'global' localconfig,
 too, which should be put in the same directory as this module.
 """
 
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from __future__ import division
+import pathlib
 
-from os.path import abspath, dirname, join
+# directories
+PACKAGE_DIR = pathlib.Path(__file__).parent.parent
+STORE_DIR = PACKAGE_DIR / "var" / "store"
+LOG_DIR = PACKAGE_DIR / "var" / "log"
 
-BUILDOUT_DIR = abspath(join(dirname(__file__), '..'))
-
-# log directories
-LOG_DIR = join(BUILDOUT_DIR, 'var', 'log')
+# make sure they exist - there must be a better way
+STORE_DIR.mkdir(parents=True, exist_ok=True)
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 # redis host for mtime cache and turn locking system
-REDIS_HOST = 'localhost'
+REDIS_HOST = 'redis'
 REDIS_DB = 0
 REDIS_PASSWORD = None
 

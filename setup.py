@@ -10,12 +10,11 @@ long_description = '\n\n'.join([
 
 install_requires = [
     'ciso8601',
-    'geoblocks',
-    'h5py>=2.3.1',
-    'mock',
+    'dask-geomodeling',
+    'gdal',
+    'h5py==2.7.0',
     'netCDF4',
     'numpy',
-    'pygdal',
     'pygrib',
     'raster-store',
     'redis',
@@ -24,7 +23,9 @@ install_requires = [
     'sentry-sdk',
     'setuptools',
     'turn',
-    ],
+    ]
+
+tests_require = ["flake8", "ipdb", "ipython", "pytest", "pytest-cov"]
 
 setup(name='raster_feeder',
       version=version,
@@ -42,6 +43,8 @@ setup(name='raster_feeder',
       include_package_data=True,
       zip_safe=False,
       install_requires=install_requires,
+      tests_require=tests_require,
+      extras_require={"test": tests_require},
       entry_points={
           'console_scripts': [
               # COMMON

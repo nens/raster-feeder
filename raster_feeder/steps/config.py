@@ -5,16 +5,10 @@ This is the STEPS configuration file. It allows for a 'STEPS'
 localconfig, too, which should be put in the same directory as this module.
 """
 
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from __future__ import division
-
-import os
-
 # central config imports
-from ..config import BUILDOUT_DIR  # NOQA
-from ..config import LOG_DIR       # NOQA
+from ..config import PACKAGE_DIR  # NOQA
+from ..config import STORE_DIR  # NOQA
+from ..config import LOG_DIR  # NOQA
 
 # storage name
 NAME = 'steps'
@@ -42,9 +36,6 @@ PATTERN = r'IDR311EN\.RF3\.[0-9]{14}\.nc'  # raw because invalid unicode
 
 # FTP connection
 FTP = dict(host='', user='', password='', path='')
-
-# raster store location
-STORE_DIR = os.path.join(BUILDOUT_DIR, 'var', 'store')
 
 # Lizard RasterStore UUIDs to touch
 TOUCH_LIZARD = []

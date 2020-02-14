@@ -1,13 +1,8 @@
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
 """
-Stores latest radar into store.
+Store latest radar into store.
 """
-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from __future__ import division
 
 from datetime import datetime as Datetime
 from datetime import timedelta as Timedelta
@@ -27,7 +22,7 @@ from osgeo import osr
 from raster_store import regions
 from raster_store import load
 from raster_store import cache
-from geoblocks.interfaces import GeoInterface
+from raster_store.interfaces import GeoInterface
 
 from . import config
 from . import periods
@@ -95,10 +90,23 @@ def get_contents(path):
         fillvalue = 65535 * 0.01
         meta = dict(h5.attrs)
 
-        # make json serializable already
+        # make json serializable
         for k, v in meta.items():
-            if hasattr(v, 'tolist'):
-                meta[k] = v.tolist()
+            # numpy array
+            if hasattr(v, 'size'):
+                if v.size == 0:
+                    meta[k] = []
+                elif v.size == 1:
+                    meta[k] = v.item()
+                else:
+                    meta[k] = [
+                        e.decode('ascii')
+                        if hasattr(e, 'decode') else e
+                        for e in v.tolist()
+                    ]
+            # bytes
+            elif hasattr(v, 'decode'):
+                meta[k] = v.decode('ascii')
         return dict(data=data, meta=meta, fillvalue=fillvalue)
 
 
@@ -244,7 +252,7 @@ class Store(object):
                      if self.timeframe in utils.get_valid_timeframes(d))
         # grab first datetime if any, reset band index, meta accordingly
         try:
-            first = datetimes.next()
+            first = next(datetimes)
         except StopIteration:
             return
         self.reset(first)
@@ -291,7 +299,7 @@ def command(text, delivery, timeframes, prodcodes):
                 with locker.lock(resource=resource, label=label):
                     try:
                         # processor will yield if a store was updated
-                        processor.next()
+                        next(processor)
                     except StopIteration:
                         break
     logger.info('Store procedure completed.')

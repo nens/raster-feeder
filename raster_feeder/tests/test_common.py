@@ -1,22 +1,19 @@
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from __future__ import division
-
-import mock
 import os
-import unittest
-from nose.plugins.attrib import attr
+
+from unittest import mock
+from unittest import TestCase
+
+from pytest import mark
 
 from raster_feeder.common import FTPServer
 from raster_feeder.tests.common import TemporaryDirectory
 
 
-@attr('common')
-class TestFTPServer(unittest.TestCase):
+@mark.common
+class TestFTPServer(TestCase):
     def setUp(self):
         self.login = dict(host='speedtest.tele2.net', user='anonymous',
                           password='')

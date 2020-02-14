@@ -1,19 +1,14 @@
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from __future__ import division
-
 import os
 import shutil
 import unittest
 import tempfile
 import numpy as np
 from datetime import datetime
-from mock import patch, MagicMock, DEFAULT
-import osr
+from unittest.mock import patch, MagicMock, DEFAULT
+from osgeo import osr
 import io
 
 from raster_feeder.tests.common import MockFTPServer
@@ -24,8 +19,10 @@ from raster_store.regions import Region
 from raster_store import load, caches
 from raster_store.stores import Store
 
-TEST_DATA_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                              '../../var/data'))
+from pytest import mark
+
+
+TESTDATA_PATH = config.PACKAGE_DIR / "testdata" / "IDR311EN.RF3.sample.nc"
 
 
 @patch.multiple('raster_feeder.steps.rotate', FTPServer=DEFAULT, load=DEFAULT,
@@ -47,7 +44,7 @@ class TestRotateSteps(unittest.TestCase):
         rotate_steps()
 
         extract_region_patch = patches['extract_region']
-        self.assertEquals(extract_region_patch.call_count, 1)
+        self.assertEqual(extract_region_patch.call_count, 1)
         self.assertIn(correct, extract_region_patch.call_args[0][0])
 
     def test_pick_newest(self, **patches):
@@ -61,7 +58,7 @@ class TestRotateSteps(unittest.TestCase):
         rotate_steps()
 
         extract_region_patch = patches['extract_region']
-        self.assertEquals(extract_region_patch.call_count, 1)
+        self.assertEqual(extract_region_patch.call_count, 1)
         self.assertIn(correct, extract_region_patch.call_args[0][0])
 
     def test_no_files(self, **patches):
@@ -73,7 +70,7 @@ class TestRotateSteps(unittest.TestCase):
         rotate_steps()
 
         extract_region_patch = patches['extract_region']
-        self.assertEquals(extract_region_patch.call_count, 0)
+        self.assertEqual(extract_region_patch.call_count, 0)
 
     def test_file_already_done(self, **patches):
         patches['FTPServer'].return_value = self.mock_ftp
@@ -86,7 +83,7 @@ class TestRotateSteps(unittest.TestCase):
         rotate_steps()
 
         extract_region_patch = patches['extract_region']
-        self.assertEquals(extract_region_patch.call_count, 0)
+        self.assertEqual(extract_region_patch.call_count, 0)
 
     def test_file_is_newer(self, **patches):
         patches['FTPServer'].return_value = self.mock_ftp
@@ -99,7 +96,7 @@ class TestRotateSteps(unittest.TestCase):
         rotate_steps()
 
         extract_region_patch = patches['extract_region']
-        self.assertEquals(extract_region_patch.call_count, 1)
+        self.assertEqual(extract_region_patch.call_count, 1)
         self.assertIn(correct, extract_region_patch.call_args[0][0])
 
     def test_file_is_older(self, **patches):
@@ -113,20 +110,13 @@ class TestRotateSteps(unittest.TestCase):
         rotate_steps()
 
         extract_region_patch = patches['extract_region']
-        self.assertEquals(extract_region_patch.call_count, 0)
+        self.assertEqual(extract_region_patch.call_count, 0)
 
 
+@mark.skipif(not TESTDATA_PATH.exists(), reason='No testdata available.')
 class TestExtract(unittest.TestCase):
-    def setUp(self):
-        matched = [f for f in os.listdir(TEST_DATA_PATH)
-                   if f.startswith('IDR311EN.RF3')]
-        if len(matched) == 0:
-            self.skipTest('NetCDF testfile for steps raindata not found.')
-        else:
-            self.path = os.path.join(TEST_DATA_PATH, matched[0])
-
     def test_bands(self):
-        region = extract_region(self.path)
+        region = extract_region(str(TESTDATA_PATH))
         self.assertEqual(region.box.data.shape[0], config.DEPTH)
 
 

@@ -4,11 +4,6 @@
 Stores latest data in a rotating raster store group.
 """
 
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from __future__ import division
-
 from datetime import timedelta as Timedelta
 from os.path import join
 
@@ -81,14 +76,14 @@ def parse_gribdata(gribdata):
     start = 0
     while start != -1:
         # grib edition 1 uses bytes 5-7 to indicate message size
-        indicator = chr(0) + gribdata[start + 4:start + 7]
+        indicator = b'\x00' + gribdata[start + 4:start + 7]
         size = struct.unpack('>I', indicator)[0]
 
         end = start + size
         message = pygrib.fromstring(gribdata[start:end])
 
         yield message
-        start = gribdata.find(bytes('GRIB'), end)
+        start = gribdata.find(b'GRIB', end)
 
 
 def unpack_tarfile(fileobj):

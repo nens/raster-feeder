@@ -4,11 +4,6 @@
 Stores latest steps in a rotating raster store group.
 """
 
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from __future__ import division
-
 import argparse
 import contextlib
 import json
@@ -54,7 +49,7 @@ def extract_region(path):
     Note that the region is not in the target store projection, but the raster
     store takes care of that.
     """
-    with netCDF4.Dataset(path) as nc:
+    with netCDF4.Dataset(path, 'r') as nc:
         # read timesteps
         variable = nc.variables['valid_time']
         units = variable.units
@@ -93,7 +88,7 @@ def extract_region(path):
     x1_proj, x2_proj, y1_proj, y2_proj = poly.GetEnvelope()
 
     # transform the envelope to indices
-    inv_geo_transform = gdal.InvGeoTransform(config.GEO_TRANSFORM)[1]
+    inv_geo_transform = gdal.InvGeoTransform(config.GEO_TRANSFORM)
     x1_px, y1_px = gdal.ApplyGeoTransform(inv_geo_transform, x1_proj, y1_proj)
     x2_px, y2_px = gdal.ApplyGeoTransform(inv_geo_transform, x2_proj, y2_proj)
 
@@ -112,7 +107,7 @@ def extract_region(path):
     # ensemble member selection
     sums = prcp_roi.reshape(len(prcp_roi), -1).sum(1)
     p75 = np.percentile(sums, 75)
-    member = np.abs(sums - p75).argmin()
+    member = np.abs(sums - p75).argmin().item()
     logger.info('Member sums are %s.', sums)
     logger.info('Selecting member %s.', member)
 

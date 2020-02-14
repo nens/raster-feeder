@@ -5,11 +5,6 @@ Create the necessary radar stores if they do not yet exist and create
 wrapper configurations per timeframe.
 """
 
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from __future__ import division
-
 from os.path import join, exists
 
 import argparse
@@ -33,25 +28,25 @@ DELTAS = {'5min': datetime.timedelta(minutes=5),
 
 # the depths here aim at fast storage and merging
 # the offloading is more heavy and should definitely happen at night
-DEPTHS = {'5min': {'real1':      (1,   12),   # arrives every 5 minutes
-                   'real2':     (12,  288),   # move here every hour
-                   'near':      (12,  288),   # arrives every hour
-                   'after':     (72,  288),   # arrives once a day
-                   'ultimate':  (72,  288),   # arrives once a day
-                   'merge':     (72,  576),   # merge at night
-                   'final':    (512, 1024)},  # offload once a day at night
-          'hour': {'real':       (1,   24),   # arrives every hour
-                   'near':       (1,   24),   # arrives every hour
-                   'after':     (24,   24),   # arrives once a day
-                   'ultimate':  (24,   24),   # arrives once a day
-                   'merge':     (24,  576),   # merge at night
-                   'final':    (512, 1024)},  # offload once a week at night
-          'day':  {'real':       (1,   24),   # arrives once a day
-                   'near':       (1,   24),   # arrives once a day
-                   'after':      (1,   24),   # arrives once a day
-                   'ultimate':   (1,   24),   # arrives once a day
-                   'merge':      (6,  576),   # merge at night
-                   'final':    (512, 1024)}}  # offload once a month at night
+DEPTHS = {'5min': {'real1':      (1,   12),   # noqa arrives every 5 minutes
+                   'real2':     (12,  288),   # noqa move here every hour
+                   'near':      (12,  288),   # noqa arrives every hour
+                   'after':     (72,  288),   # noqa arrives once a day
+                   'ultimate':  (72,  288),   # noqa arrives once a day
+                   'merge':     (72,  576),   # noqa merge at night
+                   'final':    (512, 1024)},  # noqa offload once a day at night
+          'hour': {'real':       (1,   24),   # noqa arrives every hour
+                   'near':       (1,   24),   # noqa arrives every hour
+                   'after':     (24,   24),   # noqa arrives once a day
+                   'ultimate':  (24,   24),   # noqa arrives once a day
+                   'merge':     (24,  576),   # noqa merge at night
+                   'final':    (512, 1024)},  # noqa offload once a week at night
+          'day':  {'real':       (1,   24),   # noqa arrives once a day
+                   'near':       (1,   24),   # noqa arrives once a day
+                   'after':      (1,   24),   # noqa arrives once a day
+                   'ultimate':   (1,   24),   # noqa arrives once a day
+                   'merge':      (6,  576),   # noqa merge at night
+                   'final':    (512, 1024)}}  # noqa offload once a month at night
 
 WKT = osr.GetUserInputAsWKT(str(config.PROJECTION))
 

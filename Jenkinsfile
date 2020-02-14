@@ -4,6 +4,7 @@ pipeline {
         stage("Checkout") {
             steps {
                 checkout scm
+                sh "rm -rf .venv"
                 sh "echo 'COMPOSE_PROJECT_NAME=${env.JOB_NAME}-${env.BUILD_ID}' > .env"
                 sh "docker --version; docker-compose --version"
             }
@@ -12,18 +13,25 @@ pipeline {
             steps {
                 sh "docker-compose down --volumes"
                 sh "docker-compose build --build-arg uid=`id -u` --build-arg gid=`id -g` lib"
-                sh "docker-compose run --rm lib buildout"
             }
         }
         stage("Test") {
             steps {
-                sh "docker-compose run --rm lib bin/test"
+                sh "docker-compose run --rm lib virtualenv .venv --system-site-packages"
+                sh "docker-compose run --rm lib .venv/bin/pip install -r requirements.txt --index-url https://packages.lizard.net"
+                sh "docker-compose run --rm lib .venv/bin/pip install -e .[test]"
+                sh "docker-compose run --rm lib .venv/bin/pytest"
+            }
+        }
+        stage("Flake 8") {
+            steps {
+                sh "if docker-compose run --rm lib .venv/bin/flake8 raster_feeder > flake8.txt; then echo 'flake8 is a success'; else cat flake8.txt; false; fi"
             }
         }
     }
     post {
         always {
-            sh "docker-compose down --volumes --remove-orphans && docker-compose rm -f"
+            sh "docker-compose down --volumes --remove-orphans && docker-compose rm -f && rm -rf .venv"
         }
     }
 }

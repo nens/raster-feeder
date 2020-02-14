@@ -1,16 +1,11 @@
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from __future__ import division
-
 import os
 import unittest
 import io
 from datetime import datetime
-from mock import patch, DEFAULT, MagicMock
+from unittest.mock import patch, DEFAULT, MagicMock
 
 import numpy as np
 from numpy.testing import assert_allclose
@@ -20,6 +15,7 @@ from raster_feeder.harmonie.rotate import extract_regions, rotate_harmonie
 from raster_feeder.harmonie.rotate import vapor_pressure_slope, makkink
 from raster_feeder.harmonie import config
 from raster_store.stores import Store
+
 
 @patch.multiple('raster_feeder.harmonie.rotate', FTPServer=DEFAULT,
                 load=DEFAULT, rotate=DEFAULT, touch_lizard=DEFAULT,
@@ -39,12 +35,12 @@ class TestRotateHarmonie(unittest.TestCase):
         self.mock_store.period = None
 
         self.mock_ftp.files = {self.correct_fn: self.stream,
-                              'aton40_v1_p1_2018032606.tar': None}
+                               'aton40_v1_p1_2018032606.tar': None}
         rotate_harmonie()
 
         extract_region_patch = patches['extract_regions']
-        self.assertEquals(extract_region_patch.call_count, 1)
-        self.assertEquals(extract_region_patch.call_args[0][0].read(), b'test')
+        self.assertEqual(extract_region_patch.call_count, 1)
+        self.assertEqual(extract_region_patch.call_args[0][0].read(), b'test')
 
     def test_pick_newest(self, **patches):
         patches['FTPServer'].return_value = self.mock_ftp
@@ -56,8 +52,8 @@ class TestRotateHarmonie(unittest.TestCase):
         rotate_harmonie()
 
         extract_region_patch = patches['extract_regions']
-        self.assertEquals(extract_region_patch.call_count, 1)
-        self.assertEquals(extract_region_patch.call_args[0][0].read(), b'test')
+        self.assertEqual(extract_region_patch.call_count, 1)
+        self.assertEqual(extract_region_patch.call_args[0][0].read(), b'test')
 
     def test_no_files(self, **patches):
         patches['FTPServer'].return_value = self.mock_ftp
@@ -68,7 +64,7 @@ class TestRotateHarmonie(unittest.TestCase):
         rotate_harmonie()
 
         extract_region_patch = patches['extract_regions']
-        self.assertEquals(extract_region_patch.call_count, 0)
+        self.assertEqual(extract_region_patch.call_count, 0)
 
     def test_file_already_done(self, **patches):
         patches['FTPServer'].return_value = self.mock_ftp
@@ -80,7 +76,7 @@ class TestRotateHarmonie(unittest.TestCase):
         rotate_harmonie()
 
         extract_region_patch = patches['extract_regions']
-        self.assertEquals(extract_region_patch.call_count, 0)
+        self.assertEqual(extract_region_patch.call_count, 0)
 
     def test_file_is_newer(self, **patches):
         patches['FTPServer'].return_value = self.mock_ftp
@@ -92,8 +88,8 @@ class TestRotateHarmonie(unittest.TestCase):
         rotate_harmonie()
 
         extract_region_patch = patches['extract_regions']
-        self.assertEquals(extract_region_patch.call_count, 1)
-        self.assertEquals(extract_region_patch.call_args[0][0].read(), b'test')
+        self.assertEqual(extract_region_patch.call_count, 1)
+        self.assertEqual(extract_region_patch.call_args[0][0].read(), b'test')
 
     def test_file_is_older(self, **patches):
         patches['FTPServer'].return_value = self.mock_ftp
@@ -105,7 +101,7 @@ class TestRotateHarmonie(unittest.TestCase):
         rotate_harmonie()
 
         extract_region_patch = patches['extract_regions']
-        self.assertEquals(extract_region_patch.call_count, 0)
+        self.assertEqual(extract_region_patch.call_count, 0)
 
 
 class TestExtract(unittest.TestCase):
@@ -124,22 +120,22 @@ class TestExtract(unittest.TestCase):
             region = regions[params['group']]
 
             # check the time values
-            self.assertEquals(region.box.bands, (0, params['steps']))
-            self.assertEquals(len(region.time), params['steps'])
+            self.assertEqual(region.box.bands, (0, params['steps']))
+            self.assertEqual(len(region.time), params['steps'])
             if params['steps'] == 49:
                 firsttime = datetime(2018, 3, 26, 6, 0)
             elif params['steps'] == 48:
                 firsttime = datetime(2018, 3, 26, 7, 0)
-            self.assertEquals(region.time[0], firsttime)
+            self.assertEqual(region.time[0], firsttime)
 
             # check the projection
-            self.assertEquals(region.box.projection, config.PROJECTION)
+            self.assertEqual(region.box.projection, config.PROJECTION)
             expected_extent = (-0.0185, 48.9885, 11.0815, 55.8885)
             self.assertAlmostEquals(region.border.extent, expected_extent)
 
             # check the actual data
-            self.assertEquals(region.box.data.shape[0], params['steps'])
-            self.assertEquals(region.box.data.shape[1:], (300, 300))
+            self.assertEqual(region.box.data.shape[0], params['steps'])
+            self.assertEqual(region.box.data.shape[1:], (300, 300))
 
         # test the relation between prcp and cr
         assert_allclose(np.cumsum(regions['harmonie-prcp'].box.data, 0),

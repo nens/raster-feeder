@@ -1,17 +1,12 @@
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from __future__ import division
-
 import os
 import unittest
 import shutil
 import tempfile
 from datetime import datetime
-from mock import patch
+from unittest.mock import patch
 
 import raster_feeder  # NOQA
 from raster_feeder.alarmtester.config import NAME

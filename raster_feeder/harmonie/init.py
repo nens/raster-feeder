@@ -5,11 +5,6 @@ Create the necessary stores if they do not yet exist and update the group
 wrapper configuration.
 """
 
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from __future__ import division
-
 from datetime import datetime as Datetime
 from datetime import timedelta as Timedelta
 from os.path import join
@@ -21,9 +16,9 @@ from ..common import create_tumbler
 
 def init_harmonie():
     """ Create HARMONIE stores for configured parameters. """
-    for parameter in config.PARAMETERS:
+    for parameter in config.PARAMETERS + config.DERIVED:
         create_tumbler(
-            path=join(config.STORE_DIR, parameter['group']),
+            path=join(config.STORE_DIR, parameter['raster-store-group']),
             depth=parameter['steps'],
             dtype='f4',
             delta=Timedelta(hours=1),
