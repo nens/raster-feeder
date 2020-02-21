@@ -45,7 +45,7 @@ def fetch_latest_nowcast_h5():
 
     target_name = sorted(nlst)[-1]
     target_path = join(tempfile.mkdtemp(), target_name)
-    with open(target_path, 'w') as target_file:
+    with open(target_path, 'wb') as target_file:
         connection.retrbinary('RETR ' + target_name, target_file.write)
     connection.quit()
 
@@ -76,7 +76,7 @@ def get_nowcast_region():
         meta = []
         for i, image in enumerate(images):
             data[i] = h5[image]['image_data'][:] / 100
-            name = h5[image].attrs['image_product_name']
+            name = h5[image].attrs['image_product_name'].decode('ascii')
             meta.append(json.dumps({'product': name, 'stored': now}))
             time.append(Datetime.strptime(name, fmt))
     shutil.rmtree(dirname(path))
