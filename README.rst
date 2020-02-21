@@ -39,14 +39,12 @@ Update requirements.txt::
     (docker)(virtualenv)$ pip freeze > requirements.txt
 
 
-
 Server installation
 -------------------
 
 Global dependencies (apt)::
 
     git
-    libgdal-dev
     libhdf5-serial-dev
     python3-gdal
     python3-grib
