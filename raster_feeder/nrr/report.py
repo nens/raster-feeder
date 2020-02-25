@@ -14,9 +14,6 @@ import sys
 
 from email.mime.text import MIMEText
 
-import redis
-
-from raster_store import cache
 from raster_store import load
 from raster_store.interfaces import GeoInterface
 
@@ -25,13 +22,6 @@ from . import periods
 from . import utils
 
 logger = logging.getLogger(__name__)
-
-# mtime caching
-cache.client = redis.Redis(
-    host=config.REDIS_HOST,
-    db=config.REDIS_DB,
-    password=config.REDIS_PASSWORD
-)
 
 TOLERANCE = datetime.timedelta(minutes=30)
 NAMES = {'f': '5min', 'h': 'hour', 'd': 'day'}

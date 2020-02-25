@@ -10,21 +10,12 @@ import os
 import sys
 
 from raster_store import load
-from raster_store import cache
 
-import redis
 import turn
 
 from . import config
 
 logger = logging.getLogger(__name__)
-
-# mtime caching
-cache.client = redis.Redis(
-    host=config.REDIS_HOST,
-    db=config.REDIS_DB,
-    password=config.REDIS_PASSWORD
-)
 
 
 def get_store(time_name, store_name):

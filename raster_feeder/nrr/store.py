@@ -14,14 +14,12 @@ import sys
 
 import h5py
 import numpy as np
-import redis
 import turn
 
 from osgeo import osr
 
 from raster_store import regions
 from raster_store import load
-from raster_store import cache
 from raster_store.interfaces import GeoInterface
 
 from . import config
@@ -29,13 +27,6 @@ from . import periods
 from . import utils
 
 logger = logging.getLogger(__name__)
-
-# mtime caching
-cache.client = redis.Redis(
-    host=config.REDIS_HOST,
-    db=config.REDIS_DB,
-    password=config.REDIS_PASSWORD
-)
 
 # stores and levels
 DELIVERY_TIMES = dict(config.DELIVERY_TIMES)
