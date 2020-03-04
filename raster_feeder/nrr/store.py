@@ -87,7 +87,7 @@ def get_contents(path):
             if hasattr(v, 'size'):
                 if v.size == 0:
                     meta[k] = []
-                elif v.size == 1:
+                elif v.size == 1 and v.ndim == 0:
                     meta[k] = v.item()
                 else:
                     meta[k] = [
