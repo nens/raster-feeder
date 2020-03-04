@@ -68,6 +68,12 @@ config file in the parent directory. Both the central config and the component
 config files try to import from a respective localconfig which makes the
 configuration a bit complex. Be aware.
 
+Private configurations and crontabs 
+-----------------------------------
+
+In the nens/rr-task a collection of configurations is available
+to symlink to from this project, as well as crontabs for scheduling the various
+scripts.
 
 NRR
 ---
@@ -80,36 +86,14 @@ them into an intermediate raster-store in a quality-aware way. Finally, a move
 command moves them to yet another raster-store for final storage.
 
 This process takes place for each of the NRR time resolutions, (f)ive minutes,
-(h)our and (d)ay. For initialization, run::
+(h)our and (d)ay. Available commands::
 
-    $ bin/nrr-init
-
-The following cronjobs should be installed on the production server to
-make everything work::
-
-    # Load radar data into the raster store
-    # m    h dom mon dow command
-    4-59/5 * *   *   *   /srv/raster-feeder/.venv/bin/nrr-store 1h -d -p r
-    15     * *   *   *   /srv/raster-feeder/.venv/bin/nrr-store 1d -d -p n
-    16     * *   *   *   /srv/raster-feeder/.venv/bin/nrr-store 7d -d -p a
-    17     * *   *   *   /srv/raster-feeder/.venv/bin/nrr-store 7d -d -p u
-
-    # Optimize radar data in the raster store
-    # m    h dom mon dow command
-    08     * *   *   *   /srv/raster-feeder/.venv/bin/nrr-move 5min real1 real2
-    01    22 *   *   *   /srv/raster-feeder/.venv/bin/nrr-merge
-    11    23 *   *   *   /srv/raster-feeder/.venv/bin/nrr-move 5min merge final
-    21    23 *   *   1   /srv/raster-feeder/.venv/bin/nrr-move hour merge final
-    31    23 1   *   *   /srv/raster-feeder/.venv/bin/nrr-move day merge final
-
-
-A report script is included to check the filling state of the stores and to
-report in case of missing products::
-    
-    # Report on the status of the data in the raster stores
-    # m    h dom mon dow command
-    0     12 *   *   *   /srv/raster-feeder/.venv/bin/nrr-report 7d -q
-    */15   * *   *   *   /srv/raster-feeder/.venv/bin/nrr-report 7d
+    $ .venv/bin/nrr-init    # create stores and configs 
+    $ .venv/bin/nrr-store   # store data from nrr files
+    $ .venv/bin/nrr-move    # move data from one store in the group to another
+    $ .venv/bin/nrr-merge   # merge data from sereveral stores to a single store
+    $ .venv/bin/nrr-report  # report on the quality and / or completeness of
+                            # stored data
 
 
 Forecasts
@@ -133,16 +117,12 @@ To create the group of rotating stores (per product)::
     $ .venv/bin/harmonie-init
     $ .venv/bin/steps-init
 
-To have the stores automatically rotate at predetermined times, use crontab::
+And to rotate the data::
 
-    # Rotate forecast stores
-    # m    h      dom mon dow command
-    0      *      *   *   *   /srv/raster-feeder/.venv/bin/alarmtester-rotate
-    */5    *      *   *   *   /srv/raster-feeder/.venv/bin/nowcast-rotate
-    19     5-23/6 *   *   *   /srv/raster-feeder/.venv/bin/harmonie-rotate
-    25-29,55-59 * *   *   *   /srv/raster-feeder/.venv/bin/steps-rotate  # aligned with model runs
-
-On staging, we use "\*/5" for the alarmtester to be able to test every 5 minutes.
+    $ .venv/bin/alarmtester-rotate
+    $ .venv/bin/nowcast-rotate
+    $ .venv/bin/harmonie-rotate
+    $ .venv/bin/steps-rotate
 
 
 Informing Lizard of changes to stores
@@ -151,7 +131,7 @@ Lizard RasterStore-objects will not be aware of changes by scripts defined
 here. Therefore a script is available to do exactly that, which may be
 incorporated in relevant cronjob lines::
 
-    $ bin/touch-lizard <uuid>
+    $ .venv/bin/touch-lizard <uuid>
 
 Forecast subpackages also offer a TOUCH_LIZARD setting that can be overridden
 in the localconfig to specify uuids to touch right after rotation.
