@@ -43,7 +43,7 @@ sentry-sdk==0.14.1
 Shapely==1.7.0
 six==1.14.0
 toolz==0.10.0
-turn==0.5
+turn==1.0
 urllib3==1.25.8
 virtualenv==20.0.3
 zipp==2.2.0
