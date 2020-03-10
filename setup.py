@@ -64,6 +64,7 @@ setup(name='raster_feeder',
               # STEPS
               'steps-init = raster_feeder.steps.init:main',
               'steps-rotate = raster_feeder.steps.rotate:main',
+              'steps-single = raster_feeder.steps.single:main',
               # ALARMTESTER
               'alarmtester-init = raster_feeder.alarmtester.init:main',
               'alarmtester-rotate = raster_feeder.alarmtester.rotate:main',
