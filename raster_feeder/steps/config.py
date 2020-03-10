@@ -30,6 +30,9 @@ ROI_ESPG32756 = 306074.77698, 6253527.45723, 319874.77698, 6265927.45723
 FORMAT = 'IDR311EN.RF3.%Y%m%d%H%M%S.nc'
 PATTERN = r'IDR311EN\.RF3\.[0-9]{14}\.nc'  # raw because invalid unicode
 
+# Percentile number for member selection
+PERCENTILE = 75
+
 # -------------------------------------------
 # settings to be overridden in localconfig.py
 # -------------------------------------------

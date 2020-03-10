@@ -40,7 +40,7 @@ def mkdtemp(*args, **kwargs):
         shutil.rmtree(dtemp)
 
 
-def extract_region(path):
+def extract_region(path, percentile):
     """
     Return latest steps data as raster store region.
 
@@ -106,10 +106,17 @@ def extract_region(path):
 
     # ensemble member selection
     sums = prcp_roi.reshape(len(prcp_roi), -1).sum(1)
-    p75 = np.percentile(sums, 75)
-    member = np.abs(sums - p75).argmin().item()
-    logger.info('Member sums are %s.', sums)
-    logger.info('Selecting member %s.', member)
+    sums_percentile = np.percentile(sums, percentile)
+    member = np.abs(sums - sums_percentile).argmin().item()
+
+    # put some effort in clear logging
+    sums_order = sums.argsort()
+    sums_integer = sums.astype("i8")
+    sums_pairs = zip(sums_order, sums_integer[sums_order])
+    sums_list = ", ".join(f"%s:%s" % p for p in sums_pairs)
+    logger.info(f"Sorted member sums:\n{sums_list}")
+    logger.info(f"{percentile}-percentile: {int(sums_percentile)}")
+    logger.info(f"Selecting nearest member: {member}:{sums_integer[member]}")
 
     # select member
     data = prcp[member]
@@ -156,7 +163,7 @@ def rotate_steps():
         with mkdtemp() as tdir:
             path = os.path.join(tdir, latest)
             server.retrieve_to_path(name=latest, path=path)
-            region = extract_region(path)
+            region = extract_region(path=path, percentile=config.PERCENTILE)
     except Exception:
         logger.exception('Error getting the steps data.')
 
