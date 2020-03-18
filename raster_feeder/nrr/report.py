@@ -64,7 +64,7 @@ def send_mail(report):
     msg['To'] = ','.join(config.REPORT_RECIPIENTS)
 
     # send
-    smtp = smtplib.SMTP(config.REPORT_SMTP_HOST)
+    smtp = smtplib.SMTP(config.REPORT_SMTP_HOST, port=25)
     smtp.sendmail(sender, recipients, msg.as_string())
     smtp.quit()
 
