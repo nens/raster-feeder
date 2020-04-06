@@ -16,10 +16,13 @@ LOG_DIR = PACKAGE_DIR / "var" / "log"
 STORE_DIR.mkdir(parents=True, exist_ok=True)
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
-# redis host for mtime cache and turn locking system
+# redis host for mtime cache
 REDIS_HOST = 'redis'
 REDIS_DB = 0
 REDIS_PASSWORD = None
+
+# redis host for turn locking system
+REDIS_HOST_TURN = 'redis'
 
 # Lizard API credentials
 LIZARD_USERNAME = 'override'

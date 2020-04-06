@@ -58,11 +58,7 @@ def move(time_name, source_name, target_name):
     target = get_store(time_name=time_name, store_name=target_name)
 
     # promote
-    locker = turn.Locker(
-        host=config.REDIS_HOST,
-        db=config.REDIS_DB,
-        password=config.REDIS_PASSWORD
-    )
+    locker = turn.Locker(host=config.REDIS_HOST_TURN)
     label = 'move: {} => {}'.format(source_name, target_name)
     template = "Move from '{}/{}' into '{}/{}'."
     message = template.format(time_name, source_name, time_name, target_name)
