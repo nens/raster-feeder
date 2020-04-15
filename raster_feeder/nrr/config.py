@@ -12,10 +12,13 @@ from ..config import PACKAGE_DIR  # NOQA
 from ..config import STORE_DIR  # NOQA
 from ..config import LOG_DIR  # NOQA
 
-# Redis
+# Redis for mtime cache
 from ..config import REDIS_PASSWORD  # NOQA
 from ..config import REDIS_HOST  # NOQA
 from ..config import REDIS_DB  # NOQA
+
+# Redis for turn
+from ..config import REDIS_HOST_TURN  # NOQA
 
 # data is read from here
 CALIBRATE_DIR = PACKAGE_DIR / "var" / "calibrate"

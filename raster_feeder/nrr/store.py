@@ -270,11 +270,7 @@ def command(text, delivery, timeframes, prodcodes):
     )
     logger.info(message)
 
-    locker = turn.Locker(
-        host=config.REDIS_HOST,
-        db=config.REDIS_DB,
-        password=config.REDIS_PASSWORD
-    )
+    locker = turn.Locker(host=config.REDIS_HOST_TURN)
     for timeframe in timeframes:
         for prodcode in prodcodes:  # use reversed order
 

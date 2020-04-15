@@ -44,8 +44,8 @@ class TestRotateSteps(unittest.TestCase):
         rotate_steps()
 
         extract_region_patch = patches['extract_region']
-        self.assertEqual(extract_region_patch.call_count, 1)
-        self.assertIn(correct, extract_region_patch.call_args[0][0])
+        assert extract_region_patch.call_count == 1
+        assert extract_region_patch.call_args[1]["path"].endswith(correct)
 
     def test_pick_newest(self, **patches):
         patches['FTPServer'].return_value = self.mock_ftp
@@ -58,8 +58,8 @@ class TestRotateSteps(unittest.TestCase):
         rotate_steps()
 
         extract_region_patch = patches['extract_region']
-        self.assertEqual(extract_region_patch.call_count, 1)
-        self.assertIn(correct, extract_region_patch.call_args[0][0])
+        assert extract_region_patch.call_count == 1
+        assert extract_region_patch.call_args[1]["path"].endswith(correct)
 
     def test_no_files(self, **patches):
         patches['FTPServer'].return_value = self.mock_ftp
@@ -70,7 +70,7 @@ class TestRotateSteps(unittest.TestCase):
         rotate_steps()
 
         extract_region_patch = patches['extract_region']
-        self.assertEqual(extract_region_patch.call_count, 0)
+        assert extract_region_patch.call_count == 0
 
     def test_file_already_done(self, **patches):
         patches['FTPServer'].return_value = self.mock_ftp
@@ -83,7 +83,7 @@ class TestRotateSteps(unittest.TestCase):
         rotate_steps()
 
         extract_region_patch = patches['extract_region']
-        self.assertEqual(extract_region_patch.call_count, 0)
+        assert extract_region_patch.call_count == 0
 
     def test_file_is_newer(self, **patches):
         patches['FTPServer'].return_value = self.mock_ftp
@@ -96,8 +96,8 @@ class TestRotateSteps(unittest.TestCase):
         rotate_steps()
 
         extract_region_patch = patches['extract_region']
-        self.assertEqual(extract_region_patch.call_count, 1)
-        self.assertIn(correct, extract_region_patch.call_args[0][0])
+        assert extract_region_patch.call_count == 1
+        assert extract_region_patch.call_args[1]["path"].endswith(correct)
 
     def test_file_is_older(self, **patches):
         patches['FTPServer'].return_value = self.mock_ftp
@@ -110,13 +110,13 @@ class TestRotateSteps(unittest.TestCase):
         rotate_steps()
 
         extract_region_patch = patches['extract_region']
-        self.assertEqual(extract_region_patch.call_count, 0)
+        assert extract_region_patch.call_count == 0
 
 
 @mark.skipif(not TESTDATA_PATH.exists(), reason='No testdata available.')
 class TestExtract(unittest.TestCase):
     def test_bands(self):
-        region = extract_region(str(TESTDATA_PATH))
+        region = extract_region(path=TESTDATA_PATH, percentile=75)
         self.assertEqual(region.box.data.shape[0], config.DEPTH)
 
 
