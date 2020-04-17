@@ -63,4 +63,7 @@ def main():
     logging.basicConfig(**basic)
 
     # run
-    merge(**kwargs)
+    try:
+        merge(**kwargs)
+    except Exception:
+        logger.exception('An exception occurred:')

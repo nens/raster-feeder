@@ -115,4 +115,7 @@ def main():
     logging.basicConfig(**basic)
 
     # run
-    move(**kwargs)
+    try:
+        move(**kwargs)
+    except Exception:
+        logger.exception('An exception occurred:')
