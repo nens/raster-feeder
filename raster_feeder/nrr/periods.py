@@ -19,10 +19,7 @@ UNITS = {'m': 'minutes', 'h': 'hours', 'd': 'days', 'w': 'weeks'}
 
 def parse_datetime(text):
     """ Return a datetime instance. """
-    if len(text) == 4:
-        # ciso8601 requires at least months to be specified
-        return ciso8601.parse_datetime_unaware(text + '01')
-    return ciso8601.parse_datetime_unaware(text)
+    return ciso8601.parse_datetime(text)
 
 
 def parse(text):
@@ -35,7 +32,7 @@ def parse(text):
         period: 2d - now
     """
     if '/' in text:
-        return map(parse_datetime, text.split('/'))
+        return [parse_datetime(t) for t in text.split('/')]
     now = datetime.datetime.utcnow()
     match = PERIOD.match(text)
     if match:

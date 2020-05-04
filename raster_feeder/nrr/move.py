@@ -44,7 +44,7 @@ def move_target_chunk_equivalent(source, target):
 
     # let's move
     logger.info('Move between {} and {}.'.format(start, stop))
-    target.update(source, start=start, stop=stop)
+    target.update(source, start=start, stop=stop, multi=False)
     source.delete(start=start, stop=stop)
 
 
@@ -109,8 +109,8 @@ def main():
                  'level': logging.INFO,
                  'format': '%(message)s'}
     else:
-        basic = {'level': logging.INFO,
-                 'format': '%(asctime)s %(levelname)s %(message)s',
+        basic = {'level': logging.DEBUG,
+                 'format': '%(asctime)s %(name)s %(levelname)s %(message)s',
                  'filename': os.path.join(config.LOG_DIR, 'nrr_move.log')}
     logging.basicConfig(**basic)
 

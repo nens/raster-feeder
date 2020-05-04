@@ -12,7 +12,7 @@ install_requires = [
     'ciso8601',
     'dask-geomodeling',
     'gdal',
-    'h5py==2.7.0',
+    'h5py==2.8.0',
     'netCDF4',
     'numpy',
     'pygrib',
