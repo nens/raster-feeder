@@ -34,7 +34,7 @@ pyproj==1.9.5.1
 python-dateutil==2.8.1
 pytz==2019.3
 pyxdg==0.25
-raster-store==4.1.4
+-e git+https://github.com/nens/raster-store@bb991db528075812c6d29a609cb24b4c77a88db7#egg=raster_store
 redis==3.4.1
 requests==2.22.0
 scipy==1.4.1
