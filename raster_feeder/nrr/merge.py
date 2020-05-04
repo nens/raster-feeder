@@ -57,8 +57,8 @@ def main():
                  'level': logging.INFO,
                  'format': '%(message)s'}
     else:
-        basic = {'level': logging.INFO,
-                 'format': '%(asctime)s %(levelname)s %(message)s',
+        basic = {'level': logging.DEBUG,
+                 'format': '%(asctime)s %(name)s %(levelname)s %(message)s',
                  'filename': os.path.join(config.LOG_DIR, 'nrr_merge.log')}
     logging.basicConfig(**basic)
 
