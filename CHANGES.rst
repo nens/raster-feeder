@@ -15,6 +15,8 @@ Changelog of raster-feeder
 
 - Use python3, virtualenv, pytest.
 
+- Add no_binary build option for h5py.
+
 
 0.6 (2019-07-24)
 ----------------

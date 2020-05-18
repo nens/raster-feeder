@@ -55,7 +55,7 @@ Installation::
     $ sudo pip3 install --upgrade pip virtualenv
     $ virtualenv --system-site-packages .venv
     $ source .venv/bin/activate
-    (virtualenv)$ pip install -r requirements.txt --index-url https://packages.lizard.net
+    (virtualenv)$ pip install -r requirements.txt --index-url https://packages.lizard.net --no-binary=h5py
     (virtualenv)$ pip install -e .
 
 

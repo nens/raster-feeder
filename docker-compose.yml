@@ -7,6 +7,7 @@ services:
       - redis
     environment:
       - DOCKER=True
+      - PIP_NO_BINARY=h5py
       - PYTHONUNBUFFERED=1
       - SHELL=/bin/bash
     volumes:
