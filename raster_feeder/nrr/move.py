@@ -44,7 +44,7 @@ def move_target_chunk_equivalent(source, target):
 
     # let's move
     logger.info('Move between {} and {}.'.format(start, stop))
-    target.update(source, start=start, stop=stop)
+    target.update(source, start=start, stop=stop, multi=False)
     source.delete(start=start, stop=stop)
 
 

@@ -35,7 +35,7 @@ def parse(text):
         period: 2d - now
     """
     if '/' in text:
-        return map(parse_datetime, text.split('/'))
+        return [parse_datetime(t) for t in text.split('/')]
     now = datetime.datetime.utcnow()
     match = PERIOD.match(text)
     if match:
