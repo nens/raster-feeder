@@ -9,7 +9,7 @@ click==7.1.2
 click-plugins==1.1.1
 cligj==0.5.0
 cloudpickle==1.4.1
-cryptography==2.1.4
+cryptography==2.3
 dask==2.16.0
 dask-geomodeling==2.2.7
 distlib==0.3.0
