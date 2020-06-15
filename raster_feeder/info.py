@@ -46,7 +46,7 @@ def summary(group):
 
 def blockinfo(path):
     """ Show store representation. """
-    geoblock = load(path)
+    geoblock = load(path, cold=True)
     if isinstance(geoblock, Group):
         print(summary(geoblock))
     else:
