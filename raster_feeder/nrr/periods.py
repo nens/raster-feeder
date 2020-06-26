@@ -13,7 +13,7 @@ import ciso8601
 from raster_store import utils
 
 # period parsing
-PERIOD = re.compile('([0-9]{1,2})([mhdw])')
+PERIOD = re.compile('([0-9]{1,3})([mhdw])')
 UNITS = {'m': 'minutes', 'h': 'hours', 'd': 'days', 'w': 'weeks'}
 
 
