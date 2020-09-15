@@ -5,8 +5,6 @@ Changelog of raster-feeder
 0.7 (unreleased)
 ----------------
 
-- Bump raster-store to 4.1.4
-
 - Added more meaningful error when nowcast files missing.
 
 - New Harmonie version.
@@ -16,6 +14,9 @@ Changelog of raster-feeder
 - Use python3, virtualenv, pytest.
 
 - Add no_binary build option for h5py.
+
+- Bump raster-store to 4.2.5
+
 
 
 0.6 (2019-07-24)
