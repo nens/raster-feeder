@@ -8,6 +8,7 @@ import argparse
 import logging
 import os
 import sys
+import time
 
 from raster_store import load
 
@@ -45,6 +46,10 @@ def move_target_chunk_equivalent(source, target):
     # let's move
     logger.info('Move between {} and {}.'.format(start, stop))
     target.update(source, start=start, stop=stop, multi=False)
+
+    # the exclusive create (for the lockfile) seems to make the share nervous,
+    # so some rest time is added here
+    time.sleep(20)
     source.delete(start=start, stop=stop)
 
 
