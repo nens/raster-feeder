@@ -54,6 +54,7 @@ setup(name='raster_feeder',
               'nrr-move = raster_feeder.nrr.move:main',
               'nrr-report = raster_feeder.nrr.report:main',
               'nrr-store = raster_feeder.nrr.store:main',
+              'nrr-export = raster_feeder.nrr.export:main',
               # NOWCAST
               'nowcast-init = raster_feeder.nowcast.init:main',
               'nowcast-rotate = raster_feeder.nowcast.rotate:main',
