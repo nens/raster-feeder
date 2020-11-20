@@ -6,21 +6,19 @@ Export aggregated data from an NRR raster-store into separate GeoTIFF files.
 from contextlib import contextmanager
 from datetime import datetime as Datetime
 from datetime import timedelta as Timedelta
+from os import makedirs
 from os.path import exists, join
+from time import sleep
 
 import argparse
-import logging
-import os
-# import time
 
 from osgeo import gdal
+from osgeo import osr
 from raster_store import datasets
 from raster_store import load
 import numpy as np
 
 from . import config
-
-logger = logging.getLogger(__name__)
 
 GEO_TRANSFORM = -110000, 1000, 0, 700000, 0, -1000
 PROJECTION = "EPSG:28992"
@@ -39,7 +37,7 @@ REQUEST = {
 KWARGS = {
     'geo_transform': GEO_TRANSFORM,
     'no_data_value': NO_DATA_VALUE,
-    'projection': PROJECTION,
+    'projection': osr.GetUserInputAsWKT(PROJECTION),
 }
 
 DTYPE = 'f4'
@@ -132,19 +130,25 @@ def get_dataset(store, datetimes):
 def export(product, period, path, size):
     store = get_store(product)
     for datetimes in get_datetimes(store=store, period=period, size=size):
+        timestamps = [d.strftime('%Y%m%d%H%M') for d in datetimes]
         # destination path
-        tif_name = datetimes[-1].strftime('%Y%m%d%H%M.tif')
+        tif_name = timestamps[-1] + '.tif'
         tif_dir = join(path, tif_name[0:4], tif_name[4:6], tif_name[6:8])
         tif_path = join(tif_dir, tif_name)
-        os.makedirs(tif_dir, exist_ok=True)
+        makedirs(tif_dir, exist_ok=True)
 
         if exists(tif_path):
             print(f'Skip {tif_path}')
             continue
 
         with get_dataset(store=store, datetimes=datetimes) as dataset:
+            dataset.SetMetadata(
+                {'product': product, 'timestamps': ','.join(timestamps)},
+            )
             print(f'Save {tif_path}')
             GTIFF.CreateCopy(tif_path, dataset, options=['compress=deflate'])
+
+        sleep(1)
 
 
 def get_parser():
