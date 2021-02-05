@@ -5,9 +5,11 @@ Stores latest data in a rotating raster store group.
 """
 
 from datetime import timedelta as Timedelta
+from datetime import datetime as Datetime
 from os.path import join
 
 import argparse
+import io
 import logging
 import struct
 import sys
@@ -15,15 +17,121 @@ import tarfile
 
 import numpy as np
 import pygrib
+import requests
 from osgeo import osr
 
 from raster_store import load
 from raster_store import regions
 
-from ..common import rotate, touch_lizard, FTPServer
+from ..common import rotate, touch_lizard
 from . import config
 
 logger = logging.getLogger(__name__)
+
+
+class Dataset:
+    """
+    Represents a KNMI dataplatform daraset. Copied from nens/ftp_feeder.
+    """
+    URL = (
+        "https://api.dataplatform.knmi.nl/open-data/"
+        "datasets/{dataset}/versions/{version}/files/"
+    )
+    HEADERS = {"Authorization": config.API_KEY}
+
+    def __init__(self, dataset, version, step, pattern):
+        """Represents a Dataplatform Dataset.
+
+        Args:
+            dataset (str): dataset name
+            version (str): dataset version
+        """
+        self.url = self.URL.format(dataset=dataset, version=version)
+        self.timedelta = Timedelta(**step)
+        self.pattern = pattern
+
+    def _verify(self, items, start_after_filename=""):
+        """ Return verified items.
+
+        This uses the files API to check if the items' files exist and have
+        modificationDate after item's  datetime.
+        """
+        response = requests.get(
+            self.url,
+            headers=self.HEADERS,
+            params={
+                "maxKeys": len(items),
+                "startAfterFilename": start_after_filename,
+            }
+        )
+
+        # lookup dictionary for modification times
+        last_modified = {}
+        for record in response.json()["files"]:
+            last_modified[record["filename"]] = record["lastModified"]
+
+        # only items with modification date after product date are allowed
+        verified = []
+        for item in items:
+            # note that "" will be smaller than any ISO datetime
+            item_last_modified = last_modified.get(item["filename"], "")
+            if item_last_modified > item["datetime"].isoformat():
+                verified.append(item)
+
+        return verified
+
+    def latest(self, count=1):
+        """Return list of (filename, datetime) tuples.
+
+        Args:
+            count (int): Number of files in the past to list.
+
+        The result may be shorter then count because the API is actually used
+        to check if the expected files are actually available.
+        """
+        # determine the timestamps where files are expected
+        now = Datetime.utcnow()
+        midnight = Datetime(now.year, now.month, now.day)
+        step_of_day = ((now - midnight) // self.timedelta)
+        dt_last = midnight + self.timedelta * step_of_day
+
+        # note we generate one extra into the past for the
+        # startAfterFilename parameter
+        items = []
+        for stepcount in range(-count, 1):
+            datetime = dt_last + stepcount * self.timedelta
+            filename = datetime.strftime(self.pattern)
+            items.append({"filename": filename, "datetime": datetime})
+
+        # make to lists for the verification
+        start_after_filename = items[0]["filename"]
+        from_start = []
+        after_filename = []
+        for item in items[1:]:
+            if item["filename"] > start_after_filename:
+                after_filename.append(item)
+            else:
+                from_start.append(item)
+
+        # verify lists using API
+        verified_from_start = self._verify(items=from_start)
+        verified_after_filename = self._verify(
+            items=after_filename, start_after_filename=start_after_filename,
+        )
+        return verified_after_filename + verified_from_start
+
+    def _get_download_url(self, filename):
+        """ Return temporary download url for filename.
+        """
+        response = requests.get(
+            "{url}/{filename}/url".format(url=self.url, filename=filename),
+            headers=self.HEADERS,
+        )
+        return response.json().get("temporaryDownloadUrl")
+
+    def retrieve(self, filename):
+        url = self._get_download_url(filename)
+        return requests.get(url).content
 
 
 def vapor_pressure_slope(temperature):
@@ -200,23 +308,21 @@ def rotate_harmonie():
 
     # retrieve updated data
     try:
-        server = FTPServer(**config.FTP)
-        latest = server.get_latest_match(config.PATTERN)
+        dataset = Dataset(**config.DATASET)
+        latest = dataset.latest()[0]
+        logger.info('Latest available: %s', latest['filename'])
     except Exception:
-        logger.exception('Error connecting to {}'.format(config.FTP['host']))
+        logger.exception('Error connecting to KNMI dataplatform API')
         return
 
-    if latest is None:
-        logger.info('No source files found on server, exiting.')
-        return
-
-    if current and latest <= current.strftime(config.FORMAT):
+    if current and latest['datetime'] <= current:
         logger.info('No update available, exiting.')
         return
 
     # download and process the file
     try:
-        fileobj = server.retrieve_to_stream(name=latest)
+        logger.info('Retrieving: %s', latest['filename'])
+        fileobj = io.BytesIO(dataset.retrieve(latest['filename']))
     except Exception:
         logger.exception('Error retrieving {}'.format(latest))
         return

@@ -76,9 +76,13 @@ PERIOD_REFERENCE = 'harmonie-inr'  # because it actually starts at step 0
 GEO_TRANSFORM = -0.0185, 0.037, 0, 55.8885, 0, -0.023
 PROJECTION = 'EPSG:4326'
 
-# remote file name strftime() format
-FORMAT = 'harm40_v1_p1_%Y%m%d%H.tar'
-PATTERN = r'harm40_v1_p1_[0-9]{10}\.tar'
+# dataplatform info
+DATASET = {
+    "dataset": "harmonie_arome_cy40_p1",
+    "version": "0.2",
+    "pattern": "harm40_v1_p1_%Y%m%d%H.tar",
+    "step": {"hours": 6},
+}
 
 # -------------------------------------------
 # settings to be overridden in localconfig.py
@@ -89,6 +93,9 @@ FTP = dict(host='', user='', password='', path='')
 
 # Lizard RasterStore UUIDs to touch
 TOUCH_LIZARD = []
+
+# KNMI dataplatform API
+API_KEY = None
 
 # import local settings
 try:
