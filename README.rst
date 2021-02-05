@@ -17,26 +17,23 @@ For development, you can use a docker-compose setup::
     $ docker-compose start
     $ docker-compose exec lib bash
 
-(Re)create & activate a virtualenv::
+Create a virtualenv::
 
-    (docker)$ rm -rf .venv
-    (docker)$ virtualenv --system-site-packages .venv
-    (docker)$ source .venv/bin/activate
+    # note that Dockerfile prepends .venv/bin to $PATH
+    (docker)$ virtualenv .venv --system-site-packages
 
 Install dependencies & package and run tests::
 
-    (docker)(virtualenv)$ pip install -r requirements.txt --index-url https://packages.lizard.net
-    (docker)(virtualenv)$ pip install -e .[test]
-    (docker)(virtualenv)$ pytest
+    (docker)$ pip install -r requirements.txt --index-url https://packages.lizard.net
+    (docker)$ pip install -e .[test]
+    (docker)$ pytest
 
-Update requirements.txt::
+Update packages::
     
     (docker)$ rm -rf .venv
     (docker)$ virtualenv --system-site-packages .venv
-    (docker)$ source .venv/bin/activate
-    (docker)(virtualenv)$ pip install . --index-url https://packages.lizard.net
-    (docker)(virtualenv)$ pip uninstall raster-feeder --yes
-    (docker)(virtualenv)$ pip freeze > requirements.txt
+    (docker)$ pip install . --index-url https://packages.lizard.net
+    (docker)$ pip freeze | grep -v threedidepth > requirements.txt
 
 
 Server installation
