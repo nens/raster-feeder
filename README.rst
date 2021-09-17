@@ -72,27 +72,6 @@ In the nens/rr-task a collection of configurations is available
 to symlink to from this project, as well as crontabs for scheduling the various
 scripts.
 
-NRR
----
-
-Scripts to feed local NRR precipitation datafiles into a group of raster stores
-that enable efficient access of data over the complete growing dataset. Since
-the NRR data comes in different quality types of varying batch sizes, at first
-each quality type is stored in its own raster-store. A separate command merges
-them into an intermediate raster-store in a quality-aware way. Finally, a move
-command moves them to yet another raster-store for final storage.
-
-This process takes place for each of the NRR time resolutions, (f)ive minutes,
-(h)our and (d)ay. Available commands::
-
-    $ .venv/bin/nrr-init    # create stores and configs 
-    $ .venv/bin/nrr-store   # store data from nrr files
-    $ .venv/bin/nrr-move    # move data from one store in the group to another
-    $ .venv/bin/nrr-merge   # merge data from sereveral stores to a single store
-    $ .venv/bin/nrr-report  # report on the quality and / or completeness of
-                            # stored data
-
-
 Forecasts
 ---------
 
@@ -138,3 +117,27 @@ TODO
 ----
 - Generic FTP downloader in common module, possibly after the steps server
   class.
+
+
+NRR (Deprecated)
+----------------
+
+NOTE nrr stores are no longer fed from raster-feeder, but directly pushed to
+lizard as implemented via the code for nationalie-regenradar-v2.
+
+Scripts to feed local NRR precipitation datafiles into a group of raster stores
+that enable efficient access of data over the complete growing dataset. Since
+the NRR data comes in different quality types of varying batch sizes, at first
+each quality type is stored in its own raster-store. A separate command merges
+them into an intermediate raster-store in a quality-aware way. Finally, a move
+command moves them to yet another raster-store for final storage.
+
+This process takes place for each of the NRR time resolutions, (f)ive minutes,
+(h)our and (d)ay. Available commands::
+
+    $ .venv/bin/nrr-init    # create stores and configs 
+    $ .venv/bin/nrr-store   # store data from nrr files
+    $ .venv/bin/nrr-move    # move data from one store in the group to another
+    $ .venv/bin/nrr-merge   # merge data from sereveral stores to a single store
+    $ .venv/bin/nrr-report  # report on the quality and / or completeness of
+                            # stored data
