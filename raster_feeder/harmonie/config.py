@@ -10,8 +10,8 @@ from ..config import PACKAGE_DIR  # NOQA
 from ..config import STORE_DIR  # NOQA
 from ..config import LOG_DIR  # NOQA
 
-# parameters, names, depths, see http://projects.knmi.nl/datacentrum/
-# catalogus/catalogus/content/nl-nwp-harm40-grid-p1.html
+# parameters, names, depths, see https://www.knmidata.nl/data-services/
+# knmi-producten-overzicht/atmosfeer-modeldata/data-product-1
 
 # rain intensity
 rain_intensity = {
