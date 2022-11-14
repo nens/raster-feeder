@@ -9,11 +9,12 @@ from os.path import basename, exists, join
 import logging
 import os
 
-import requests
-import turn
 import ftplib
 import io
 import re
+import requests
+import turn
+import urllib3
 
 from raster_store import load
 from raster_store import stores
@@ -138,6 +139,24 @@ def remove_lockfile(store):
         remove(lockpath)
 
 
+def get_requests_session(retries=3, backoff_factor=1):
+    """
+    Return a requests session with urllib3 retry functionality.
+
+    Args:
+        retries: Total number of retries per request
+        backoff_factor: multiplier for retry delay times (1, 2, 4, ...)
+
+    Copied from lizard.
+    """
+    session = requests.Session()
+    retry = urllib3.util.retry.Retry(retries, backoff_factor=backoff_factor)
+    adapter = requests.adapters.HTTPAdapter(max_retries=retry)
+    session.mount(prefix="http://", adapter=adapter)
+    session.mount(prefix="https://", adapter=adapter)
+    return session
+
+
 def touch_lizard(raster_uuid):
     """Update the raster store metadata using the Lizard API."""
     url = config.LIZARD_TEMPLATE.format(raster_uuid=raster_uuid)
@@ -146,7 +165,9 @@ def touch_lizard(raster_uuid):
         'password': config.LIZARD_PASSWORD,
     }
 
-    resp = requests.post(url, headers=headers)
+    session = get_requests_session()
+    resp = session.post(url, headers=headers)
+
     short_uuid = raster_uuid.split('-')[0]
     if resp.ok:
         logger.info(

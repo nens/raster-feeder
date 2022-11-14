@@ -24,6 +24,7 @@ Create a virtualenv::
 
 Install dependencies & package and run tests::
 
+    (docker)$ virtualenv .venv --system-site-packages
     (docker)$ pip install -r requirements.txt --index-url https://packages.lizard.net
     (docker)$ pip install -e .[test]
     (docker)$ pytest
@@ -33,7 +34,7 @@ Update packages::
     (docker)$ rm -rf .venv
     (docker)$ virtualenv --system-site-packages .venv
     (docker)$ pip install . --index-url https://packages.lizard.net
-    (docker)$ pip freeze | grep -v threedidepth > requirements.txt
+    (docker)$ pip freeze | grep -v raster-feeder > requirements.txt
 
 
 Server installation

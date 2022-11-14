@@ -15,7 +15,9 @@ Changelog of raster-feeder
 
 - Add no_binary build option for h5py.
 
-- Bump raster-store to 4.2.5
+- Use Retry policy when touching lizard.
+
+- Bump raster-store to 4.4.3
 
 
 

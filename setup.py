@@ -22,6 +22,7 @@ install_requires = [
     'sentry-sdk',
     'setuptools',
     'turn',
+    'urllib3',
     ]
 
 tests_require = ["flake8", "ipdb", "ipython", "pytest", "pytest-cov"]
