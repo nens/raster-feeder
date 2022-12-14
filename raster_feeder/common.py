@@ -113,7 +113,7 @@ def rotate(path, region, resource, label='rotate'):
 
         # put the region in the new store
         try:
-            new.update([region])
+            new.update([region], multi=False)
         except Exception:
             logger.exception('Update error during rotation.')
             remove_lockfile(new)
