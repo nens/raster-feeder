@@ -17,12 +17,12 @@ STORE_DIR.mkdir(parents=True, exist_ok=True)
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 # redis host for mtime cache
-REDIS_HOST = 'redis'
+REDIS_HOST = 'localhost'
 REDIS_DB = 0
 REDIS_PASSWORD = None
 
 # redis host for turn locking system
-REDIS_HOST_TURN = 'redis'
+REDIS_HOST_TURN = 'localhost'
 
 # Lizard API credentials
 LIZARD_USERNAME = 'override'
